@@ -77,7 +77,12 @@ configuration = "Release"
 
 ## GitHub Actions
 
-仓库中的 `.github/workflows/build.yml` 会在 macOS Runner 上安装 Theos、校验 iOS 15 目标并构建示例插件。正式项目建议把签名证书、Provisioning Profile 和密码放进 GitHub Secrets，不要提交到仓库。
+仓库中的 `.github/workflows/build.yml` 已命名为 **GitHub Actions**，支持两种模式：
+
+1. 推送到 `main` 后自动在 macOS Runner 上安装 Theos、校验 iOS 15 目标并构建示例插件；
+2. 在 GitHub 的 **Actions → GitHub Actions → Run workflow** 中手动选择 `ipa`，填写 Xcode 工程、Scheme 和 `ExportOptions.plist`，构建并导出 IPA。
+
+插件产物会以 `iosforge-plugin` 上传，IPA 产物会以 `iosforge-ipa` 上传。正式项目建议把签名证书、Provisioning Profile 和密码放进 GitHub Secrets，不要提交到仓库；IPA 是否可安装取决于你自己的 Apple 签名配置。
 
 ## 设计边界
 
