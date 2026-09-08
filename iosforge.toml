@@ -1,0 +1,16 @@
+[project]
+name = "Hello iOSForge"
+kind = "tweak"
+minimum_ios = "15.0"
+
+[theos]
+project_dir = "examples/hello-tweak"
+
+# For local builds you can set this path, or simply export THEOS.
+# root = "/opt/theos"
+
+[app]
+# Fill these in when this repository also contains an Xcode project.
+# project = "MyApp.xcodeproj"
+# scheme = "MyApp"
+configuration = "Release"
