@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "iosforge"
+version = "0.1.0"
+description = "An iOS 15+ plugin and IPA build workflow starter"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "mango6i" }]
+dependencies = []
+
+[project.scripts]
+iosforge = "iosforge.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["iosforge*"]
