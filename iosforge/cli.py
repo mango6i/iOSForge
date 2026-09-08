@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import replace
 from pathlib import Path
 import sys
 
@@ -31,7 +32,8 @@ def parser() -> argparse.ArgumentParser:
     app = commands.add_parser("build-app", help="archive and export an Xcode app into an IPA")
     app.add_argument("--project", type=Path, help="override [app].project")
     app.add_argument("--scheme", help="override [app].scheme")
-    app.add_argument("--export-options", type=Path, required=True)
+    app.add_argument("--unsigned", action="store_true", help="package an unsigned IPA without Apple certificates or export options")
+    app.add_argument("--export-options", type=Path, help="required only for signed export")
     app.add_argument("--output-dir", type=Path, default=Path("dist"))
 
     ipa = commands.add_parser("package-ipa", help="package an existing .app directory as an IPA")
@@ -48,6 +50,12 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         manifest = Manifest.load(args.manifest)
+        if args.command == "build-app":
+            manifest = replace(
+                manifest,
+                app_project=args.project.resolve() if args.project else manifest.app_project,
+                app_scheme=args.scheme or manifest.app_scheme,
+            )
         errors = manifest.validate()
         if errors:
             for error in errors:
@@ -62,14 +70,10 @@ def main(argv: list[str] | None = None) -> int:
             for path in build_deb(manifest, args.output_dir):
                 print(f"Created {path}")
         elif args.command == "build-app":
-            if args.project:
-                object.__setattr__(manifest, "app_project", args.project.resolve())
-            if args.scheme:
-                object.__setattr__(manifest, "app_scheme", args.scheme)
-            for path in build_app(manifest, args.output_dir, args.export_options.resolve()):
+            export_options = args.export_options.resolve() if args.export_options else None
+            for path in build_app(manifest, args.output_dir, export_options, unsigned=args.unsigned):
                 print(f"Created {path}")
         return 0
     except (ManifestError, BuildError, ValueError, FileNotFoundError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
-

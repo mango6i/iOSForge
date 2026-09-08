@@ -30,8 +30,16 @@ on:
         required: false
         default: ""
         type: string
+      ipa_signing:
+        description: "IPA 模式：unsigned 无证书（巨魔/后续自签）；signed 证书导出"
+        required: true
+        default: unsigned
+        type: choice
+        options:
+          - unsigned
+          - signed
       export_options:
-        description: "ExportOptions.plist 路径"
+        description: "仅 signed 模式需要：ExportOptions.plist 路径"
         required: false
         default: ExportOptions.plist
         type: string
@@ -138,29 +146,38 @@ jobs:
           XCODE_PROJECT: ${{ inputs.xcode_project }}
           XCODE_SCHEME: ${{ inputs.xcode_scheme }}
           EXPORT_OPTIONS: ${{ inputs.export_options }}
+          IPA_SIGNING: ${{ inputs.ipa_signing }}
         shell: bash
         run: |
           set -euo pipefail
           test -n "$XCODE_PROJECT" || { echo "请填写 xcode_project"; exit 1; }
           test -n "$XCODE_SCHEME" || { echo "请填写 xcode_scheme"; exit 1; }
-          test -f "$XCODE_PROJECT" || { echo "找不到 Xcode 工程: $XCODE_PROJECT"; exit 1; }
-          test -f "$EXPORT_OPTIONS" || { echo "找不到 ExportOptions.plist: $EXPORT_OPTIONS"; exit 1; }
+          test -d "$XCODE_PROJECT" || { echo "找不到 Xcode 工程目录: $XCODE_PROJECT"; exit 1; }
+          case "$IPA_SIGNING" in
+            unsigned) echo "无证书编译：无需 Apple 证书、描述文件或 ExportOptions.plist。" ;;
+            signed) test -f "$EXPORT_OPTIONS" || { echo "找不到 ExportOptions.plist: $EXPORT_OPTIONS"; exit 1; } ;;
+            *) echo "未知 IPA 模式: $IPA_SIGNING"; exit 1 ;;
+          esac
       - name: Build and export IPA
         env:
           XCODE_PROJECT: ${{ inputs.xcode_project }}
           XCODE_SCHEME: ${{ inputs.xcode_scheme }}
           EXPORT_OPTIONS: ${{ inputs.export_options }}
+          IPA_SIGNING: ${{ inputs.ipa_signing }}
         shell: bash
         run: |
           set -euo pipefail
+          signing_args=(--unsigned)
+          if [ "$IPA_SIGNING" = "signed" ]; then
+            signing_args=(--export-options "$EXPORT_OPTIONS")
+          fi
           iosforge build-app \
             --project "$XCODE_PROJECT" \
             --scheme "$XCODE_SCHEME" \
-            --export-options "$EXPORT_OPTIONS" \
+            "${signing_args[@]}" \
             --output-dir dist
       - uses: actions/upload-artifact@v4
         with:
-          name: iosforge-ipa
+          name: iosforge-ipa-${{ inputs.ipa_signing }}
           path: dist/*.ipa
           if-no-files-found: error
-

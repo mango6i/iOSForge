@@ -6,24 +6,24 @@
 
 - 用 Theos/Logos 编译自己编写的 rootless 动态库插件；
 - 需要插件包时生成 `.deb`；
-- 用自己的 Xcode 工程和 Apple 签名配置导出 `.ipa`；
+- 用自己的 Xcode 工程无证书编译 `.ipa`，交给巨魔或自签工具处理；也保留 Apple 证书导出模式；
 - 通过网页控制台触发 GitHub Actions，并下载构建产物。
 
 ## 最简单的使用方式
 
-打开仓库的 **Actions → GitHub Actions → Run workflow**，选择：
+打开[网页工作台](https://mango6i.github.io/iOSForge/)，按第二项[使用指南](https://mango6i.github.io/iOSForge/guide.html)逐步准备和构建。也可以在仓库的 **Actions → GitHub Actions → Run workflow** 中选择：
 
 - `dylib`：生成动态库；
 - `deb`：生成 Debian 插件包；
-- `ipa`：构建并导出 IPA。
+- `ipa`：构建 IPA；`ipa_signing` 默认 `unsigned`，不需要 Apple 证书或导出配置。
 
-推送到 `main` 时会自动检查你的 Theos 工程；如果仓库还没有配置源码，流程会安全跳过插件构建。上传并配置自己的工程后，推送到 `main` 就会自动生成 `.dylib`。Windows 电脑不需要安装 Xcode，GitHub 会使用 macOS Runner 完成 iOS 原生构建。
+修改 `iosforge/**`、`iosforge.toml`、`pyproject.toml` 或编译工作流后推送到 `main`，会自动检查 Theos 工程；未配置源码时会跳过插件构建。仅修改自己的其他源码目录时，请从网页手动启动构建，或把实际目录加入工作流的 push 路径规则。Windows 电脑不需要安装 Xcode，GitHub 会使用 macOS Runner 完成 iOS 原生构建。
 
 网页控制台位于 [`web/`](web/)。第一次发布时，在 **Settings → Pages → Source** 选择 **GitHub Actions**，然后运行 `Publish iOSForge Web`。网页不会保存 GitHub Token，只在当前页面内存中调用 GitHub API。
 
 ## 项目配置
 
-根目录的 [`iosforge.toml`](iosforge.toml) 固定最低系统版本为 iOS 15.0：
+根目录的 [`iosforge.toml`](iosforge.toml) 默认最低系统版本为 iOS 15.0，不允许低于 15.0：
 
 ```toml
 [project]
@@ -41,7 +41,20 @@ minimum_ios = "15.0"
 configuration = "Release"
 ```
 
-`kind` 支持 `tweak`、`app` 和 `hybrid`。Xcode 构建会自动使用 `IPHONEOS_DEPLOYMENT_TARGET=15.0`；IPA 是否可安装取决于你自己的证书、Provisioning Profile 和设备授权配置。
+`kind` 支持 `tweak`、`app` 和 `hybrid`。Xcode 构建使用配置的最低版本作为 `IPHONEOS_DEPLOYMENT_TARGET`，默认 15.0；Theos 工程还需在自己的 Makefile 中设置对应的 TARGET。源码与第三方依赖仍需兼容目标系统。
+
+## IPA 无证书编译
+
+1. 上传完整 Xcode 应用工程及依赖，确认 Scheme 已共享。
+2. 在网页选择 `.ipa`，保留默认的“无证书编译”。
+3. 填写工程路径（如 `MyApp.xcodeproj` 或 `MyApp.xcworkspace`）和 Scheme，然后启动构建。
+4. 下载 `iosforge-ipa-unsigned` 产物，解压外层 ZIP，得到 `MyApp-unsigned.ipa`。
+
+此模式关闭 Xcode 代码签名，直接将归档中的应用打包为 `Payload/*.app`，**不需要 Apple 开发者证书、Provisioning Profile 或 ExportOptions.plist**。嵌入的扩展、框架、文件权限与包内符号链接会随应用一起打包。
+
+未签名 IPA 不能直接在普通设备安装。已经安装且兼容 [TrollStore](https://github.com/opa334/TrollStore) 的设备可交给巨魔处理；其他用户应交给自己的签名工具签名后安装。iOS 15+ 编译支持不代表所有 iOS 15+ 都支持巨魔。特殊 entitlements 需按项目另行处理，无证书打包不会自动把权限文件嵌入二进制或授予特殊权限。
+
+如要使用证书导出，选择 `signed`，提供 `ExportOptions.plist`，并自行在工作流中配置证书与描述文件导入；本通用流程不会自动安装证书。完整说明见[指南第七节](https://mango6i.github.io/iOSForge/guide.html#ipa-config)。
 
 ## 本地命令
 
@@ -50,6 +63,9 @@ python -m pip install -e .
 iosforge validate
 iosforge build-dylib
 iosforge build-deb
+iosforge build-app --project MyApp.xcodeproj --scheme MyApp --unsigned
+# 已配置本地 Apple 签名环境时：
+iosforge build-app --project MyApp.xcodeproj --scheme MyApp --export-options ExportOptions.plist
 ```
 
 本地编译插件需要 Theos；Windows 用户建议直接使用 GitHub Actions。
@@ -69,4 +85,3 @@ iOSForge 只处理你拥有或获授权修改的项目，不包含破解、解�
 ## License
 
 MIT
-
