@@ -4,7 +4,7 @@
 
 iOSForge 不是破解或绕过签名的工具。它帮助你：
 
-- 用 Theos/Logos 编译你自己编写的 rootless tweak，提取可用的 `.dylib`；
+- 用 Theos/Logos 编译你自己编写的 rootless tweak，产出 `.dylib` 或 `.deb`；
 - 用 Xcode 构建你自己的 App，并在具备合法签名配置时导出 `.ipa`；
 - 把已有的 `.app` 安全地打包成 `Payload/*.app` 形式的 IPA；
 - 在 GitHub Actions 的 macOS Runner 上自动构建，Windows 用户也可以通过 GitHub 使用。
@@ -29,6 +29,8 @@ iOSForge 不是破解或绕过签名的工具。它帮助你：
 python -m pip install -e .
 iosforge validate
 iosforge build-dylib
+# 如需 Debian 包：
+iosforge build-deb
 ```
 
 编译插件前准备 Theos，并设置环境变量：
@@ -80,9 +82,14 @@ configuration = "Release"
 仓库中的 `.github/workflows/build.yml` 已命名为 **GitHub Actions**，支持两种模式：
 
 1. 推送到 `main` 后自动在 macOS Runner 上安装 Theos、校验 iOS 15 目标并构建示例 `.dylib`；
-2. 在 GitHub 的 **Actions → GitHub Actions → Run workflow** 中手动选择 `ipa`，填写 Xcode 工程、Scheme 和 `ExportOptions.plist`，构建并导出 IPA。
+2. 在 GitHub 的 **Actions → GitHub Actions → Run workflow** 中手动选择 `dylib`、`deb` 或 `ipa`；
+3. 构建 IPA 时填写 Xcode 工程、Scheme 和 `ExportOptions.plist`。
 
-插件产物会以 `iosforge-dylib` 上传，IPA 产物会以 `iosforge-ipa` 上传。`build-plugin` 仍然保留为兼容别名。正式项目建议把签名证书、Provisioning Profile 和密码放进 GitHub Secrets，不要提交到仓库；IPA 是否可安装取决于你自己的 Apple 签名配置。
+插件产物会以 `iosforge-dylib` 上传，Debian 包会以 `iosforge-deb` 上传，IPA 产物会以 `iosforge-ipa` 上传。`build-plugin` 仍然保留为兼容别名。正式项目建议把签名证书、Provisioning Profile 和密码放进 GitHub Secrets，不要提交到仓库；IPA 是否可安装取决于你自己的 Apple 签名配置。
+
+## Web 控制台
+
+`web/` 是一个静态构建控制台，可以部署到 GitHub Pages。网页通过 GitHub Actions 的 `workflow_dispatch` 触发构建，并轮询显示运行状态和可下载产物。源码仓库必须包含这套工作流；网页不会保存你的 GitHub Token。
 
 ## 设计边界
 
