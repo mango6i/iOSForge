@@ -21,10 +21,11 @@ jobs:
         shell: bash
         run: |
           export THEOS="$RUNNER_TEMP/theos"
-          git clone --depth 1 https://github.com/theos/theos.git "$THEOS"
+          git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/theos/theos.git "$THEOS"
+          rm -rf "$THEOS/sdks"
           git clone --depth 1 https://github.com/theos/sdks.git "$THEOS/sdks"
           echo "THEOS=$THEOS" >> "$GITHUB_ENV"
-          brew install ldid
+          brew install ldid dpkg
       - name: Install iOSForge
         run: python -m pip install -e .
       - name: Validate project
@@ -35,3 +36,4 @@ jobs:
         with:
           name: iosforge-plugin
           path: dist/*.deb
+
