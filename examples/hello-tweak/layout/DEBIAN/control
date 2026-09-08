@@ -1,0 +1,9 @@
+Package: com.mango6i.iosforge.hello
+Name: Hello iOSForge
+Version: 0.1.0
+Architecture: iphoneos-arm64
+Description: Example rootless tweak built with iOSForge
+Maintainer: mango6i
+Author: mango6i
+Section: Tweaks
+Depends: firmware (>= 15.0)
