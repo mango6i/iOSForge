@@ -45,7 +45,7 @@ concurrency:
 
 jobs:
   build-plugin:
-    name: Build plugin
+    name: Build dylib
     if: ${{ github.event_name == 'push' || inputs.build_type == 'plugin' }}
     runs-on: macos-14
     steps:
@@ -66,12 +66,12 @@ jobs:
         run: python -m pip install -e .
       - name: Validate project
         run: iosforge validate
-      - name: Build example tweak
-        run: iosforge build-plugin --output-dir dist
+      - name: Build dylib
+        run: iosforge build-dylib --output-dir dist
       - uses: actions/upload-artifact@v4
         with:
-          name: iosforge-plugin
-          path: dist/*.deb
+          name: iosforge-dylib
+          path: dist/*.dylib
           if-no-files-found: error
 
   build-ipa:
