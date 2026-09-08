@@ -14,6 +14,7 @@ def build_app(manifest: Manifest, output_dir: Path, export_options: Path | None 
     output_dir.mkdir(parents=True, exist_ok=True)
     archive_path = output_dir / f"{manifest.name}.xcarchive"
     project_flag = "-workspace" if manifest.app_project.suffix == ".xcworkspace" else "-project"
+    deployment_target = f"IPHONEOS_DEPLOYMENT_TARGET={manifest.minimum_ios}"
     run(
         [
             xcodebuild,
@@ -28,6 +29,7 @@ def build_app(manifest: Manifest, output_dir: Path, export_options: Path | None 
             "-archivePath",
             archive_path,
             "archive",
+            deployment_target,
         ],
         cwd=manifest.path.parent,
     )
@@ -48,3 +50,4 @@ def build_app(manifest: Manifest, output_dir: Path, export_options: Path | None 
         cwd=manifest.path.parent,
     )
     return [copy_exported_ipa(export_dir, output_dir)]
+
