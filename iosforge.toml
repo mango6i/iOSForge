@@ -1,10 +1,12 @@
 [project]
-name = "Hello iOSForge"
+name = "iOSForge Project"
 kind = "tweak"
+# Hard minimum target: iOS 15.0.
 minimum_ios = "15.0"
 
 [theos]
-project_dir = "examples/hello-tweak"
+# 上传你自己的 Theos 工程后填写，例如：
+# project_dir = "plugin"
 
 # For local builds you can set this path, or simply export THEOS.
 # root = "/opt/theos"
@@ -14,3 +16,4 @@ project_dir = "examples/hello-tweak"
 # project = "MyApp.xcodeproj"
 # scheme = "MyApp"
 configuration = "Release"
+
