@@ -79,7 +79,7 @@ configuration = "Release"
 
 ## GitHub Actions
 
-仓库中的 `.github/workflows/build.yml` 已命名为 **GitHub Actions**，支持两种模式：
+仓库中的 `.github/workflows/build.yml` 已命名为 **GitHub Actions**，支持三种模式：
 
 1. 推送到 `main` 后自动在 macOS Runner 上安装 Theos、校验 iOS 15 目标并构建示例 `.dylib`；
 2. 在 GitHub 的 **Actions → GitHub Actions → Run workflow** 中手动选择 `dylib`、`deb` 或 `ipa`；
@@ -90,6 +90,8 @@ configuration = "Release"
 ## Web 控制台
 
 `web/` 是一个静态构建控制台，可以部署到 GitHub Pages。网页通过 GitHub Actions 的 `workflow_dispatch` 触发构建，并轮询显示运行状态和可下载产物。源码仓库必须包含这套工作流；网页不会保存你的 GitHub Token。
+
+第一次发布网页时，在仓库 **Settings → Pages → Source** 选择 **GitHub Actions**，然后重新运行 `Publish iOSForge Web`。
 
 ## 设计边界
 
