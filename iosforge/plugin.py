@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 import shutil
+import tempfile
 
 from .manifest import Manifest
 from .process import BuildError, command_path, run
@@ -28,6 +29,18 @@ def build_plugin(manifest: Manifest, output_dir: Path) -> list[Path]:
         raise BuildError("Theos completed but no .deb package was found in packages/")
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    result = output_dir / packages[-1].name
-    shutil.copy2(packages[-1], result)
-    return [result]
+    package = packages[-1]
+    dpkg_deb = command_path("dpkg-deb")
+    results: list[Path] = []
+    with tempfile.TemporaryDirectory(prefix="iosforge-dylib-") as folder:
+        extracted = Path(folder) / "package"
+        run([dpkg_deb, "--extract", package, extracted])
+        dylibs = sorted(extracted.rglob("*.dylib"))
+        if not dylibs:
+            raise BuildError(f"Theos package contains no .dylib: {package}")
+        for dylib in dylibs:
+            result = output_dir / dylib.name
+            shutil.copy2(dylib, result)
+            results.append(result)
+    return results
+
