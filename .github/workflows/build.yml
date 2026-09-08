@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - "iosforge/**"
-      - "examples/**"
       - "iosforge.toml"
       - "pyproject.toml"
       - ".github/workflows/build.yml"
@@ -45,10 +44,46 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  detect-plugin:
+    name: Check plugin source
+    if: ${{ github.event_name == 'push' || inputs.build_type == 'dylib' || inputs.build_type == 'deb' }}
+    runs-on: ubuntu-latest
+    outputs:
+      available: ${{ steps.detect.outputs.available }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect configured Theos project
+        id: detect
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          import tomllib
+
+          manifest = Path("iosforge.toml")
+          project_dir = None
+          if manifest.exists():
+              with manifest.open("rb") as handle:
+                  project_dir = tomllib.load(handle).get("theos", {}).get("project_dir")
+          available = bool(project_dir and (Path(project_dir) / "Makefile").is_file())
+          with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as output:
+              output.write(f"available={'true' if available else 'false'}\n")
+          if not available:
+              print("未配置 Theos 工程，已跳过自动插件构建。请在 iosforge.toml 的 [theos].project_dir 中填写自己的工程路径。")
+              if os.environ["EVENT_NAME"] == "workflow_dispatch" and os.environ["BUILD_TYPE"] in {"dylib", "deb"}:
+                  raise SystemExit(1)
+
   build-plugin:
     name: Build dylib
-    if: ${{ github.event_name == 'push' || inputs.build_type == 'dylib' || inputs.build_type == 'deb' }}
+    needs: detect-plugin
+    if: ${{ needs.detect-plugin.outputs.available == 'true' && (github.event_name == 'push' || inputs.build_type == 'dylib' || inputs.build_type == 'deb') }}
     runs-on: macos-14
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -90,6 +125,7 @@ jobs:
     name: Build IPA
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.build_type == 'ipa' }}
     runs-on: macos-14
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
