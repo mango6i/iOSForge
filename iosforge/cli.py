@@ -18,7 +18,11 @@ def parser() -> argparse.ArgumentParser:
 
     commands.add_parser("validate", help="validate iosforge.toml and referenced paths")
 
-    plugin = commands.add_parser("build-plugin", help="build a Theos/Logos plugin into a .deb")
+    plugin = commands.add_parser(
+        "build-dylib",
+        aliases=["build-plugin"],
+        help="build a Theos/Logos plugin and extract its .dylib",
+    )
     plugin.add_argument("--output-dir", type=Path, default=Path("dist"))
 
     app = commands.add_parser("build-app", help="archive and export an Xcode app into an IPA")
@@ -48,7 +52,7 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         if args.command == "validate":
             print(f"OK: {manifest.name} targets iOS {manifest.minimum_ios}")
-        elif args.command == "build-plugin":
+        elif args.command in {"build-dylib", "build-plugin"}:
             for path in build_plugin(manifest, args.output_dir):
                 print(f"Created {path}")
         elif args.command == "build-app":
@@ -62,3 +66,4 @@ def main(argv: list[str] | None = None) -> int:
     except (ManifestError, BuildError, ValueError, FileNotFoundError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
+
