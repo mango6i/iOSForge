@@ -9,7 +9,7 @@ from .manifest import Manifest
 from .process import BuildError, command_path, run
 
 
-def build_plugin(manifest: Manifest, output_dir: Path) -> list[Path]:
+def _build_package(manifest: Manifest) -> Path:
     if manifest.theos_project_dir is None:
         raise BuildError("No Theos project configured")
     project_dir = manifest.theos_project_dir
@@ -28,8 +28,20 @@ def build_plugin(manifest: Manifest, output_dir: Path) -> list[Path]:
     if not packages:
         raise BuildError("Theos completed but no .deb package was found in packages/")
 
+    return packages[-1]
+
+
+def build_deb(manifest: Manifest, output_dir: Path) -> list[Path]:
+    package = _build_package(manifest)
     output_dir.mkdir(parents=True, exist_ok=True)
-    package = packages[-1]
+    result = output_dir / package.name
+    shutil.copy2(package, result)
+    return [result]
+
+
+def build_plugin(manifest: Manifest, output_dir: Path) -> list[Path]:
+    package = _build_package(manifest)
+    output_dir.mkdir(parents=True, exist_ok=True)
     dpkg_deb = command_path("dpkg-deb")
     results: list[Path] = []
     with tempfile.TemporaryDirectory(prefix="iosforge-dylib-") as folder:
