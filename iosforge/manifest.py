@@ -72,9 +72,7 @@ class Manifest:
     def validate(self) -> list[str]:
         errors: list[str] = []
         if self.kind in {"tweak", "hybrid"}:
-            if self.theos_project_dir is None:
-                errors.append("[theos].project_dir is required for tweak builds")
-            elif not self.theos_project_dir.exists():
+            if self.theos_project_dir is not None and not self.theos_project_dir.exists():
                 errors.append(f"Theos project directory does not exist: {self.theos_project_dir}")
         if self.kind in {"app", "hybrid"}:
             if self.app_project is None:
@@ -84,3 +82,4 @@ class Manifest:
             if not self.app_scheme:
                 errors.append("[app].scheme is required for app builds")
         return errors
+
