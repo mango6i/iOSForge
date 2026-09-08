@@ -7,7 +7,7 @@ import sys
 from .app import build_app
 from .ipa import package_ipa
 from .manifest import Manifest, ManifestError
-from .plugin import build_plugin
+from .plugin import build_deb, build_plugin
 from .process import BuildError
 
 
@@ -24,6 +24,9 @@ def parser() -> argparse.ArgumentParser:
         help="build a Theos/Logos plugin and extract its .dylib",
     )
     plugin.add_argument("--output-dir", type=Path, default=Path("dist"))
+
+    deb = commands.add_parser("build-deb", help="build a Theos/Logos plugin into a .deb package")
+    deb.add_argument("--output-dir", type=Path, default=Path("dist"))
 
     app = commands.add_parser("build-app", help="archive and export an Xcode app into an IPA")
     app.add_argument("--project", type=Path, help="override [app].project")
@@ -54,6 +57,9 @@ def main(argv: list[str] | None = None) -> int:
             print(f"OK: {manifest.name} targets iOS {manifest.minimum_ios}")
         elif args.command in {"build-dylib", "build-plugin"}:
             for path in build_plugin(manifest, args.output_dir):
+                print(f"Created {path}")
+        elif args.command == "build-deb":
+            for path in build_deb(manifest, args.output_dir):
                 print(f"Created {path}")
         elif args.command == "build-app":
             if args.project:
