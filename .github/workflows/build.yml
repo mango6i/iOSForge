@@ -15,10 +15,11 @@ on:
       build_type:
         description: "选择构建类型"
         required: true
-        default: plugin
+        default: dylib
         type: choice
         options:
-          - plugin
+          - dylib
+          - deb
           - ipa
       xcode_project:
         description: "Xcode 工程路径，例如 MyApp.xcodeproj 或 MyApp.xcworkspace"
@@ -46,7 +47,7 @@ concurrency:
 jobs:
   build-plugin:
     name: Build dylib
-    if: ${{ github.event_name == 'push' || inputs.build_type == 'plugin' }}
+    if: ${{ github.event_name == 'push' || inputs.build_type == 'dylib' || inputs.build_type == 'deb' }}
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
@@ -67,11 +68,22 @@ jobs:
       - name: Validate project
         run: iosforge validate
       - name: Build dylib
+        if: ${{ github.event_name == 'push' || inputs.build_type == 'dylib' }}
         run: iosforge build-dylib --output-dir dist
+      - name: Build deb
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.build_type == 'deb' }}
+        run: iosforge build-deb --output-dir dist
       - uses: actions/upload-artifact@v4
+        if: ${{ github.event_name == 'push' || inputs.build_type == 'dylib' }}
         with:
           name: iosforge-dylib
           path: dist/*.dylib
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.build_type == 'deb' }}
+        with:
+          name: iosforge-deb
+          path: dist/*.deb
           if-no-files-found: error
 
   build-ipa:
