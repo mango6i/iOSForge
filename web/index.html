@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="iOSForge GitHub Actions 构建控制台" />
+    <title>iOSForge · Build console</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <a class="brand" href="./">
+          <span class="brand-mark">IF</span>
+          <span>
+            <strong>iOSForge</strong>
+            <small>GIT-BACKED BUILD CONSOLE</small>
+          </span>
+        </a>
+        <div class="topbar-meta">
+          <span class="live-dot"></span>
+          <span>macOS Runner</span>
+          <a id="repo-link" href="https://github.com/mango6i/iOSForge" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+      </header>
+
+      <main>
+        <section class="intro">
+          <div>
+            <p class="eyebrow">IOS 15+ · PRIVATE BY DEFAULT</p>
+            <h1>把源码交给 Git，<em>把产物取回来。</em></h1>
+            <p class="intro-copy">选择你自己的 GitHub 仓库，调用仓库里的 Actions，在 macOS 上生成动态库、插件包或 IPA。</p>
+          </div>
+          <div class="intro-chip">
+            <span>BUILD</span>
+            <strong>01</strong>
+          </div>
+        </section>
+
+        <section class="workspace-grid">
+          <article class="panel build-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-kicker">NEW RUN</p>
+                <h2>发起构建</h2>
+              </div>
+              <span class="panel-index">01 / 02</span>
+            </div>
+
+            <form id="build-form">
+              <label class="field">
+                <span>GitHub 仓库</span>
+                <input id="repo" name="repo" value="mango6i/iOSForge" placeholder="owner/repository" autocomplete="off" required />
+                <small>仓库中需要包含 <code>.github/workflows/build.yml</code>。</small>
+              </label>
+
+              <div class="field-row">
+                <label class="field">
+                  <span>分支</span>
+                  <input id="branch" name="branch" value="main" placeholder="main" autocomplete="off" required />
+                </label>
+                <label class="field">
+                  <span>产物</span>
+                  <select id="build-type" name="build_type">
+                    <option value="dylib">动态库 · .dylib</option>
+                    <option value="deb">插件包 · .deb</option>
+                    <option value="ipa">应用包 · .ipa</option>
+                  </select>
+                </label>
+              </div>
+
+              <div id="ipa-fields" class="ipa-fields" hidden>
+                <div class="subsection-label">IPA 参数</div>
+                <div class="field-row">
+                  <label class="field">
+                    <span>Xcode 工程</span>
+                    <input id="xcode-project" placeholder="MyApp.xcodeproj" autocomplete="off" />
+                  </label>
+                  <label class="field">
+                    <span>Scheme</span>
+                    <input id="xcode-scheme" placeholder="MyApp" autocomplete="off" />
+                  </label>
+                </div>
+                <label class="field">
+                  <span>ExportOptions.plist</span>
+                  <input id="export-options" value="ExportOptions.plist" autocomplete="off" />
+                </label>
+              </div>
+
+              <label class="field token-field">
+                <span>GitHub Token <b>只在当前页面使用</b></span>
+                <input id="token" type="password" placeholder="Fine-grained token · Actions: Read and write" autocomplete="off" required />
+                <small>不会保存到网页、仓库或服务器。需要对目标仓库有 Actions 写入权限。</small>
+              </label>
+
+              <button id="submit-button" class="primary-button" type="submit">
+                <span class="button-icon">↗</span>
+                <span>开始构建</span>
+              </button>
+              <p class="form-footnote">源码可以先推送到 GitHub；如果你希望我代为上传，之后把源码压缩包发给我即可。</p>
+            </form>
+          </article>
+
+          <article class="panel status-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-kicker">RUN STATUS</p>
+                <h2>构建状态</h2>
+              </div>
+              <span id="status-badge" class="status-badge idle">待命</span>
+            </div>
+
+            <div id="status-card" class="status-card idle-card">
+              <div class="status-orbit"><span></span></div>
+              <div>
+                <strong id="status-title">等待下一次构建</strong>
+                <p id="status-copy">产物完成后会出现在这里。</p>
+              </div>
+            </div>
+
+            <div id="run-meta" class="run-meta" hidden></div>
+            <div id="artifact-list" class="artifact-list" hidden>
+              <div class="subsection-label">可下载产物</div>
+              <div id="artifacts"></div>
+            </div>
+
+            <div class="status-actions">
+              <a id="actions-link" class="secondary-button" href="https://github.com/mango6i/iOSForge/actions" target="_blank" rel="noreferrer">在 GitHub 查看完整日志 <span>↗</span></a>
+            </div>
+          </article>
+        </section>
+
+        <section class="steps-row" aria-label="使用流程">
+          <div class="step-card">
+            <span class="step-number">01</span>
+            <div><strong>源码入库</strong><p>把项目放进 GitHub，保留自己的 Makefile 或 Xcode 工程。</p></div>
+          </div>
+          <div class="step-card">
+            <span class="step-number">02</span>
+            <div><strong>选择产物</strong><p>动态库、Debian 插件包，或带签名配置的 IPA。</p></div>
+          </div>
+          <div class="step-card">
+            <span class="step-number">03</span>
+            <div><strong>下载结果</strong><p>Actions 完成后，网页直接提供 Artifact 下载。</p></div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <span>iOSForge / build what you own</span>
+        <span>Apple signing stays yours.</span>
+      </footer>
+    </div>
+    <script src="./app.js" defer></script>
+  </body>
+</html>
+
