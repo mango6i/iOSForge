@@ -23,6 +23,8 @@ const downloadMessage = $("#download-message");
 const buildLogs = globalThis.IOSForgeLogs?.create();
 
 const state = { token: "", repo: null, branch: "main", runId: null, busy: false, knownRuns: new Set(), phase: "idle", artifacts: [], history: [] };
+const selectedRuns = new Set();
+let historyPage = 0, historyHasMore = false;
 let selectedSource = null;
 const uploadMode = () => !!$('input[name="source_mode"][value="upload"]').checked;
 const hints = {
@@ -65,6 +67,41 @@ async function github(path, options = {}) {
     throw error;
   }
   return response.status === 204 ? null : response.json();
+}
+
+function invalidateWorkspace() {
+  state.workspace = null;
+  $("#workspace-status").textContent = "尚未核对账号和仓库。填写自己的仓库与 Token 后，点击“检查我的仓库”。";
+  $("#workspace-status").dataset.visibility = "unknown";
+  $("#allow-public-upload").checked = false;
+  $("#public-upload-warning").hidden = true;
+}
+
+async function verifyWorkspace({ upload = false } = {}) {
+  const base = repoBase(), previous = state.workspace;
+  const user = await github("/user");
+  if (state.closed) throw new Error("页面会话已关闭。");
+  const repository = await github(base);
+  if (state.closed || !historyMatchesInputs()) throw new Error("账号或仓库输入已变化，请重新检查。");
+  if (!Number.isSafeInteger(user.id) || !user.login || repository.owner?.id !== user.id || repository.owner?.type !== "User" || repository.owner.login.toLowerCase() !== user.login.toLowerCase()) {
+    invalidateWorkspace();
+    throw new Error("只能使用当前 Token 所属用户自己名下的个人仓库，不能使用网站作者、其他用户或组织的仓库。请填写你自己的用户名/仓库名。");
+  }
+  if (!Number.isSafeInteger(repository.id) || repository.full_name?.toLowerCase() !== `${state.repo.owner}/${state.repo.name}`.toLowerCase() || typeof repository.private !== "boolean") {
+    invalidateWorkspace(); throw new Error("无法确认目标仓库或可见性，已停止操作。");
+  }
+  if (repository.archived || repository.disabled || repository.permissions?.push === false) throw new Error("这个仓库已归档、停用或不可写，请选择可用的个人仓库。");
+  const workflow = await github(`${base}/actions/workflows/build.yml`);
+  if (!Number.isSafeInteger(workflow.id) || workflow.state !== "active") throw new Error("编译工作流尚未安装或未启用。请按指南导入纯净初始化包，并在自己的仓库 Actions 中启用工作流。");
+  if (state.closed || !historyMatchesInputs()) throw new Error("页面会话已变化，已停止操作。");
+  if (!previous || previous.id !== repository.id || previous.private !== repository.private) $("#allow-public-upload").checked = false;
+  state.workspace = { id: repository.id, private: repository.private, login: user.login };
+  $("#workspace-status").dataset.visibility = repository.private ? "private" : "public";
+  $("#workspace-status").textContent = `已核对账号 ${user.login} · ${repository.full_name} · ${repository.private ? "Private 私有仓库" : "Public 公开仓库，源码所有人可见"}。编译工作流已启用；写入权限仍以实际操作结果为准。`;
+  $("#public-upload-warning").hidden = repository.private;
+  updateLinks();
+  if (upload && !repository.private && !$("#allow-public-upload").checked) throw new Error("当前是公开仓库，尚未授权公开源码。请改用自己的私有仓库，或阅读上传区的公开风险并单独勾选确认。");
+  return repository;
 }
 
 function updatePipeline(phase) {
@@ -112,12 +149,13 @@ function setBusy(busy, label = "构建处理中…") {
   form.setAttribute("aria-busy", String(busy));
   form.querySelectorAll("input, button").forEach((input) => { input.disabled = busy; });
   document.querySelectorAll("#history-list button, #refresh-history, #artifacts button").forEach(button => { button.disabled = busy; });
+  updateHistoryControls();
 }
 
 function updateLinks() {
   const repo = parseRepo(repoInput.value);
-  const base = repo ? `https://github.com${repoBase(repo)}`.replace("/repos/", "/") : "https://github.com/mango6i/iOSForge";
-  repoLink.href = base;
+  const base = repo ? `https://github.com${repoBase(repo)}`.replace("/repos/", "/") : "https://github.com";
+  actionsLink.hidden = !repo;
   if (!state.busy) actionsLink.href = `${base}/actions?query=branch%3A${encodeURIComponent(branchInput.value.trim() || "main")}`;
 }
 
@@ -269,7 +307,7 @@ form.addEventListener("submit", async (event) => {
   const repo = parseRepo(repoInput.value);
   const branch = branchInput.value.trim() || "main";
   const token = tokenInput.value.trim();
-  if (!repo) return setStatus("error", "检查输入", "仓库地址格式不正确", "请输入 owner/repository，例如 mango6i/iOSForge。");
+  if (!repo) return setStatus("error", "检查输入", "请填写你自己的仓库", "格式是你的用户名/仓库名。私密源码请先建立自己的 Private 私有仓库，参见使用指南。");
   if (!token) return setStatus("error", "需要令牌", "请填写 GitHub Token", "令牌需要拥有目标仓库的 Actions 写入权限。");
   let sourceDirectory = $("#source-directory").value.trim();
   if (uploadMode()) {
@@ -308,6 +346,7 @@ form.addEventListener("submit", async (event) => {
   let dispatched = false;
   let uploaded = false;
   try {
+    await verifyWorkspace({ upload: uploadMode() });
     if (uploadMode()) {
       setStatus("running", "上传中", "正在保存源码到 GitHub", "文件会作为一次提交保存；上传完成后自动编译。请保持网页打开。", "dispatch");
       $("#upload-progress-wrap").hidden = false;
@@ -401,6 +440,7 @@ function updateSourceMode() {
 function updateDestination() {
   $("#upload-destination").textContent = `提交位置：${repoInput.value.trim()} · ${branchInput.value.trim() || "main"} → sources/${$("#upload-project").value.trim() || "项目名称"}`;
   $("#upload-consent").checked = false;
+  $("#allow-public-upload").checked = false;
 }
 async function selectSource(files, folder) {
   if (state.busy || !files.length) return;
@@ -434,33 +474,168 @@ const dropzone = $("#upload-dropzone");
 dropzone.addEventListener("dragover", event => { event.preventDefault(); if (!state.busy) dropzone.classList.add("is-dragging"); });
 dropzone.addEventListener("dragleave", () => dropzone.classList.remove("is-dragging"));
 dropzone.addEventListener("drop", event => { event.preventDefault(); dropzone.classList.remove("is-dragging"); selectSource(event.dataTransfer.files, false); });
-[repoInput, branchInput].forEach(input => input.addEventListener("input", () => { buildLogs?.close(); updateDestination(); state.history = []; $("#history-list").replaceChildren(); $("#history-message").textContent = "仓库或分支已修改，请刷新记录。"; }));
+[repoInput, branchInput].forEach(input => input.addEventListener("input", () => { buildLogs?.close(); invalidateWorkspace(); updateDestination(); state.history = []; selectedRuns.clear(); historyPage = 0; historyHasMore = false; renderHistory(); $("#history-message").textContent = "仓库或分支已修改，请刷新记录。"; }));
+tokenInput.addEventListener("input", () => { invalidateWorkspace(); buildLogs?.close(); selectedRuns.clear(); updateHistoryControls(); });
+$("#check-workspace").addEventListener("click", async () => {
+  if (state.busy) return;
+  const repo = parseRepo(repoInput.value), token = tokenInput.value.trim();
+  if (!repo || !token) { $("#workspace-status").textContent = "请先填写你自己的用户名/仓库名，并粘贴仅授权该仓库的 Token。"; return; }
+  state.repo = repo; state.token = token; state.branch = branchInput.value.trim() || "main"; state.closed = false;
+  setBusy(true, "正在核对仓库…");
+  try { await verifyWorkspace(); }
+  catch (error) { $("#workspace-status").textContent = `未通过检查：${error.message}`; }
+  finally { setBusy(false); }
+});
+
+function historyMatchesInputs() {
+  const repo = parseRepo(repoInput.value);
+  return !!repo && !!state.repo && repoBase(repo) === repoBase() && (branchInput.value.trim() || "main") === state.branch && !!state.token && tokenInput.value.trim() === state.token;
+}
+function selectableRun(run) { return Number.isSafeInteger(run.id) && run.id > 0 && run.status === "completed"; }
+function updateHistoryControls() {
+  const eligible = state.history.filter(selectableRun);
+  const eligibleIds = new Set(eligible.map(run => run.id));
+  for (const id of selectedRuns) if (!eligibleIds.has(id)) selectedRuns.delete(id);
+  const locked = state.busy || !historyMatchesInputs();
+  $("#history-toolbar").hidden = !state.history.length;
+  $("#select-all-runs").disabled = locked || !eligible.length;
+  $("#select-all-runs").checked = !!eligible.length && eligible.every(run => selectedRuns.has(run.id));
+  $("#select-all-runs").indeterminate = !!selectedRuns.size && selectedRuns.size < eligible.length;
+  $("#select-failed-runs").disabled = locked || !eligible.length;
+  $("#delete-selected-runs").disabled = locked || !selectedRuns.size;
+  $("#delete-selected-runs").textContent = `删除所选（${selectedRuns.size}）`;
+  $("#load-more-runs").hidden = !historyHasMore;
+  $("#load-more-runs").disabled = locked;
+  document.querySelectorAll("[data-select-run-id]").forEach(input => {
+    const id = Number(input.dataset.selectRunId);
+    input.disabled = locked || !eligibleIds.has(id);
+    input.checked = selectedRuns.has(id);
+  });
+}
+function renderHistory() {
+  $("#history-list").replaceChildren();
+  state.history.forEach(run => {
+    const row = element("div", "history-row");
+    const checkbox = element("input", "history-run-check"); checkbox.type = "checkbox"; checkbox.dataset.selectRunId = String(run.id);
+    checkbox.setAttribute("aria-label", `选择构建 #${run.run_number}，${run.status === "completed" ? "已结束" : "进行中，不能删除"}`);
+    const info = element("div");
+    const status = run.status === "completed" ? ({ success: "已完成", failure: "失败", cancelled: "已取消", skipped: "已跳过", timed_out: "超时" }[run.conclusion] || "已结束") : run.status === "in_progress" ? "编译中" : "排队中";
+    info.append(element("strong", "", `#${run.run_number} · ${run.display_title || run.name}`), element("span", "", `${status} · ${new Date(run.created_at).toLocaleString("zh-CN")}`));
+    const button = element("button", "download-button", "查看产物"); button.type = "button"; button.dataset.runId = String(run.id); button.disabled = state.busy;
+    row.append(checkbox, info, button); $("#history-list").append(row);
+  });
+  updateHistoryControls();
+}
+
+async function loadHistoryPage(page) {
+  const data = await github(`${repoBase()}/actions/workflows/build.yml/runs?branch=${encodeURIComponent(state.branch)}&per_page=30&page=${page}`);
+  if (state.closed) return;
+  const records = Array.isArray(data.workflow_runs) ? data.workflow_runs : [];
+  const unique = new Map(state.history.map(run => [run.id, run]));
+  records.filter(run => Number.isSafeInteger(run.id) && run.id > 0 && (!run.head_branch || run.head_branch === state.branch)).forEach(run => unique.set(run.id, run));
+  state.history = [...unique.values()]; historyPage = page; historyHasMore = records.length === 30;
+  renderHistory();
+  $("#history-message").textContent = state.history.length ? `${state.repo.owner}/${state.repo.name} · ${state.branch} · 已加载 ${state.history.length} 条构建记录${historyHasMore ? "，可继续加载更早记录" : ""}` : "这个分支暂无构建记录。源码和配置仍然保留，可按需开始构建。";
+}
 
 $("#refresh-history").addEventListener("click", async () => {
   if (state.busy) return;
   const repo = parseRepo(repoInput.value), token = tokenInput.value.trim();
   if (!repo || !token) { $("#history-message").textContent = "请先填写正确的仓库地址和 GitHub Token。"; return; }
   const changed = !state.repo || repoBase(repo) !== repoBase() || state.branch !== (branchInput.value.trim() || "main");
-  state.repo = repo; state.token = token; state.branch = branchInput.value.trim() || "main";
+  state.repo = repo; state.token = token; state.branch = branchInput.value.trim() || "main"; state.closed = false;
   if (changed) { state.runId = null; state.artifacts = []; artifactList.hidden = true; runMeta.hidden = true; setStatus("idle", "待命", "已切换仓库或分支", "选择一条构建记录查看产物。"); }
   if (changed) buildLogs?.close();
   setBusy(true, "正在读取记录…");
   $("#history-message").textContent = "正在读取 GitHub 上的构建记录…";
-  state.history = []; $("#history-list").replaceChildren();
+  state.history = []; selectedRuns.clear(); historyPage = 0; historyHasMore = false; renderHistory();
   try {
-    const data = await github(`${repoBase()}/actions/workflows/build.yml/runs?branch=${encodeURIComponent(state.branch)}&per_page=10`);
-    state.history = data.workflow_runs || [];
-    state.history.forEach(run => {
-      const row = element("div", "history-row");
-      const info = element("div");
-      const status = run.status === "completed" ? ({ success: "已完成", failure: "失败", cancelled: "已取消", skipped: "已跳过" }[run.conclusion] || "已结束") : run.status === "in_progress" ? "编译中" : "排队中";
-      info.append(element("strong", "", `#${run.run_number} · ${run.display_title || run.name}`), element("span", "", `${status} · ${new Date(run.created_at).toLocaleString("zh-CN")}`));
-      const button = element("button", "download-button", "查看产物"); button.type = "button"; button.dataset.runId = String(run.id);
-      row.append(info, button); $("#history-list").append(row);
-    });
-    $("#history-message").textContent = state.history.length ? `${state.repo.owner}/${state.repo.name} · ${state.branch} · 最近 ${state.history.length} 次构建` : "这个分支还没有构建记录。上传源码并开始第一次构建吧。";
+    await verifyWorkspace();
+    await loadHistoryPage(1);
   } catch (error) { $("#history-message").textContent = error.message; }
   finally { setBusy(false); }
+});
+$("#load-more-runs").addEventListener("click", async () => {
+  if (state.busy || !historyHasMore || !historyMatchesInputs()) return;
+  setBusy(true, "正在读取记录…");
+  try { await loadHistoryPage(historyPage + 1); }
+  catch (error) { $("#history-message").textContent = `未能加载更早记录：${error.message}。当前列表仍可使用。`; }
+  finally { setBusy(false); }
+});
+$("#history-list").addEventListener("change", event => {
+  const input = event.target.closest("[data-select-run-id]");
+  if (!input || state.busy || !historyMatchesInputs()) return;
+  const run = state.history.find(run => String(run.id) === input.dataset.selectRunId);
+  if (!run || !selectableRun(run)) return;
+  if (input.checked) selectedRuns.add(run.id); else selectedRuns.delete(run.id);
+  updateHistoryControls();
+});
+$("#select-all-runs").addEventListener("change", event => {
+  if (state.busy || !historyMatchesInputs()) return;
+  selectedRuns.clear();
+  if (event.target.checked) state.history.filter(selectableRun).forEach(run => selectedRuns.add(run.id));
+  updateHistoryControls();
+});
+$("#select-failed-runs").addEventListener("click", () => {
+  if (state.busy || !historyMatchesInputs()) return;
+  selectedRuns.clear();
+  state.history.filter(run => selectableRun(run) && ["failure", "cancelled", "timed_out", "action_required", "startup_failure"].includes(run.conclusion)).forEach(run => selectedRuns.add(run.id));
+  updateHistoryControls();
+});
+
+function confirmRunDeletion(runs) {
+  const successful = runs.filter(run => run.conclusion === "success").length;
+  const scope = `${state.repo.owner}/${state.repo.name} · ${state.branch} · ${runs.length} 条记录（其中 ${successful} 条成功记录）`;
+  const targets = runs.map(run => `#${run.run_number} · ${run.display_title || run.name} · ID ${run.id}`);
+  const dialog = $("#delete-runs-dialog");
+  if (typeof dialog.showModal !== "function") return Promise.resolve(window.confirm(`永久删除 ${scope}？\n${targets.join("\n")}\n对应日志和全部云端产物也会删除，无法恢复。源码、提交历史和本地下载保留。`));
+  $("#delete-runs-scope").textContent = scope;
+  $("#delete-runs-targets").replaceChildren(...targets.map(target => element("li", "", target)));
+  return new Promise(resolve => {
+    let confirmed = false;
+    const close = () => { dialog.removeEventListener("close", close); $("#confirm-delete-runs").removeEventListener("click", approve); $("#cancel-delete-runs").removeEventListener("click", cancel); resolve(confirmed); };
+    const approve = () => { confirmed = true; dialog.close(); };
+    const cancel = () => dialog.close();
+    dialog.addEventListener("close", close); $("#confirm-delete-runs").addEventListener("click", approve); $("#cancel-delete-runs").addEventListener("click", cancel);
+    dialog.showModal(); $("#cancel-delete-runs").focus();
+  });
+}
+$("#delete-selected-runs").addEventListener("click", async () => {
+  if (state.busy || !historyMatchesInputs()) return;
+  const targets = state.history.filter(run => selectedRuns.has(run.id) && selectableRun(run)).map(run => ({ ...run }));
+  if (!targets.length) return;
+  const base = repoBase(), branch = state.branch;
+  let removed = 0, skipped = 0, confirmed = false;
+  setBusy(true, "正在确认删除…");
+  try {
+    await verifyWorkspace();
+    if (!await confirmRunDeletion(targets)) return;
+    confirmed = true;
+    const workflow = await github(`${base}/actions/workflows/build.yml`);
+    if (!Number.isSafeInteger(workflow.id)) throw new Error("无法核对编译工作流，已停止删除。");
+    for (const target of targets) {
+      if (state.closed || !historyMatchesInputs() || repoBase() !== base || state.branch !== branch) throw new Error("会话发生变化，已停止后续删除。");
+      $("#history-message").textContent = `正在核对并删除 ${removed + skipped + 1} / ${targets.length}：#${target.run_number}。请保持页面打开。`;
+      const current = await github(`${base}/actions/runs/${target.id}`);
+      if (state.closed) break;
+      if (current.id !== target.id || current.workflow_id !== workflow.id || current.head_branch !== branch || current.head_sha !== target.head_sha || current.status !== "completed" || current.conclusion !== target.conclusion || (current.run_attempt || 1) !== (target.run_attempt || 1)) { skipped += 1; continue; }
+      if (state.runId === target.id) buildLogs?.close();
+      await github(`${base}/actions/runs/${target.id}`, { method: "DELETE" });
+      removed += 1; selectedRuns.delete(target.id); state.history = state.history.filter(run => run.id !== target.id);
+      if (state.runId === target.id) {
+        state.runId = null; state.artifacts = []; artifacts.replaceChildren(); artifactList.hidden = true; runMeta.hidden = true; downloadMessage.hidden = true;
+        setStatus("idle", "已清理", "所选构建记录已删除", "对应日志和云端产物已删除；源码和提交历史保留。");
+        buildLogs?.close(); updateLinks();
+      }
+      renderHistory();
+    }
+    $("#history-message").textContent = `已永久删除 ${removed} 条构建记录及对应日志、云端产物。${skipped ? `另有 ${skipped} 条状态已变化，未删除。` : ""}源码和本地下载保留。请刷新记录查看最新列表。`;
+  } catch (error) {
+    $("#history-message").textContent = `批量操作已停止，已确认删除 ${removed} 条。${error.message || "网络中断，最后一条结果可能未确认"} 请先刷新记录核对，不要直接重复删除。`;
+  } finally {
+    if (confirmed) { selectedRuns.clear(); historyHasMore = false; }
+    renderHistory(); setBusy(false);
+  }
 });
 $("#history-list").addEventListener("click", async event => {
   const button = event.target.closest("[data-run-id]");
@@ -495,6 +670,7 @@ artifacts.addEventListener("click", async event => {
   if (!artifact) return;
   setBusy(true, "正在管理产物…");
   try {
+    await verifyWorkspace();
     if (!await confirmDelete(artifact)) return;
     downloadMessage.hidden = false; downloadMessage.textContent = `正在删除 ${artifact.name}…`;
     await github(`${repoBase()}/actions/artifacts/${artifact.id}`, { method: "DELETE" });
@@ -510,4 +686,4 @@ artifacts.addEventListener("click", async event => {
 updateIpaFields();
 updateLinks();
 updateSourceMode();
-globalThis.window?.addEventListener?.("pagehide", () => { state.closed = true; state.token = ""; tokenInput.value = ""; selectedSource = null; });
+globalThis.window?.addEventListener?.("pagehide", () => { state.closed = true; state.token = ""; tokenInput.value = ""; selectedSource = null; selectedRuns.clear(); invalidateWorkspace(); });

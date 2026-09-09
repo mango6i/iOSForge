@@ -7,7 +7,7 @@
   <meta name="description" content="iOSForge 新手使用指南：一步步上传源码、配置 iOS 15+ 工程、获取 Token、编译和下载 dylib、deb 或 IPA。" />
   <title>使用指南 · iOSForge</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=beginner-token-1" />
+  <link rel="stylesheet" href="./styles.css?v=own-workspace-1" />
   <script src="./guide.js?v=beginner-token-1" defer></script>
 </head>
 <body>
@@ -42,7 +42,7 @@
       <nav class="navigation">
         <a class="nav-item" href="./" aria-label="编译工作台"><svg class="icon"><use href="#i-grid"/></svg><span>编译工作台</span></a>
         <a class="nav-item active" href="./guide.html" aria-current="page" aria-label="使用指南"><svg class="icon"><use href="#i-book"/></svg><span>使用指南</span><span class="nav-indicator"></span></a>
-        <a class="nav-item" id="repo-link" href="https://github.com/mango6i/iOSForge" target="_blank" rel="noreferrer" aria-label="项目仓库，在新标签页打开"><svg class="icon"><use href="#i-repo"/></svg><span>项目仓库</span><svg class="icon nav-external"><use href="#i-external"/></svg></a>
+        <a class="nav-item" id="repo-link" href="https://github.com/mango6i/iOSForge" target="_blank" rel="noreferrer" aria-label="工具源码，在新标签页打开"><svg class="icon"><use href="#i-repo"/></svg><span>工具源码</span><svg class="icon nav-external"><use href="#i-external"/></svg></a>
       </nav>
       <div class="sidebar-bottom">
         <div class="environment-card">
@@ -56,7 +56,7 @@
     <div class="main-shell">
       <header class="topbar">
         <div class="breadcrumb"><span>工作空间</span><span class="breadcrumb-slash">/</span><strong>使用指南</strong></div>
-        <a class="topbar-link" href="https://github.com/mango6i/iOSForge/actions" target="_blank" rel="noreferrer"><svg class="icon"><use href="#i-github"/></svg><span>GitHub Actions</span><svg class="icon small-icon"><use href="#i-external"/></svg></a>
+        <a class="topbar-link" href="https://github.com" target="_blank" rel="noreferrer"><svg class="icon"><use href="#i-github"/></svg><span>GitHub</span><svg class="icon small-icon"><use href="#i-external"/></svg></a>
       </header>
 
       <main id="workspace" class="workspace guide-workspace">
@@ -70,7 +70,7 @@
             <section class="guide-section" id="start">
               <span class="section-overline">START HERE</span><h2>先了解：这个网页帮你做什么？</h2>
               <p>你可以直接在工作台选择<strong>源码 ZIP 或工程文件夹</strong>，上传后自动编译，完成后下载或删除云端产物，全程在同一个网页操作。源码会保存到你指定的 GitHub 仓库。GitHub 会启动一台云端 Mac，按照项目的编译规则，把源码变成可以下载的产物。你使用 Windows 电脑也可以操作。</p>
-              <div class="guide-result"><svg class="icon"><use href="#i-check"/></svg><p><strong>一条完整的操作路径：</strong>先准备 Token → 选择产物 → 上传本地源码 → 上传并编译 → 下载 → 按需删除。原生单工程通常无需修改配置或填写 Scheme；IPA 默认无证书。</p></div>
+              <div class="guide-result"><svg class="icon"><use href="#i-check"/></svg><p><strong>一条完整的操作路径：</strong>先建立自己的私有仓库 → 准备 Token → 选择产物 → 上传本地源码 → 上传并编译 → 下载 → 按需删除。原生单工程通常无需修改配置或填写 Scheme；IPA 默认无证书。</p></div>
               <div class="guide-callout"><strong>第一次使用，先确认自己有没有源码。</strong><p>源码是包含代码和编译配置的完整工程。只有一个现成的 IPA、dylib 或 deb，不是源码；更改文件后缀也不能把它变成另一种格式。网页会在浏览器中解压源码 ZIP、检查文件，再提交到仓库；不会把现成安装包转换成源码。</p></div>
               <h3>三个选项，应该点哪个？</h3>
               <div class="guide-products">
@@ -79,8 +79,19 @@
                 <a class="guide-product" href="#ipa-config"><svg class="icon"><use href="#i-phone"/></svg><strong>.ipa</strong><span>iOS 应用</span><p>Xcode 工程 · 支持无证书</p><span class="guide-product-link">查看准备步骤 ↗</span></a>
               </div>
               <p class="guide-note">三种格式对应不同工程类型；选择一种格式不会自动改写你的源码。插件能否在设备上使用还取决于插件加载环境、设备架构和源码兼容性。IPA 可以无证书编译，但安装时仍需要兼容的巨魔环境或后续签名。</p>
+              <h3 id="own-repository">第一次使用 · 先建立你自己的私有构建仓库</h3>
+              <p>这个网页是操作面板，不是所有人共用的源码仓库。你的文件、编译任务、日志和产物都放在<strong>你自己的 GitHub 仓库</strong>。网页不再预填作者账号，上传前会用 Token 核对仓库是否确实属于你。</p>
+              <ol class="guide-steps">
+                <li><strong>下载纯净的编译环境初始化包。</strong><p><a class="guide-start-button" href="./downloads/iosforge-starter.zip" download>下载纯净初始化包 ZIP ↓</a></p><p>只包含 iOSForge 编译工具、工作流和配置，不含网站作者或其他用户的项目源码、历史记录、Token、证书或示例产物。把它<strong>解压</strong>到电脑上的新文件夹；不要直接 Fork 作者的整个项目来获取私密环境。</p></li>
+                <li><strong>登录自己的账号，新建 Private 仓库。</strong><p><a href="https://github.com/new?name=iOSForge-Builds&amp;visibility=private&amp;owner=%40me" target="_blank" rel="noreferrer">打开预填的私有仓库创建页面 ↗</a>。Owner（所属账号）确认是<strong>你自己</strong>；Repository name 可填 <code>iOSForge-Builds</code>；可见性确认选中 <strong>Private（私有）</strong>。可勾选添加 README，然后点 Create repository。预填不等于已经创建，仍需你核对确认；不要选 Public，公开仓库属于自己也仍会公开源码。</p></li>
+                <li><strong>把解压后的环境文件放到这个新仓库最外层。</strong><p>在新仓库点 <strong>Add file → Upload files</strong>，上传初始化包内的全部文件和目录，再点 Commit changes 保存。不要多套一层文件夹。也可用 GitHub Desktop 提交；工作流文件必须包含在提交中。</p><p>最外层应同时看到 <code>.github/</code>、<code>iosforge/</code>、<code>iosforge.toml</code> 和 <code>pyproject.toml</code>。特别注意别漏掉以点开头的 <code>.github</code> 文件夹；Mac 可按 Command + Shift + . 显示隐藏项。<strong>不要把 ZIP 文件本身直接传进仓库。</strong></p></li>
+                <li><strong>确认编译工作流已经出现。</strong><p>打开自己仓库的 <strong>Actions</strong>。应能看到 GitHub Actions（编译）和 Check build environment（环境检查）；如果提示启用工作流，阅读后确认启用。没有时，检查 <code>.github/workflows/build.yml</code> 是否位于仓库根路径。这个私有构建仓库不需要开启 Pages。</p></li>
+                <li><strong>创建只授权这个仓库的 Token。</strong><p>继续看<a href="#token-guide">获取 Token 教程</a>：Resource owner 选自己的账号，Repository access 仅选刚创建的仓库，Actions 和 Contents 都设为 Read and write。不要授权所有仓库，也不需要额外账号权限。</p></li>
+                <li><strong>回工作台，填写真实地址并检查。</strong><p>仓库栏填 <code>你的用户名/iOSForge-Builds</code>，将“你的用户名”换成你的真实 GitHub 用户名。分支填写实际分支（通常 main），粘贴 Token 后点“检查我的仓库”。看到<strong>你自己的账号、正确仓库名、Private 私有</strong>后，再选择源码上传。下次打开仍需重新填写，不会偷偷使用作者仓库。</p></li>
+              </ol>
+              <div class="guide-callout"><strong>私有仓库降低公开风险，不等于绝对不会泄露。</strong><p>GitHub 和获得仓库授权的协作者仍在信任范围内；不可信的源码、依赖、工作流、网页代码、浏览器扩展或泄露的 Token 都可能造成风险。只运行你信任的项目，下载需要的产物后按需清理。此前已经推送到公开仓库的源码，不会因为换用私有仓库而从公开提交历史中自动消失。</p><p><a href="https://docs.github.com/en/pull-requests/reference/forks" target="_blank" rel="noreferrer">公开仓库的 Fork 仍是公开的</a>；要保护自己的新源码，按上面的步骤创建独立 Private 仓库并导入纯净包。私有仓库的 GitHub Actions 使用你自己的额度，macOS 构建可能消耗较多额度，开始前检查自己的用量和支出限制：<a href="https://docs.github.com/en/billing/concepts/product-billing/github-actions" target="_blank" rel="noreferrer">GitHub 官方计费说明 ↗</a>。</p></div>
               <h3>先记住这几个词</h3>
-              <dl class="glossary"><div><dt>仓库 Repository</dt><dd>GitHub 上存放整个项目的文件夹。你的仓库叫 <code>mango6i/iOSForge</code>。</dd></div><div><dt>分支 Branch</dt><dd>同一项目的一条开发版本线。本指南都使用默认的 <code>main</code>，先不要改它。</dd></div><div><dt>提交 Commit</dt><dd>保存一次源码或配置修改。网页里的 <strong>Commit changes</strong> 就是确认保存。</dd></div><div><dt>工作流 Workflow</dt><dd>告诉云端电脑如何编译的步骤。编译用 <code>build.yml</code>；<code>pages.yml</code> 只负责发布这个网页。</dd></div><div><dt>Token / 访问令牌</dt><dd>你给网页调用 GitHub 的授权凭证，不是 GitHub 登录密码。</dd></div><div><dt>产物 Artifact</dt><dd>编译完成后保存的结果。GitHub 通常会再套一层 ZIP 压缩包供下载。</dd></div></dl>
+              <dl class="glossary"><div><dt>仓库 Repository</dt><dd>GitHub 上存放整个项目的文件夹。填写格式是 <code>你的用户名/仓库名</code>，例如你自己的 <code>iOSForge-Builds</code> 仓库。不要照抄工具作者的账号。</dd></div><div><dt>分支 Branch</dt><dd>同一项目的一条开发版本线。本指南都使用默认的 <code>main</code>，先不要改它。</dd></div><div><dt>提交 Commit</dt><dd>保存一次源码或配置修改。网页里的 <strong>Commit changes</strong> 就是确认保存。</dd></div><div><dt>工作流 Workflow</dt><dd>告诉云端电脑如何编译的步骤。编译用 <code>build.yml</code>；<code>pages.yml</code> 只负责发布这个网页。</dd></div><div><dt>Token / 访问令牌</dt><dd>你给网页调用 GitHub 的授权凭证，不是 GitHub 登录密码。</dd></div><div><dt>产物 Artifact</dt><dd>编译完成后保存的结果。GitHub 通常会再套一层 ZIP 压缩包供下载。</dd></div></dl>
             </section>
 
             <section class="guide-section" id="upload">
@@ -88,10 +99,10 @@
               <p>不用先去 GitHub 手动传文件。首次使用请先按<a href="#token-guide">第四节准备 Token</a>；这个授权让工作台能替你向自己的仓库提交源码和启动编译。</p>
               <ol class="guide-steps">
                 <li><strong>准备完整工程，不要只选一段代码。</strong><p>插件应包含 Makefile、代码，以及原工程需要的 control、plist 和资源。应用应包含 .xcodeproj 或 .xcworkspace、源码、共享 Scheme 和依赖配置。可以选择普通 ZIP；电脑端也可选择整个文件夹。手机不支持文件夹选择时，请选 ZIP。</p></li>
-                <li><strong>在工作台选择产物，再点“上传本地源码”。</strong><p>插件选 .dylib 或 .deb，应用选 .ipa。仓库保持 <code>mango6i/iOSForge</code>，分支保持 <code>main</code>。除非确实想上传到另一仓库，否则不要修改；其他仓库必须已经安装同一套 iOSForge 工作流。</p></li>
+                <li><strong>在工作台选择产物，再点“上传本地源码”。</strong><p>插件选 .dylib 或 .deb，应用选 .ipa。仓库填写你自己的 <code>你的用户名/iOSForge-Builds</code>（把“你的用户名”替换成真实账号）。新建仓库通常使用 <code>main</code> 分支，以你仓库实际分支名为准。粘贴 Token 后先点“检查我的仓库”，确认归属、可见性和编译工作流。</p></li>
                 <li><strong>点击“选择 ZIP”或“选择文件夹”。</strong><p>也可把一个源码 ZIP 拖进上传框。此时文件只在浏览器中检查，尚未上传。检查完成后，会显示文件数量、总大小和前 100 个文件的预览。系统会去掉 ZIP 最外层共同的包装目录，保留工程内部结构。</p></li>
                 <li><strong>填写项目文件夹名称，核对提交位置。</strong><p>例如填 <code>MyPlugin</code>，文件会放到 <code>sources/MyPlugin/</code>。不同项目用不同名称，以便单独编译。上传只会修改该目录，不会覆盖工作台本身。</p></li>
-                <li><strong>检查源码公开范围，再勾选确认。</strong><p>当前 iOSForge 是公开仓库，源码提交后所有人可见。不要上传商业私密源码、账号密码或密钥。网页会拦截常见证书、私钥和 Token，但无法发现所有敏感内容，需要你自己确认。</p></li>
+                <li><strong>检查源码公开范围，再勾选确认。</strong><p>看“检查我的仓库”的结果：Private 表示私有；Public 表示公开。私密源码请使用自己的私有仓库。公开仓库会额外要求确认源码可以公开；不勾选就不会上传。任何仓库都不要提交账号密码或密钥。网页会拦截常见证书、私钥和 Token，但无法发现所有敏感内容，需要你自己确认。</p></li>
                 <li><strong>粘贴 Token，点击“上传并编译”。</strong><p>上传有进度提示，请保持网页打开。文件会作为一次完整提交保存；保存成功后自动启动你选择的编译类型，不会同时多跑一份自动构建。源码目录会自动填好，下次直接点“开始构建”即可重编。</p></li>
               </ol>
               <h3>更新以前上传的项目</h3>
@@ -138,13 +149,13 @@ package_scheme = "rootless"</code></pre></div>
               <div class="guide-callout"><strong>最容易漏掉：Actions 和 Contents 都要开“读写”。</strong><p>它们都在 <strong>Repository permissions（仓库权限）</strong>里。Actions 管编译和产物，Contents 管源码上传。User / Account permissions（用户 / 账号权限）里的邮箱、Copilot、个人资料等，本工具都不需要。</p></div>
 
               <h3 id="token-create">路线 A · 从零创建一个 Token</h3>
-              <p>适用于仓库所属账号 <code>mango6i</code>。如果你用的是自己 Fork 的仓库，请把下面的账号和仓库名换成自己的；仅登录另一个账号，并不会获得向此仓库上传的权限。</p>
-              <a class="guide-start-button" href="https://github.com/settings/personal-access-tokens/new?name=iOSForge&amp;description=iOSForge+web+build+and+source+upload&amp;target_name=mango6i&amp;expires_in=30&amp;actions=write&amp;contents=write" target="_blank" rel="noreferrer">打开预填创建页面 ↗</a>
-              <p class="guide-note">会打开 GitHub 官方新标签页，预填名称、所属账号、30 天有效期和两项权限。<strong>这不是自动授权：</strong>仍需你选择仓库、核对后确认生成。登录后如果没有保留预填内容，按以下步骤手动填即可。</p>
+              <p>适用于<strong>你自己的 GitHub 账号和个人构建仓库</strong>。先完成<a href="#own-repository">建立自己的仓库</a>；下文的“你的用户名”都要替换成你的真实账号，不能照字面填写，也不要填写网站作者的账号。</p>
+              <a class="guide-start-button" href="https://github.com/settings/personal-access-tokens/new?name=iOSForge&amp;description=iOSForge+web+build+and+source+upload&amp;expires_in=30&amp;actions=write&amp;contents=write" target="_blank" rel="noreferrer">打开预填创建页面 ↗</a>
+              <p class="guide-note">会打开 GitHub 官方新标签页，预填名称、30 天有效期和两项权限。Resource owner 默认由 GitHub 使用当前登录账号，请自行核对。<strong>这不是自动授权：</strong>仍需你选择仓库、核对后确认生成。登录后如果没有保留预填内容，按以下步骤手动填即可。</p>
               <ol class="guide-steps token-walkthrough">
-                <li><strong>确认页面和登录账号。</strong><p>地址应以 <code>https://github.com/</code> 开头，页面标题是 New fine-grained personal access token。若提示 Sign in，先登录 <code>mango6i</code>，按 GitHub 提示完成身份验证。不要进入 Tokens (classic)。</p><p class="guide-note">找不到入口时：右上角头像 → Settings（账号设置，不是仓库 Settings）→ 左侧底部 Developer settings → Personal access tokens → Fine-grained tokens → Generate new token。</p></li>
-                <li><strong>填上面几项基本信息。</strong><dl class="token-fields"><div><dt>Token name · 名称</dt><dd>填写 <code>iOSForge</code>。这只是方便你认出用途，不是令牌本身。</dd></div><div><dt>Expiration · 有效期</dt><dd>选 <strong>30 days</strong>（30 天）或更短期限。到期需要更新，不建议选永不过期。</dd></div><div><dt>Description · 备注</dt><dd>可留空，或填写“iOSForge 网页上传与编译”。</dd></div><div><dt>Resource owner · 资源所属账号</dt><dd>选择 <strong>mango6i</strong>。如果找不到，先检查是否登录错账号。</dd></div></dl></li>
-                <li><strong>只选择 iOSForge 这一个仓库。</strong><p>找到 <strong>Repository access（仓库访问范围）</strong>，点 <strong>Only select repositories（只选择指定仓库）</strong>。再打开下方 Select repositories / Selected repositories，搜索 <code>iOSForge</code> 并勾选它。关掉下拉框后，应看到 <code>mango6i/iOSForge</code>。</p><p>不要选择 All repositories（所有仓库）；只选 Public repositories（公开仓库只读）也不能完成上传。</p></li>
+                <li><strong>确认页面和登录账号。</strong><p>地址应以 <code>https://github.com/</code> 开头，页面标题是 New fine-grained personal access token。若提示 Sign in，先登录你自己的 GitHub 账号，按 GitHub 提示完成身份验证。不要进入 Tokens (classic)。</p><p class="guide-note">找不到入口时：右上角头像 → Settings（账号设置，不是仓库 Settings）→ 左侧底部 Developer settings → Personal access tokens → Fine-grained tokens → Generate new token。</p></li>
+                <li><strong>填上面几项基本信息。</strong><dl class="token-fields"><div><dt>Token name · 名称</dt><dd>填写 <code>iOSForge</code>。这只是方便你认出用途，不是令牌本身。</dd></div><div><dt>Expiration · 有效期</dt><dd>选 <strong>30 days</strong>（30 天）或更短期限。到期需要更新，不建议选永不过期。</dd></div><div><dt>Description · 备注</dt><dd>可留空，或填写“iOSForge 网页上传与编译”。</dd></div><div><dt>Resource owner · 资源所属账号</dt><dd>选择 <strong>你自己的 GitHub 用户名</strong>。如果找不到，先检查是否登录错账号。</dd></div></dl></li>
+                <li><strong>只选择你自己的构建仓库。</strong><p>找到 <strong>Repository access（仓库访问范围）</strong>，点 <strong>Only select repositories（只选择指定仓库）</strong>。再打开下方 Select repositories / Selected repositories，搜索你建立的仓库名，例如 <code>iOSForge-Builds</code>，并勾选它。关掉下拉框后，应看到 <code>你的用户名/iOSForge-Builds</code>。</p><p>不要选择 All repositories（所有仓库）；只选 Public repositories（公开仓库只读）也不能完成上传。</p></li>
                 <li><strong>添加 Actions，并改为“读写”。</strong><p>向下找到 <strong>Permissions → Repository permissions</strong>。如果有 <strong>Add permissions</strong> 按钮，点开、搜索 <code>Actions</code> 并选中；如果是可展开的权限列表，直接找到 Actions。然后把它右侧的 Access 下拉框改成 <strong>Read and write（读取和写入）</strong>。</p><p>预填后已有 Actions，就直接核对右侧权限。不要停在 Read-only / Read（只读）。</p></li>
                 <li><strong>再添加 Contents，也改为“读写”。</strong><p>仍在同一个 <strong>Repository permissions</strong> 区域，再次点 Add permissions，搜索 <code>Contents</code> 并选中；旧版列表直接找到 Contents。把 Access 也改成 <strong>Read and write</strong>。不要把它和 User permissions 里的其他选项混淆。</p><p><strong>这一步不要跳过：</strong>只开 Actions，可能能启动已有源码的编译，却不能从网页上传源码。Metadata（基础信息）自动出现只读时保持默认。Administration、Workflows、Secrets 等不需要额外开启。</p></li>
                 <li><strong>先核对下面的清单，再确认生成。</strong><p>仓库范围和权限全部一致后，点击页面底部 <strong>Generate token（生成令牌）</strong>。如果 GitHub 要求再次验证身份，按它的提示完成；不要向工作台或 AI 提供验证密码、验证码。</p></li>
@@ -153,14 +164,14 @@ package_scheme = "rootless"</code></pre></div>
               <div class="token-checklist" id="token-checklist" aria-labelledby="token-checklist-title">
                 <h3 id="token-checklist-title">保存前，对照这 4 项</h3>
                 <p>这是配置核对示意，不是对你账号的自动检测。GitHub 可能把两项读写权限合并成一行，重点是同时包含 actions 和 contents。</p>
-                <dl><div><dt>授权仓库</dt><dd>仅 <code>mango6i/iOSForge</code></dd></div><div><dt>Actions · 编译与产物</dt><dd>Read and write <span>读取和写入</span></dd></div><div><dt>Contents · 上传源码</dt><dd>Read and write <span>读取和写入</span></dd></div><div><dt>Metadata · 基础信息</dt><dd>Read-only <span>默认只读</span></dd></div></dl>
+                <dl><div><dt>授权仓库</dt><dd>仅 <code>你的用户名/iOSForge-Builds</code></dd></div><div><dt>Actions · 编译与产物</dt><dd>Read and write <span>读取和写入</span></dd></div><div><dt>Contents · 上传源码</dt><dd>Read and write <span>读取和写入</span></dd></div><div><dt>Metadata · 基础信息</dt><dd>Read-only <span>默认只读</span></dd></div></dl>
                 <p><strong>账号权限不必开启。</strong>专用于 iOSForge 的 Token 不需要邮箱、Copilot、Gists 或 Profile 等权限。</p>
               </div>
 
               <h3 id="token-use">最后一步 · 复制回来，粘贴到哪里？</h3>
               <ol class="guide-steps">
                 <li><strong>复制 GitHub 刚生成的那一长串字符。</strong><p>点击令牌旁的复制图标。完整值通常只在创建时展示一次，建议保存在你自己的密码管理器里。不要复制 Token 名称“iOSForge”，也不要复制网页地址。</p></li>
-                <li><strong>回到原来的编译工作台标签页。</strong><p>找到 <strong>GitHub Token</strong> 输入框，点进去粘贴。电脑可按 Ctrl + V；手机长按输入框后点“粘贴”。显示成圆点是正常的，不必点眼睛按钮。当前正在选择源码时，直接切回原标签页，不要刷新丢掉已选文件。</p></li>
+                <li><strong>回到原来的编译工作台标签页。</strong><p>找到 <strong>GitHub Token</strong> 输入框，点进去粘贴，然后点“检查我的仓库”。确认提示的账号是你本人、仓库名正确；私密源码还要确认显示 Private 私有仓库。电脑可按 Ctrl + V；手机长按输入框后点“粘贴”。显示成圆点是正常的，不必点眼睛按钮。当前正在选择源码时，直接切回原标签页，不要刷新丢掉已选文件。</p></li>
                 <li><strong>按你的源码来源继续。</strong><p>第一次上传：选 ZIP / 文件夹，核对提交位置并勾选确认后，点“上传并编译”。已上传过：选“使用仓库源码”，填写实际源码目录，再点“开始构建”。出现运行编号和排队状态，才表示任务已经提交。</p></li>
               </ol>
               <div class="guide-result"><svg class="icon"><use href="#i-check"/></svg><p><strong>不用每次都创建新 Token。</strong>未到期且权限正确时，可以重复使用原来的值。但工作台不保存令牌，关闭或刷新后需要重新粘贴；GitHub 已登录也不会自动填入。</p></div>
@@ -169,15 +180,15 @@ package_scheme = "rootless"</code></pre></div>
               <p>适用于“GitHub 拒绝请求 / 403”或上传失败。先检查配置，不要一上来删除令牌，也不要反复提交同一次构建。</p>
               <ol class="guide-steps">
                 <li><strong>打开列表，点你之前创建的 Token 名称。</strong><p><a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noreferrer">打开我的 Fine-grained tokens ↗</a>，找到 <strong>iOSForge</strong> 后点名称。这个详情页用来改权限，不会重新显示已隐藏的完整令牌。</p></li>
-                <li><strong>点“Access on mango6i”同一行右侧的 Edit。</strong><p>页面有多个 Edit 时，找<strong>仓库授权区域</strong>旁边的 Edit（编辑），不是只修改顶部名称的按钮。不要点 Delete（删除）或 Regenerate token（重新生成）。如果界面改成单独的 Permissions → Edit，就进入这个权限编辑入口。</p></li>
-                <li><strong>核对仓库，再补齐两项仓库权限。</strong><p>仓库必须包含 <code>mango6i/iOSForge</code>。进入 Repository permissions，确认 <strong>Actions → Read and write</strong>，再添加 <strong>Contents → Read and write</strong>，具体点法见上面的步骤 4、5。若只有 metadata 和 actions，那就仍然缺 Contents。</p><p>如果这个 Token 专门给 iOSForge 使用，可移除误开的用户权限；如果还用于别的工具，先确认用途，或单独为 iOSForge 创建一个限范围 Token，避免影响其他工具。</p></li>
+                <li><strong>点“Access on 你的用户名”同一行右侧的 Edit。</strong><p>页面有多个 Edit 时，找<strong>仓库授权区域</strong>旁边的 Edit（编辑），不是只修改顶部名称的按钮。不要点 Delete（删除）或 Regenerate token（重新生成）。如果界面改成单独的 Permissions → Edit，就进入这个权限编辑入口。</p></li>
+                <li><strong>核对仓库，再补齐两项仓库权限。</strong><p>仓库必须包含 <code>你的用户名/iOSForge-Builds</code>。进入 Repository permissions，确认 <strong>Actions → Read and write</strong>，再添加 <strong>Contents → Read and write</strong>，具体点法见上面的步骤 4、5。若只有 metadata 和 actions，那就仍然缺 Contents。</p><p>如果这个 Token 专门给 iOSForge 使用，可移除误开的用户权限；如果还用于别的工具，先确认用途，或单独为 iOSForge 创建一个限范围 Token，避免影响其他工具。</p></li>
                 <li><strong>点击页面底部的保存 / 更新按钮。</strong><p>按钮可能显示 Save 或 Update permissions；看到 GitHub 要求确认时完成确认。回到详情页，按上方 4 项清单检查保存结果。<strong>仅修改权限不需要重新生成令牌</strong>，原来那串值可继续使用。</p></li>
                 <li><strong>回到工作台，确认粘贴的是这个 Token。</strong><p>可先点“刷新记录”查看是否已经有任务，避免重复构建。但能显示记录<strong>不代表上传写入权限已齐全</strong>，仍要核对 Contents。没有任务时，再尝试一次上传或构建。</p></li>
               </ol>
 
               <h3>卡住了？按现象处理</h3>
               <div class="token-faq">
-                <details><summary>找不到 iOSForge，或者所属账号选不了</summary><p>先看右上角头像，确认登录的是仓库所属账号 mango6i；再检查 Repository access 是否选了 Only select repositories。其他账号不能仅凭知道仓库地址就获得写入权限。如果使用自己的 Fork，请选择自己的账号和仓库，工作台里也要同步改成它。</p></details>
+                <details><summary>找不到自己的仓库，或者所属账号选不了</summary><p>先看右上角头像，确认登录的是你自己的账号；再检查 Repository access 是否选了 Only select repositories。其他账号不能仅凭知道仓库地址就获得写入权限。还没创建构建仓库时，先按第一节建立自己的私有仓库。工作台只支持 Token 所属用户自己名下的个人仓库，暂不开放组织或跨账号协作仓库。</p></details>
                 <details><summary>已开 Actions，仍提示 GitHub 拒绝请求</summary><p>先确认 Contents 也已开 Read and write、仓库选对、权限已保存、输入框使用的不是另一个旧 Token。403 还可能与 API 限流、仓库规则或组织审批有关，不能只凭这句提示认定源码有错。检查具体失败步骤；组织 Token 显示 Pending 时需要等待管理员批准。</p></details>
                 <details><summary>令牌过期、复制不到了，或者已经泄露</summary><p>到期或忘记完整值时，可创建一个替代 Token，再回工作台换掉输入框内容。Regenerate token 会使原来的值失效，用它的其他地方也要更新。泄露时请立即在 GitHub 撤销 / 删除该令牌，再生成新令牌；不要把新值发给 AI、发到聊天、写进源码或截图。</p></details>
                 <details><summary>已经登录 GitHub，为什么还不是一键登录？</summary><p>目前这是 GitHub Pages 静态网页，尚未接入 GitHub App 登录服务。登录 GitHub 不等于授权另一个网页操作仓库。“预填创建页面”只减少填表步骤，不会自动生成、获取或保存你的令牌。真正免手工 Token 需要另行配置授权应用和安全后端，首次仍须你确认授权。</p></details>
@@ -211,7 +222,14 @@ package_scheme = "rootless"</code></pre></div>
                 <li><strong>删除后核对提示。</strong><p>选中的云端产物消失，源码、构建记录和已下载文件都保留。同一次构建有多个产物时，其他产物不受影响。全部删完会显示空列表，但构建仍然是成功的。</p></li>
               </ol>
               <div class="guide-callout"><strong>删除没有回收站。</strong><p>请先下载需要保留的文件。删除后不能恢复原来的下载，只能重新编译生成新产物。网络中断或提示无法确认结果时，请刷新记录并重新打开该任务，核对列表，不要连续重复删除。</p></div>
-              <p class="guide-note">删除权限为 Actions → Read and write。实现对应 <a href="https://docs.github.com/en/rest/actions/artifacts#delete-an-artifact" target="_blank" rel="noreferrer">GitHub 官方产物删除接口 ↗</a>；不会删除整条运行记录。</p>
+              <p class="guide-note">文件旁的“删除”仅删除该产物，不删除整条记录。需要 Actions → Read and write 权限，对应 <a href="https://docs.github.com/en/rest/actions/artifacts#delete-an-artifact" target="_blank" rel="noreferrer">GitHub 官方产物删除接口 ↗</a>。</p>
+              <h3 id="history-cleanup">最近构建太多？批量删除怎么用</h3>
+              <p>“构建记录”是一次任务的记录，“产物”是任务生成的文件。失败任务可能没有产物，但仍有一条记录；删除文件不会自动清除这条记录。</p>
+              <ol class="guide-steps"><li><strong>确认仓库、分支和 Token，点击“刷新记录”。</strong><p>每次读取 30 条当前分支的编译记录。想处理更早的记录，先点“再加载 30 条记录”。这里不会列出或删除 GitHub Pages 部署、环境检查等其他工作流。</p></li><li><strong>勾选要清理的任务。</strong><p>可以逐条勾选；点“只选失败 / 取消”会选中已加载的失败、取消、超时等未成功记录。想连成功记录一起清理，可勾选“全选已加载的已结束记录”。“全选”不包含尚未加载的记录，也不跨仓库或分支。排队和编译中的记录不能勾选。</p></li><li><strong>点击“删除所选（数量）”，先核对清单。</strong><p>确认框会显示仓库、分支、数量、成功记录数量，以及每条任务的编号和名称。<strong>对应日志和所有云端产物会一起删除</strong>；需要的 IPA / dylib / deb 请先下载，报错请先复制。</p></li><li><strong>确认永久删除，保持网页打开。</strong><p>系统逐条核对最新状态，再删除。任务已被重新运行、状态变化或不属于该编译工作流时，会跳过；网络或权限出错会停止后续删除，并告诉你已经确认删除多少条。</p></li><li><strong>看结果，再点“刷新记录”。</strong><p>删除没有回收站，源码、提交历史和本地已下载文件不受影响。网络中断时最后一条可能已经删除，先刷新核对，不要不看结果就重复操作。</p></li></ol>
+              <h3>能不能过几天自动清理？</h3>
+              <p>当前编译产物设置为保留 <strong>14 天</strong>，到期由 GitHub 清理，关闭网页也会生效。它只控制产物期限，<strong>不代表构建记录会同时消失</strong>，也不会追溯改变以前已生成文件的到期时间。</p>
+              <p>本版本没有启用定时删除构建记录。如果以后需要自动清理，应先确定“保留几天”“仅失败还是包含成功”“保留多少个成功版本”，再配置云端执行；不能依赖一个关闭网页就停止的倒计时。未明确规则前，不会自动删除你的成功版本。</p>
+              <p class="guide-note">依据：<a href="https://docs.github.com/en/actions/how-tos/manage-workflow-runs/remove-workflow-artifacts" target="_blank" rel="noreferrer">删除记录会一并删除关联产物 ↗</a> · <a href="https://docs.github.com/en/actions/tutorials/store-and-share-data#configuring-a-custom-artifact-retention-period" target="_blank" rel="noreferrer">产物保留期限 ↗</a>。</p>
             </section>
 
             <section class="guide-section" id="ipa-config">
@@ -262,8 +280,8 @@ configuration = "Release"</code></pre></div>
               <div class="faq-list">
                 <details><summary>找不到 Run workflow，或者看不到上传按钮</summary><p>先看 GitHub 页面右上角。如果显示 Sign in，请登录拥有仓库权限的账号。再确认自己打开的是编译流程，而不是单个历史运行页。访问公开仓库不等于已经登录。</p></details>
                 <details><summary>401：访问令牌无效或过期</summary><p>去 GitHub 查看令牌是否过期或被删除。重新复制有效令牌，清空工作台里的旧内容再粘贴。不要填写账号密码，也不要多带空格或换行。</p></details>
-                <details><summary>403：没有权限，或请求额度用完</summary><p>检查令牌是否选中了 iOSForge 仓库，Actions 是否为 Read and write；网页上传还需要 Contents 的 Read and write。组织仓库还可能需要管理员批准。如果 GitHub 提示 API 请求额度耗尽，等额度恢复后再试。</p></details>
-                <details><summary>404：找不到仓库或工作流</summary><p>确认仓库写成 mango6i/iOSForge，main 分支中存在 .github/workflows/build.yml。私有仓库授权不正确时也可能返回 404。请检查令牌授权的账号和仓库。</p></details>
+                <details><summary>403：没有权限，或请求额度用完</summary><p>检查令牌是否选中了你自己的构建仓库，Actions 是否为 Read and write；网页上传还需要 Contents 的 Read and write。组织仓库还可能需要管理员批准。如果 GitHub 提示 API 请求额度耗尽，等额度恢复后再试。</p></details>
+                <details><summary>404：找不到仓库或工作流</summary><p>确认填写的是你自己的“用户名/仓库名”，所选分支中存在 .github/workflows/build.yml。不要填写工具作者的仓库，也不要把未解压的初始化 ZIP 当成已安装的工作流。私有仓库授权不正确时也可能返回 404。请检查令牌授权的账号和仓库。</p></details>
                 <details><summary>提示找不到 Theos 工程，或发现多个 Makefile</summary><p>检查上传的是解压后的完整工程，Makefile 包含 Theos 编译配置。单工程可自动识别；多个工程时，在网页填写具体源码目录，或在 iosforge.toml 的 [theos].project_dir 中指定（只在未选源码目录时使用）。带 # 的行不会生效。网页上传会解压 ZIP；直接提交到仓库的 ZIP 不会自动解压。</p></details>
                 <details><summary>提示找不到头文件、库，或出现 clang / linker 错误</summary><p>打开运行日志，找到第一个实际编译错误。它通常表示项目依赖缺失、代码不兼容或目标架构不匹配。保留出错文件名和前后几行信息，结合原项目的依赖说明处理。切换网页主题或重新填写 Token 不会修复源码错误。</p></details>
                 <details><summary>IPA 提示 No signing certificate / No profiles</summary><p>如果你要给巨魔或自签工具使用，确认选择了“无证书编译”，GitHub 参数为 ipa_signing = unsigned；不需要填写导出配置。如果仍出现签名错误，检查项目自定义脚本是否额外调用 codesign 或签名服务。若选择的是“证书导出”，则需要检查证书、描述文件、团队和 Bundle ID 是否匹配，并确保在本次云端环境中导入。仅上传 ExportOptions.plist 不会安装证书。</p></details>

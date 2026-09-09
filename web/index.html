@@ -7,11 +7,11 @@
   <meta name="description" content="iOSForge 编译工作台。在 GitHub 上构建面向 iOS 15+ 的动态库、插件包和应用。" />
   <title>iOSForge · 编译工作台</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=beginner-token-1" />
+  <link rel="stylesheet" href="./styles.css?v=own-workspace-1" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
   <script src="./source-upload.js?v=1" defer></script>
   <script src="./build-logs.js?v=1" defer></script>
-  <script src="./app.js?v=temporary-logs-1" defer></script>
+  <script src="./app.js?v=own-workspace-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">跳到编译工作台</a>
@@ -45,7 +45,7 @@
       <nav class="navigation">
         <a class="nav-item active" href="./" aria-current="page" aria-label="编译工作台"><svg class="icon"><use href="#i-grid"/></svg><span>编译工作台</span><span class="nav-indicator"></span></a>
         <a class="nav-item" href="./guide.html" aria-label="使用指南"><svg class="icon"><use href="#i-book"/></svg><span>使用指南</span></a>
-        <a class="nav-item" id="repo-link" href="https://github.com/mango6i/iOSForge" target="_blank" rel="noreferrer" aria-label="项目仓库，在新标签页打开"><svg class="icon"><use href="#i-repo"/></svg><span>项目仓库</span><svg class="icon nav-external"><use href="#i-external"/></svg></a>
+        <a class="nav-item" id="repo-link" href="https://github.com/mango6i/iOSForge" target="_blank" rel="noreferrer" aria-label="工具源码，在新标签页打开"><svg class="icon"><use href="#i-repo"/></svg><span>工具源码</span><svg class="icon nav-external"><use href="#i-external"/></svg></a>
       </nav>
       <div class="sidebar-bottom">
         <div class="environment-card">
@@ -59,7 +59,7 @@
     <div class="main-shell">
       <header class="topbar">
         <div class="breadcrumb"><span>工作空间</span><span class="breadcrumb-slash">/</span><strong>编译工作台</strong></div>
-        <a class="topbar-link" href="https://github.com/mango6i/iOSForge/actions" target="_blank" rel="noreferrer"><svg class="icon"><use href="#i-github"/></svg><span>GitHub Actions</span><svg class="icon small-icon"><use href="#i-external"/></svg></a>
+        <a class="topbar-link" href="https://github.com" target="_blank" rel="noreferrer"><svg class="icon"><use href="#i-github"/></svg><span>GitHub Actions</span><svg class="icon small-icon"><use href="#i-external"/></svg></a>
       </header>
 
       <main id="workspace" class="workspace">
@@ -96,9 +96,10 @@
                 <h3 class="form-section-title"><span class="step-number">02</span>配置源码</h3>
                 <fieldset class="source-switch"><legend class="sr-only">源码来源</legend><label><input type="radio" name="source_mode" value="repository" checked /><span>使用仓库源码</span></label><label><input type="radio" name="source_mode" value="upload" /><span>上传本地源码</span></label></fieldset>
                 <div class="source-fields">
-                  <label class="field"><span>GitHub 仓库</span><span class="input-wrap"><svg class="icon"><use href="#i-repo"/></svg><input id="repo" name="repo" value="mango6i/iOSForge" placeholder="owner/repository" autocomplete="off" autocapitalize="none" spellcheck="false" required /></span></label>
+                  <label class="field"><span>你自己的 GitHub 仓库</span><span class="input-wrap"><svg class="icon"><use href="#i-repo"/></svg><input id="repo" name="repo" value="" placeholder="你的用户名/你的构建仓库" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="repository-help" required /></span></label>
                   <label class="field"><span>分支</span><span class="input-wrap"><svg class="icon"><use href="#i-branch"/></svg><input id="branch" name="branch" value="main" placeholder="main" autocomplete="off" autocapitalize="none" spellcheck="false" required /></span></label>
                 </div>
+                <p id="repository-help" class="field-hint">每个人使用自己名下的仓库，不会默认提交到网站作者的仓库。私密源码请使用 Private 私有仓库。<a href="./guide.html#own-repository" target="_blank" rel="noreferrer">首次使用：建立自己的构建仓库 ↗</a></p>
                 <label id="source-directory-field" class="field source-directory-field"><span>源码目录 · 可选</span><input id="source-directory" placeholder="留空搜索仓库，或填写 sources/MyProject" autocomplete="off" spellcheck="false" /></label>
                 <div id="upload-panel" class="upload-panel" hidden>
                   <div id="upload-dropzone" class="upload-dropzone">
@@ -111,7 +112,8 @@
                   <div id="upload-preview" class="upload-preview" hidden><div class="upload-preview-heading"><strong id="upload-file-count"></strong><button id="clear-upload" class="copy-button" type="button">清除选择</button></div><details><summary>查看待上传文件</summary><ul id="upload-file-list"></ul></details></div>
                   <label class="field"><span>项目文件夹名称</span><input id="upload-project" placeholder="例如 MyProject" autocomplete="off" spellcheck="false" maxlength="64" /></label>
                   <p id="upload-destination" class="field-hint"></p>
-                  <label class="upload-consent"><input id="upload-consent" type="checkbox" /><span>确认提交到以上仓库。公开仓库中的源码所有人可见，请勿上传私密源码或密钥。</span></label>
+                  <label class="upload-consent"><input id="upload-consent" type="checkbox" /><span>确认提交到以上我自己的仓库，已检查源码不含密钥。私有仓库可降低公开泄露风险，但不能保证绝对安全。</span></label>
+                  <div id="public-upload-warning" class="public-upload-warning" hidden><strong>当前仓库是公开的：上传后所有人可见。</strong><p>如果源码不应公开，请停止上传，换成自己的 Private 私有仓库。删除当前文件也无法自动清除提交历史。</p><label class="upload-consent"><input id="allow-public-upload" type="checkbox" /><span>我确认这些源码可以公开，仍要上传到当前公开仓库。</span></label></div>
                   <label class="upload-consent"><input id="upload-replace" type="checkbox" /><span>如果目录已存在，允许更新本次同名文件；未上传的旧文件不会删除。</span></label>
                   <div id="upload-progress-wrap" hidden><progress id="upload-progress" max="100" value="0" aria-label="源码上传进度"></progress><p id="upload-progress-text" class="field-hint" role="status" aria-live="polite"></p></div>
                   <p class="field-hint">支持完整 Theos / Xcode 源码，不是现成 IPA、deb 或 dylib。单个文件上限 10 MB。<a href="./guide.html#upload">查看上传说明 ↗</a></p>
@@ -138,7 +140,8 @@
               <div class="token-section">
                 <div class="token-label"><label for="token">GitHub Token</label><span><svg class="icon small-icon"><use href="#i-lock"/></svg>仅当前会话</span></div>
                 <div class="input-wrap token-input-wrap"><svg class="icon"><use href="#i-lock"/></svg><input id="token" name="token" type="password" placeholder="粘贴你的访问令牌" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="token-help" required /><button id="token-toggle" class="icon-button" type="button" aria-label="显示访问令牌" aria-pressed="false"><svg class="icon"><use href="#i-eye"/></svg></button></div>
-                <details class="token-help" id="token-help"><summary>没有 Token？跟着步骤获取<svg class="icon small-icon"><use href="#i-info"/></svg></summary><div class="token-help-content"><p>Token 是让工作台操作仓库的授权凭证，不是 GitHub 登录密码。已登录 GitHub 也需要单独授权。</p><ol><li>打开下方预填页面，确认账号为 <strong>mango6i</strong>。</li><li>选择 <strong>Only select repositories</strong>，仅勾选 <strong>iOSForge</strong>。</li><li>核对仓库权限：<strong>Actions</strong> 和 <strong>Contents</strong> 都是 <strong>Read and write</strong>。</li><li>点 <strong>Generate token</strong>，复制生成的那串字符，切回本页粘贴到上方输入框。</li></ol><a href="https://github.com/settings/personal-access-tokens/new?name=iOSForge&amp;description=iOSForge+web+build+and+source+upload&amp;target_name=mango6i&amp;expires_in=30&amp;actions=write&amp;contents=write" target="_blank" rel="noreferrer">打开预填创建页面（仍需确认）↗</a><a href="./guide.html#token-guide" target="_blank" rel="noreferrer">第一次用？查看完整逐步教程 ↗</a><a href="./guide.html#token-repair" target="_blank" rel="noreferrer">已有 Token 报权限错误？按这里补齐 ↗</a><p>预填入口用于 mango6i/iOSForge；其他仓库按教程更换账号和范围。令牌仅在本页内存中使用，刷新或关闭后需要重新粘贴，<strong>不要发给 AI 或截图分享</strong>。</p></div></details>
+                <div class="workspace-connection"><button id="check-workspace" class="secondary-button" type="button">检查我的仓库</button><p id="workspace-status" role="status" data-visibility="unknown">尚未核对账号和仓库。不会默认使用网站作者的仓库。</p></div>
+                <details class="token-help" id="token-help"><summary>没有 Token？跟着步骤获取<svg class="icon small-icon"><use href="#i-info"/></svg></summary><div class="token-help-content"><p>先建立自己的构建仓库，再创建只授权该仓库的 Token。它不是 GitHub 登录密码。</p><ol><li>打开下方预填页面，确认登录的是<strong>你自己的 GitHub 账号</strong>。</li><li>选择 <strong>Only select repositories</strong>，仅勾选<strong>你自己的构建仓库</strong>。</li><li>确认仓库权限 <strong>Actions</strong> 和 <strong>Contents</strong> 都为 <strong>Read and write</strong>。</li><li>点 <strong>Generate token</strong>，复制生成的字符，切回本页粘贴后点“检查我的仓库”。</li></ol><a href="https://github.com/settings/personal-access-tokens/new?name=iOSForge&amp;description=iOSForge+web+build+and+source+upload&amp;expires_in=30&amp;actions=write&amp;contents=write" target="_blank" rel="noreferrer">打开预填创建页面（仍需确认）↗</a><a href="./guide.html#own-repository" target="_blank" rel="noreferrer">还没有自己的仓库？从这里开始 ↗</a><a href="./guide.html#token-guide" target="_blank" rel="noreferrer">查看完整 Token 教程 ↗</a><a href="./guide.html#token-repair" target="_blank" rel="noreferrer">已有 Token 报权限错误？按这里补齐 ↗</a><p>不会预填网站作者的账号，也不会自动创建或读取你的令牌。令牌仅在本页内存中使用；<strong>不要发给 AI 或截图分享</strong>。</p></div></details>
               </div>
 
               <div class="submit-row"><button id="submit-button" class="primary-button" type="submit"><svg class="icon"><use href="#i-play"/></svg><span id="submit-label">开始构建</span><svg class="icon button-arrow"><use href="#i-arrow"/></svg></button><p id="form-footnote" class="form-footnote">使用仓库已有源码，或切换到“上传本地源码”。</p></div>
@@ -173,8 +176,8 @@
               <p id="logs-action-message" class="field-hint" role="status" hidden></p>
               <textarea id="logs-copy-fallback" class="logs-copy-fallback" aria-label="无法自动复制时，请手动选择复制以下诊断内容" readonly hidden></textarea>
             </section>
-            <section class="history-panel" aria-labelledby="history-heading"><div class="history-heading"><div><span class="section-overline">RECENT RUNS</span><h3 id="history-heading">最近构建</h3></div><button id="refresh-history" class="secondary-button" type="button">刷新记录</button></div><p id="history-message" class="field-hint" role="status">填好仓库、分支和 Token 后，刷新查看最近 10 次构建。关闭网页也不会丢失云端任务。</p><div id="history-list"></div></section>
-            <div class="status-actions"><a id="actions-link" class="secondary-button" href="https://github.com/mango6i/iOSForge/actions" target="_blank" rel="noreferrer"><svg class="icon"><use href="#i-github"/></svg>在 GitHub 查看日志<svg class="icon small-icon"><use href="#i-external"/></svg></a></div>
+            <section class="history-panel" aria-labelledby="history-heading"><div class="history-heading"><div><span class="section-overline">RECENT RUNS</span><h3 id="history-heading">最近构建</h3></div><button id="refresh-history" class="secondary-button" type="button">刷新记录</button></div><p id="history-message" class="field-hint" role="status">填好仓库、分支和 Token 后刷新，每次读取 30 条记录。失败记录不一定有产物。</p><div id="history-toolbar" class="history-toolbar" hidden><label class="history-select-all"><input id="select-all-runs" type="checkbox" /><span>全选已加载的已结束记录</span></label><div class="history-batch-actions"><button id="select-failed-runs" class="secondary-button" type="button">只选失败 / 取消</button><button id="delete-selected-runs" class="danger-button" type="button" disabled>删除所选（0）</button></div><p>仅处理当前仓库、分支的编译记录；不含网页部署。删除记录会一并删除日志和云端产物，源码不受影响。</p></div><div id="history-list"></div><button id="load-more-runs" class="secondary-button history-load-more" type="button" hidden>再加载 30 条记录</button><p class="history-retention-note">编译产物当前保留 14 天，到期由 GitHub 清理；这不等于删除构建记录。批量删除需要手动确认，尚未开启定时清理记录。<a href="./guide.html#history-cleanup" target="_blank" rel="noreferrer">查看清理说明 ↗</a></p></section>
+            <div class="status-actions"><a id="actions-link" class="secondary-button" href="https://github.com" target="_blank" rel="noreferrer" hidden><svg class="icon"><use href="#i-github"/></svg>在 GitHub 查看日志<svg class="icon small-icon"><use href="#i-external"/></svg></a></div>
           </section>
         </div>
 
@@ -184,6 +187,7 @@
     </div>
   </div>
   <dialog id="delete-dialog" class="delete-dialog" aria-labelledby="delete-title" aria-describedby="delete-description"><span class="section-overline">CLOUD STORAGE</span><h2 id="delete-title">删除这份云端产物？</h2><p id="delete-target" class="delete-target"></p><p id="delete-description">删除后无法恢复下载；需要重新编译才能生成新文件。此操作不会删除源码、构建记录或你已经下载的文件。</p><div class="dialog-actions"><button id="cancel-delete" type="button" class="secondary-button" autofocus>保留文件</button><button id="confirm-delete" type="button" class="danger-button">确认永久删除</button></div></dialog>
-  <noscript><p class="noscript-message">请开启 JavaScript 以使用编译工作台。也可以直接在 <a href="https://github.com/mango6i/iOSForge/actions">GitHub Actions</a> 发起构建。</p></noscript>
+  <dialog id="delete-runs-dialog" class="delete-dialog" aria-labelledby="delete-runs-title" aria-describedby="delete-runs-description"><span class="section-overline">BUILD HISTORY</span><h2 id="delete-runs-title">永久删除所选构建记录？</h2><p id="delete-runs-scope" class="delete-target"></p><ul id="delete-runs-targets" class="delete-runs-targets"></ul><p id="delete-runs-description">这些记录、对应日志和全部云端产物会一起删除，无法恢复。请先下载需要的文件、复制要排查的报错。源码、提交历史和本地下载不受影响。</p><div class="dialog-actions"><button id="cancel-delete-runs" type="button" class="secondary-button" autofocus>保留记录</button><button id="confirm-delete-runs" type="button" class="danger-button">确认永久删除</button></div></dialog>
+  <noscript><p class="noscript-message">请开启 JavaScript 以使用编译工作台。也可以到你自己的 GitHub 仓库，在 Actions 中发起构建。</p></noscript>
 </body>
 </html>

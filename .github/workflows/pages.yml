@@ -7,6 +7,13 @@ on:
     paths:
       - "web/**"
       - ".github/workflows/pages.yml"
+      - "scripts/make_starter.py"
+      - "iosforge/**"
+      - "iosforge.toml"
+      - "pyproject.toml"
+      - ".github/workflows/build.yml"
+      - ".github/workflows/environment.yml"
+      - ".github/actions/setup-ios/action.yml"
   workflow_dispatch:
 
 permissions:
@@ -29,6 +36,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
+      - name: Package clean private-workspace starter
+        run: python3 scripts/make_starter.py
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
@@ -36,4 +45,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
