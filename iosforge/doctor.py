@@ -59,7 +59,7 @@ def verify() -> None:
         if "var/jb/" not in deb_list or "ForgeProbe.dylib" not in deb_list:
             raise BuildError("Rootless package paths are incorrect")
         dylib = root / "outputs/plugin/ForgeProbe.dylib"
-        run([command_path("xcrun"), "lipo", "-verify_arch", "arm64", "arm64e", dylib])
+        run([command_path("xcrun"), "lipo", dylib, "-verify_arch", "arm64", "arm64e"])
         ipa = next((root / "outputs/app").glob("*-unsigned.ipa"))
         with zipfile.ZipFile(ipa) as archive:
             if archive.testzip() is not None:
