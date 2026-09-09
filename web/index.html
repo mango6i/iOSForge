@@ -7,7 +7,7 @@
   <meta name="description" content="iOSForge 编译工作台。在 GitHub 上构建面向 iOS 15+ 的动态库、插件包和应用。" />
   <title>iOSForge · 编译工作台</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=temporary-logs-1" />
+  <link rel="stylesheet" href="./styles.css?v=beginner-token-1" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
   <script src="./source-upload.js?v=1" defer></script>
   <script src="./build-logs.js?v=1" defer></script>
@@ -138,7 +138,7 @@
               <div class="token-section">
                 <div class="token-label"><label for="token">GitHub Token</label><span><svg class="icon small-icon"><use href="#i-lock"/></svg>仅当前会话</span></div>
                 <div class="input-wrap token-input-wrap"><svg class="icon"><use href="#i-lock"/></svg><input id="token" name="token" type="password" placeholder="粘贴你的访问令牌" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="token-help" required /><button id="token-toggle" class="icon-button" type="button" aria-label="显示访问令牌" aria-pressed="false"><svg class="icon"><use href="#i-eye"/></svg></button></div>
-                <details class="token-help" id="token-help"><summary>如何获取 Token？<svg class="icon small-icon"><use href="#i-info"/></svg></summary><p>创建仅授权目标仓库的令牌：Actions → Read and write（编译、下载、删除）；Contents → Read and write（上传源码）。令牌只在当前页面内存中使用，直接发送给 GitHub，不保存到浏览器或仓库。<a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">前往 GitHub 创建 ↗</a><a href="./guide.html#token-guide">查看逐步填写说明 ↗</a></p></details>
+                <details class="token-help" id="token-help"><summary>没有 Token？跟着步骤获取<svg class="icon small-icon"><use href="#i-info"/></svg></summary><div class="token-help-content"><p>Token 是让工作台操作仓库的授权凭证，不是 GitHub 登录密码。已登录 GitHub 也需要单独授权。</p><ol><li>打开下方预填页面，确认账号为 <strong>mango6i</strong>。</li><li>选择 <strong>Only select repositories</strong>，仅勾选 <strong>iOSForge</strong>。</li><li>核对仓库权限：<strong>Actions</strong> 和 <strong>Contents</strong> 都是 <strong>Read and write</strong>。</li><li>点 <strong>Generate token</strong>，复制生成的那串字符，切回本页粘贴到上方输入框。</li></ol><a href="https://github.com/settings/personal-access-tokens/new?name=iOSForge&amp;description=iOSForge+web+build+and+source+upload&amp;target_name=mango6i&amp;expires_in=30&amp;actions=write&amp;contents=write" target="_blank" rel="noreferrer">打开预填创建页面（仍需确认）↗</a><a href="./guide.html#token-guide" target="_blank" rel="noreferrer">第一次用？查看完整逐步教程 ↗</a><a href="./guide.html#token-repair" target="_blank" rel="noreferrer">已有 Token 报权限错误？按这里补齐 ↗</a><p>预填入口用于 mango6i/iOSForge；其他仓库按教程更换账号和范围。令牌仅在本页内存中使用，刷新或关闭后需要重新粘贴，<strong>不要发给 AI 或截图分享</strong>。</p></div></details>
               </div>
 
               <div class="submit-row"><button id="submit-button" class="primary-button" type="submit"><svg class="icon"><use href="#i-play"/></svg><span id="submit-label">开始构建</span><svg class="icon button-arrow"><use href="#i-arrow"/></svg></button><p id="form-footnote" class="form-footnote">使用仓库已有源码，或切换到“上传本地源码”。</p></div>

@@ -132,6 +132,11 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 .token-help summary:hover { color: var(--accent); }
 .token-help p { padding: 12px 14px; margin: 9px 0 0; background: #f1f7ff; border: 1px solid var(--border); border-radius: 7px; font-size: .875rem; color: var(--muted); }
 .token-help a { display: block; color: var(--accent); margin-top: 8px; width: fit-content; }
+.token-help-content { padding: 16px; margin-top: 10px; border: 1px solid var(--border); border-radius: 8px; background: #f1f7ff; color: var(--muted); font-size: .875rem; line-height: 1.85; }
+.token-help .token-help-content p { padding: 0; margin: 10px 0; border: 0; background: transparent; }
+.token-help-content ol { padding-left: 22px; margin: 12px 0; }
+.token-help-content li { margin: 8px 0; }
+.token-help-content strong { color: #294b73; }
 .submit-row { margin-top: 23px; }
 .primary-button { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 47px; width: 100%; padding: 10px 18px; border: 1px solid #316fee; border-radius: 8px; background: linear-gradient(110deg, #255de9, #176bc9); box-shadow: inset 0 1px #ffffff40, 0 5px 16px #2c71df2e; color: #ffffff; font-size: .9375rem; font-weight: 650; transition: box-shadow 180ms, transform 180ms, filter 180ms; position: relative; }
 .primary-button > .icon:first-child { width: 17px; height: 17px; fill: currentColor; stroke-width: 1; }
@@ -351,6 +356,33 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 .guide-steps li::marker { color: #4a80c6; font-family: var(--mono); font-size: .875rem; }
 .guide-steps li > strong { font-weight: 550; }
 .guide-steps li p { margin: 5px 0 0; }
+.token-routes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 22px 0; }
+.guide-section .token-routes a { display: flex; flex-direction: column; gap: 7px; padding: 20px; border: 1px solid #c6dcfa; border-radius: 10px; background: linear-gradient(145deg, #fff, #edf5ff); text-decoration: none; }
+.token-routes a:hover { border-color: var(--accent); }
+.token-routes span, .token-routes small { color: #4b6687; font-size: .875rem; line-height: 1.65; }
+.token-routes strong { font-size: 1rem; color: #204d8b; }
+.token-fields { margin: 14px 0 0; padding: 0; }
+.token-fields > div { padding: 13px 0; border-bottom: 1px solid var(--border-soft); }
+.token-fields dt { font-weight: 600; color: #34577f; }
+.token-fields dd { margin: 5px 0 0; color: var(--muted); }
+.token-checklist { padding: 22px; margin: 28px 0; border: 1px solid #9fcabb; border-radius: 10px; background: linear-gradient(135deg, #f5fffb, #f4f9ff); }
+.guide-section .token-checklist h3 { margin: 0 0 10px; color: #216650; }
+.token-checklist dl { margin: 18px 0; }
+.token-checklist dl > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; padding: 13px 0; border-top: 1px solid #d9e9e4; font-size: 1rem; line-height: 1.75; }
+.token-checklist dt { font-weight: 550; color: #345c52; }
+.token-checklist dd { margin: 0; color: #244d7c; overflow-wrap: anywhere; }
+.token-checklist dd span { display: block; font-size: .875rem; color: #4f6d67; }
+.token-faq { border-block: 1px solid var(--border); }
+.token-faq details + details { border-top: 1px solid var(--border); }
+.token-faq summary { padding: 17px 4px; cursor: pointer; color: #2f517a; font-size: 1rem; line-height: 1.7; }
+.token-faq details p { margin: 0 4px 20px; }
+#token-guide h3[id], #token-checklist { scroll-margin-top: 24px; }
+@media (max-width: 600px) {
+  .token-routes { grid-template-columns: minmax(0, 1fr); }
+  .guide-section .token-routes a { padding: 16px; }
+  .token-checklist { padding: 17px; }
+  .token-checklist dl > div { grid-template-columns: minmax(0, 1fr); gap: 3px; }
+}
 .guide-result { display: flex; align-items: flex-start; gap: 9px; border-top: 1px dashed #a4d7c2; background: #f3fbf8; padding: 14px 16px; margin-top: 20px; border-radius: 6px; }
 .guide-result > .icon { color: #14845d; margin-top: 5px; }
 .guide-result p { margin: 0; font-size: .9375rem; color: #356351; }

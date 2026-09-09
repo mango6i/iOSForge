@@ -33,14 +33,21 @@ function showChapter() {
   document.getElementById("chapter-navigation").hidden = false;
 }
 
-showChapter();
-window.addEventListener("hashchange", () => {
+function navigateToAnchor() {
   showChapter();
-  document.getElementById("guide-reader").scrollIntoView({ behavior: "auto", block: "start" });
-  const title = document.querySelector(".guide-section:not([hidden]) h2");
-  title.setAttribute("tabindex", "-1");
-  title.focus({ preventScroll: true });
-});
+  let anchor = "";
+  try { anchor = decodeURIComponent(location.hash.slice(1)); } catch (_) {}
+  const target = document.getElementById(anchor);
+  const nested = target?.closest(".guide-section") && !target.classList.contains("guide-section");
+  const focusTarget = nested ? target : document.querySelector(".guide-section:not([hidden]) h2");
+  (nested ? target : document.getElementById("guide-reader")).scrollIntoView({ behavior: "auto", block: "start" });
+  focusTarget.setAttribute("tabindex", "-1");
+  focusTarget.focus({ preventScroll: true });
+}
+
+showChapter();
+if (location.hash) navigateToAnchor();
+window.addEventListener("hashchange", navigateToAnchor);
 
 document.querySelectorAll("[data-copy]").forEach((button) => {
   button.addEventListener("click", async () => {

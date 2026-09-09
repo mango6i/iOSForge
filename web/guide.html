@@ -7,8 +7,8 @@
   <meta name="description" content="iOSForge 新手使用指南：一步步上传源码、配置 iOS 15+ 工程、获取 Token、编译和下载 dylib、deb 或 IPA。" />
   <title>使用指南 · iOSForge</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=temporary-logs-1" />
-  <script src="./guide.js?v=studio-light-2" defer></script>
+  <link rel="stylesheet" href="./styles.css?v=beginner-token-1" />
+  <script src="./guide.js?v=beginner-token-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">跳到编译工作台</a>
@@ -129,27 +129,61 @@ package_scheme = "rootless"</code></pre></div>
             </section>
 
             <section class="guide-section" id="token-guide">
-              <span class="section-overline">STEP 03</span><h2>创建网页需要的 GitHub Token</h2>
-              <p>这个步骤通常在首次使用、令牌到期或权限变化时才需要做。每次重新打开工作台，你仍需要重新粘贴令牌；网页不会替你保存它。</p>
+              <span class="section-overline">STEP 03</span><h2>获取 GitHub Token，跟着点就能完成</h2>
+              <p>Token（访问令牌）相当于你交给工作台的一把“限范围钥匙”：允许它上传源码、启动编译、下载和删除产物。<strong>它不是登录密码，也不是 Apple 签名证书。</strong>下面的英文就是 GitHub 按钮或选项的名字，找到同名位置再操作。</p>
+              <div class="token-routes" aria-label="选择适合你的 Token 教程">
+                <a href="#token-create"><span>第一次使用</span><strong>我还没有 Token</strong><small>预填常用选项，再按步骤确认 →</small></a>
+                <a href="#token-repair"><span>已经创建过</span><strong>有 Token，但提示没权限</strong><small>保留现有令牌，检查并补齐权限 →</small></a>
+              </div>
+              <div class="guide-callout"><strong>最容易漏掉：Actions 和 Contents 都要开“读写”。</strong><p>它们都在 <strong>Repository permissions（仓库权限）</strong>里。Actions 管编译和产物，Contents 管源码上传。User / Account permissions（用户 / 账号权限）里的邮箱、Copilot、个人资料等，本工具都不需要。</p></div>
+
+              <h3 id="token-create">路线 A · 从零创建一个 Token</h3>
+              <p>适用于仓库所属账号 <code>mango6i</code>。如果你用的是自己 Fork 的仓库，请把下面的账号和仓库名换成自己的；仅登录另一个账号，并不会获得向此仓库上传的权限。</p>
+              <a class="guide-start-button" href="https://github.com/settings/personal-access-tokens/new?name=iOSForge&amp;description=iOSForge+web+build+and+source+upload&amp;target_name=mango6i&amp;expires_in=30&amp;actions=write&amp;contents=write" target="_blank" rel="noreferrer">打开预填创建页面 ↗</a>
+              <p class="guide-note">会打开 GitHub 官方新标签页，预填名称、所属账号、30 天有效期和两项权限。<strong>这不是自动授权：</strong>仍需你选择仓库、核对后确认生成。登录后如果没有保留预填内容，按以下步骤手动填即可。</p>
+              <ol class="guide-steps token-walkthrough">
+                <li><strong>确认页面和登录账号。</strong><p>地址应以 <code>https://github.com/</code> 开头，页面标题是 New fine-grained personal access token。若提示 Sign in，先登录 <code>mango6i</code>，按 GitHub 提示完成身份验证。不要进入 Tokens (classic)。</p><p class="guide-note">找不到入口时：右上角头像 → Settings（账号设置，不是仓库 Settings）→ 左侧底部 Developer settings → Personal access tokens → Fine-grained tokens → Generate new token。</p></li>
+                <li><strong>填上面几项基本信息。</strong><dl class="token-fields"><div><dt>Token name · 名称</dt><dd>填写 <code>iOSForge</code>。这只是方便你认出用途，不是令牌本身。</dd></div><div><dt>Expiration · 有效期</dt><dd>选 <strong>30 days</strong>（30 天）或更短期限。到期需要更新，不建议选永不过期。</dd></div><div><dt>Description · 备注</dt><dd>可留空，或填写“iOSForge 网页上传与编译”。</dd></div><div><dt>Resource owner · 资源所属账号</dt><dd>选择 <strong>mango6i</strong>。如果找不到，先检查是否登录错账号。</dd></div></dl></li>
+                <li><strong>只选择 iOSForge 这一个仓库。</strong><p>找到 <strong>Repository access（仓库访问范围）</strong>，点 <strong>Only select repositories（只选择指定仓库）</strong>。再打开下方 Select repositories / Selected repositories，搜索 <code>iOSForge</code> 并勾选它。关掉下拉框后，应看到 <code>mango6i/iOSForge</code>。</p><p>不要选择 All repositories（所有仓库）；只选 Public repositories（公开仓库只读）也不能完成上传。</p></li>
+                <li><strong>添加 Actions，并改为“读写”。</strong><p>向下找到 <strong>Permissions → Repository permissions</strong>。如果有 <strong>Add permissions</strong> 按钮，点开、搜索 <code>Actions</code> 并选中；如果是可展开的权限列表，直接找到 Actions。然后把它右侧的 Access 下拉框改成 <strong>Read and write（读取和写入）</strong>。</p><p>预填后已有 Actions，就直接核对右侧权限。不要停在 Read-only / Read（只读）。</p></li>
+                <li><strong>再添加 Contents，也改为“读写”。</strong><p>仍在同一个 <strong>Repository permissions</strong> 区域，再次点 Add permissions，搜索 <code>Contents</code> 并选中；旧版列表直接找到 Contents。把 Access 也改成 <strong>Read and write</strong>。不要把它和 User permissions 里的其他选项混淆。</p><p><strong>这一步不要跳过：</strong>只开 Actions，可能能启动已有源码的编译，却不能从网页上传源码。Metadata（基础信息）自动出现只读时保持默认。Administration、Workflows、Secrets 等不需要额外开启。</p></li>
+                <li><strong>先核对下面的清单，再确认生成。</strong><p>仓库范围和权限全部一致后，点击页面底部 <strong>Generate token（生成令牌）</strong>。如果 GitHub 要求再次验证身份，按它的提示完成；不要向工作台或 AI 提供验证密码、验证码。</p></li>
+              </ol>
+
+              <div class="token-checklist" id="token-checklist" aria-labelledby="token-checklist-title">
+                <h3 id="token-checklist-title">保存前，对照这 4 项</h3>
+                <p>这是配置核对示意，不是对你账号的自动检测。GitHub 可能把两项读写权限合并成一行，重点是同时包含 actions 和 contents。</p>
+                <dl><div><dt>授权仓库</dt><dd>仅 <code>mango6i/iOSForge</code></dd></div><div><dt>Actions · 编译与产物</dt><dd>Read and write <span>读取和写入</span></dd></div><div><dt>Contents · 上传源码</dt><dd>Read and write <span>读取和写入</span></dd></div><div><dt>Metadata · 基础信息</dt><dd>Read-only <span>默认只读</span></dd></div></dl>
+                <p><strong>账号权限不必开启。</strong>专用于 iOSForge 的 Token 不需要邮箱、Copilot、Gists 或 Profile 等权限。</p>
+              </div>
+
+              <h3 id="token-use">最后一步 · 复制回来，粘贴到哪里？</h3>
               <ol class="guide-steps">
-                <li><strong>打开 GitHub 的访问令牌创建页面。</strong><p><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">创建 Fine-grained token ↗</a>。如果要求登录或验证身份，按 GitHub 提示操作。也可以从头像 → Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token 进入。</p></li>
-                <li><strong>按下面这张表填写。</strong><p>只授权你要使用的仓库，并分别打开编译/产物管理和源码上传所需权限，不要给所有仓库授权。</p></li>
+                <li><strong>复制 GitHub 刚生成的那一长串字符。</strong><p>点击令牌旁的复制图标。完整值通常只在创建时展示一次，建议保存在你自己的密码管理器里。不要复制 Token 名称“iOSForge”，也不要复制网页地址。</p></li>
+                <li><strong>回到原来的编译工作台标签页。</strong><p>找到 <strong>GitHub Token</strong> 输入框，点进去粘贴。电脑可按 Ctrl + V；手机长按输入框后点“粘贴”。显示成圆点是正常的，不必点眼睛按钮。当前正在选择源码时，直接切回原标签页，不要刷新丢掉已选文件。</p></li>
+                <li><strong>按你的源码来源继续。</strong><p>第一次上传：选 ZIP / 文件夹，核对提交位置并勾选确认后，点“上传并编译”。已上传过：选“使用仓库源码”，填写实际源码目录，再点“开始构建”。出现运行编号和排队状态，才表示任务已经提交。</p></li>
               </ol>
-              <div class="table-scroll"><table><thead><tr><th>GitHub 页面上的选项</th><th>填写或选择什么</th></tr></thead><tbody>
-                <tr><td>Token name</td><td>填写 <code>iOSForge 网页构建</code>，便于以后辨认。</td></tr>
-                <tr><td>Expiration</td><td>选择有效期，例如 30 天。到期后需要换新令牌。</td></tr>
-                <tr><td>Resource owner</td><td>选择仓库所属账号 <code>mango6i</code>。</td></tr>
-                <tr><td>Repository access</td><td>选择 <strong>Only select repositories</strong>，然后选中 <strong>iOSForge</strong>。</td></tr>
-                <tr><td>Repository permissions → Actions</td><td>设为 <strong>Read and write</strong>（读取和写入）。用于发起构建、读取结果、下载和删除产物。只有 Read 不能启动或删除。</td></tr>
-                <tr><td>Repository permissions → Contents</td><td>设为 <strong>Read and write</strong>，用于网页上传源码；只查看和编译现有源码时无需写入。</td></tr>
-                <tr><td>Metadata</td><td>自动出现只读权限时保持默认；不需要 Administration 或 Workflows 写入权限。</td></tr>
-              </tbody></table></div>
-              <ol class="guide-steps" start="3">
-                <li><strong>点击 Generate token，复制生成的令牌。</strong><p>它是一长串字符。请自己保管，别提交到公开仓库、发到评论或截图里。如果遗失，可以删除旧令牌再生成新的。</p></li>
-                <li><strong>回到编译工作台，粘贴到 GitHub Token 输入框。</strong><p>默认显示为圆点；右侧的眼睛按钮可以临时显示或隐藏。不要把 GitHub 登录密码填进去。</p></li>
+              <div class="guide-result"><svg class="icon"><use href="#i-check"/></svg><p><strong>不用每次都创建新 Token。</strong>未到期且权限正确时，可以重复使用原来的值。但工作台不保存令牌，关闭或刷新后需要重新粘贴；GitHub 已登录也不会自动填入。</p></div>
+
+              <h3 id="token-repair">路线 B · 已有 Token，补权限就行</h3>
+              <p>适用于“GitHub 拒绝请求 / 403”或上传失败。先检查配置，不要一上来删除令牌，也不要反复提交同一次构建。</p>
+              <ol class="guide-steps">
+                <li><strong>打开列表，点你之前创建的 Token 名称。</strong><p><a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noreferrer">打开我的 Fine-grained tokens ↗</a>，找到 <strong>iOSForge</strong> 后点名称。这个详情页用来改权限，不会重新显示已隐藏的完整令牌。</p></li>
+                <li><strong>点“Access on mango6i”同一行右侧的 Edit。</strong><p>页面有多个 Edit 时，找<strong>仓库授权区域</strong>旁边的 Edit（编辑），不是只修改顶部名称的按钮。不要点 Delete（删除）或 Regenerate token（重新生成）。如果界面改成单独的 Permissions → Edit，就进入这个权限编辑入口。</p></li>
+                <li><strong>核对仓库，再补齐两项仓库权限。</strong><p>仓库必须包含 <code>mango6i/iOSForge</code>。进入 Repository permissions，确认 <strong>Actions → Read and write</strong>，再添加 <strong>Contents → Read and write</strong>，具体点法见上面的步骤 4、5。若只有 metadata 和 actions，那就仍然缺 Contents。</p><p>如果这个 Token 专门给 iOSForge 使用，可移除误开的用户权限；如果还用于别的工具，先确认用途，或单独为 iOSForge 创建一个限范围 Token，避免影响其他工具。</p></li>
+                <li><strong>点击页面底部的保存 / 更新按钮。</strong><p>按钮可能显示 Save 或 Update permissions；看到 GitHub 要求确认时完成确认。回到详情页，按上方 4 项清单检查保存结果。<strong>仅修改权限不需要重新生成令牌</strong>，原来那串值可继续使用。</p></li>
+                <li><strong>回到工作台，确认粘贴的是这个 Token。</strong><p>可先点“刷新记录”查看是否已经有任务，避免重复构建。但能显示记录<strong>不代表上传写入权限已齐全</strong>，仍要核对 Contents。没有任务时，再尝试一次上传或构建。</p></li>
               </ol>
-              <div class="guide-callout"><strong>为什么我登录 GitHub 了，网页还要 Token？</strong><p>GitHub 的登录状态不会自动授权这个独立网页调用编译接口。在本网页上传、编译、下载和删除都使用 Token，不会自动借用 GitHub 的登录状态。令牌会从浏览器直接发给 GitHub，仅保留在当前页面内存中。</p></div>
-              <p class="guide-note">权限步骤参考 <a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens" target="_blank" rel="noreferrer">GitHub 访问令牌说明 ↗</a> 与 <a href="https://docs.github.com/en/rest/actions/workflows#create-a-workflow-dispatch-event" target="_blank" rel="noreferrer">手动构建接口权限 ↗</a>。</p>
+
+              <h3>卡住了？按现象处理</h3>
+              <div class="token-faq">
+                <details><summary>找不到 iOSForge，或者所属账号选不了</summary><p>先看右上角头像，确认登录的是仓库所属账号 mango6i；再检查 Repository access 是否选了 Only select repositories。其他账号不能仅凭知道仓库地址就获得写入权限。如果使用自己的 Fork，请选择自己的账号和仓库，工作台里也要同步改成它。</p></details>
+                <details><summary>已开 Actions，仍提示 GitHub 拒绝请求</summary><p>先确认 Contents 也已开 Read and write、仓库选对、权限已保存、输入框使用的不是另一个旧 Token。403 还可能与 API 限流、仓库规则或组织审批有关，不能只凭这句提示认定源码有错。检查具体失败步骤；组织 Token 显示 Pending 时需要等待管理员批准。</p></details>
+                <details><summary>令牌过期、复制不到了，或者已经泄露</summary><p>到期或忘记完整值时，可创建一个替代 Token，再回工作台换掉输入框内容。Regenerate token 会使原来的值失效，用它的其他地方也要更新。泄露时请立即在 GitHub 撤销 / 删除该令牌，再生成新令牌；不要把新值发给 AI、发到聊天、写进源码或截图。</p></details>
+                <details><summary>已经登录 GitHub，为什么还不是一键登录？</summary><p>目前这是 GitHub Pages 静态网页，尚未接入 GitHub App 登录服务。登录 GitHub 不等于授权另一个网页操作仓库。“预填创建页面”只减少填表步骤，不会自动生成、获取或保存你的令牌。真正免手工 Token 需要另行配置授权应用和安全后端，首次仍须你确认授权。</p></details>
+              </div>
+              <p class="guide-note">安全提醒：令牌仅在当前工作台页面内存中使用，请求直接发给 GitHub；不要发给 AI。原生登录与身份验证始终在 GitHub 官方页面完成。</p>
+              <p class="guide-note">核对依据：<a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens" target="_blank" rel="noreferrer">GitHub 令牌创建与预填参数 ↗</a> · <a href="https://docs.github.com/en/rest/actions/workflows#create-a-workflow-dispatch-event" target="_blank" rel="noreferrer">构建所需 Actions 权限 ↗</a> · <a href="https://docs.github.com/en/rest/git/trees#create-a-tree" target="_blank" rel="noreferrer">上传所需 Contents 权限 ↗</a></p>
             </section>
 
             <section class="guide-section" id="build-guide">

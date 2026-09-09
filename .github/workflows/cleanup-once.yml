@@ -1,0 +1,101 @@
+name: One-time cleanup of obsolete runs
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/cleanup-once.yml']
+permissions: {}
+jobs:
+  cleanup:
+    if: github.repository == 'mango6i/iOSForge'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: write
+    steps:
+      - name: Delete only reviewed completed runs and their artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: python
+        run: |
+          import json, os, time, urllib.request, urllib.error
+          from pathlib import Path
+          
+          REPO = "mango6i/iOSForge"
+          EXPECTED = [{"id":34343729950,"sha":"b7b1a6a68ca30138026ea0a51fe2097906888c29","path":".github/workflows/build.yml","conclusion":"failure"},{"id":34316615666,"sha":"274d5ae74e482c354a741673c7d9044e4f74f0a4","path":".github/workflows/pages.yml","conclusion":"success"},{"id":34316615646,"sha":"274d5ae74e482c354a741673c7d9044e4f74f0a4","path":".github/workflows/build.yml","conclusion":"success"},{"id":34294601857,"sha":"cdf34e7a0f186af779a8c9b6add52aec2b70e1f6","path":".github/workflows/build.yml","conclusion":"success"},{"id":34294601671,"sha":"cdf34e7a0f186af779a8c9b6add52aec2b70e1f6","path":".github/workflows/environment.yml","conclusion":"success"},{"id":34294345742,"sha":"f7926e74623729203bdbe910853d4afc982824ae","path":".github/workflows/pages.yml","conclusion":"success"},{"id":34294345723,"sha":"f7926e74623729203bdbe910853d4afc982824ae","path":".github/workflows/build.yml","conclusion":"success"},{"id":34294345629,"sha":"f7926e74623729203bdbe910853d4afc982824ae","path":".github/workflows/environment.yml","conclusion":"failure"},{"id":34291545357,"sha":"7c94afee672f58258eaa6079d6a7efd6d27d22c9","path":".github/workflows/pages.yml","conclusion":"success"},{"id":34291545339,"sha":"7c94afee672f58258eaa6079d6a7efd6d27d22c9","path":".github/workflows/build.yml","conclusion":"success"},{"id":34228540978,"sha":"64460af6a7d145a028757bcbbed8550367f6dca7","path":".github/workflows/build.yml","conclusion":"success"},{"id":34228534845,"sha":"329893a86d0239f99c046fea6f62d3d8f458c4c8","path":".github/workflows/build.yml","conclusion":"cancelled"},{"id":34228531338,"sha":"bb11950d3bd541c60ce18b0cfaf374b9d0716389","path":".github/workflows/build.yml","conclusion":"cancelled"},{"id":34226918721,"sha":"e02998b6e86d56d31068bb73d3c0734bfa94c595","path":".github/workflows/pages.yml","conclusion":"success"},{"id":34226881679,"sha":"e02998b6e86d56d31068bb73d3c0734bfa94c595","path":".github/workflows/pages.yml","conclusion":"failure"},{"id":34226864982,"sha":"dae5e220501968c9144ce4501b6d0bb6a3219437","path":".github/workflows/build.yml","conclusion":"success"},{"id":34226862239,"sha":"7d32fe2dc02b1d745a9028545ea30457532f9cda","path":".github/workflows/build.yml","conclusion":"cancelled"},{"id":34226859398,"sha":"8da7401159ed76ab49d016ede119a9508c57e794","path":".github/workflows/build.yml","conclusion":"cancelled"},{"id":34225339754,"sha":"8d14875b5be1f20eecff2d5f1b186f8bae95e2d5","path":".github/workflows/build.yml","conclusion":"success"},{"id":34225326080,"sha":"3a1180c796e7cf1b54b342abbe2229e579f88e91","path":".github/workflows/build.yml","conclusion":"cancelled"},{"id":34225323696,"sha":"314ceb01e36b8a7e1b38e7ac39cec72e1ac236fb","path":".github/workflows/build.yml","conclusion":"cancelled"},{"id":34225319448,"sha":"d57f905e1f53fd8d498556d895116a66418f4d2f","path":".github/workflows/build.yml","conclusion":"cancelled"},{"id":34224341231,"sha":"33edbae825f62e62ff5a326e98266329549cb3f0","path":".github/workflows/build.yml","conclusion":"success"},{"id":34223560637,"sha":"fe852c4d6f22bc87a5024548cf8510f4f77fbb11","path":".github/workflows/build.yml","conclusion":"success"},{"id":34223557772,"sha":"1f8283fac6ae6badddec26c9a164c97aa007a272","path":".github/workflows/build.yml","conclusion":"success"},{"id":34223329353,"sha":"de0203188ea997d3204ea921daef148e0b174ede","path":".github/workflows/build.yml","conclusion":"failure"},{"id":34223137166,"sha":"75aa5e4bd43458692e92b82b8b53bfb70d55b7c4","path":".github/workflows/build.yml","conclusion":"failure"},{"id":34222975216,"sha":"0c80c6fbf9e87f87ff5735c7516eb0fe28fbafc6","path":".github/workflows/build.yml","conclusion":"failure"},{"id":34222972423,"sha":"58a0b50cb77102eef167348569301601f599f306","path":".github/workflows/build.yml","conclusion":"failure"},{"id":34222968143,"sha":"b7b1cba47c971392535ffad281e7750623b5c7d2","path":".github/workflows/build.yml","conclusion":"failure"},{"id":34222964917,"sha":"6936f69f404cab66d3d875ee8cae63638d7c9c4b","path":".github/workflows/build.yml","conclusion":"failure"},{"id":34222962068,"sha":"db4c9fe55bfa3e3394178ac23b4fa0338c32e946","path":".github/workflows/build.yml","conclusion":"failure"},{"id":34222959218,"sha":"7ff1ca578307b7798fa8190f42ad3dd6545036da","path":".github/workflows/build.yml","conclusion":"failure"},{"id":34222866675,"sha":"04cd8819d9eb24bf08bc2425fc8d61f61790cdf0","path":".github/workflows/build.yml","conclusion":"failure"},{"id":34222864616,"sha":"161552f3168467ae67253b7dd44d0bc6493ceb69","path":".github/workflows/build.yml","conclusion":"failure"},{"id":34222862605,"sha":"ac7c691a21177b0017a5688ac8f0bc64defcf58a","path":".github/workflows/build.yml","conclusion":"failure"},{"id":34222859679,"sha":"e23d011d1cc5cac765cfdc39f785face7032f920","path":".github/workflows/build.yml","conclusion":"failure"},{"id":34222858061,"sha":"8ea61472eba79ed739597183865b7f64af181dd6","path":".github/workflows/build.yml","conclusion":"failure"},{"id":34222855314,"sha":"528f55c7403f0e8b4e97afb7c50c51f9b0a2f902","path":".github/workflows/build.yml","conclusion":"failure"},{"id":34222853437,"sha":"efa488db743aee3bf882c75ea17050451dcd8b04","path":".github/workflows/build.yml","conclusion":"failure"},{"id":34222851269,"sha":"8b4c4b7372442f187dbdfa829ed0838edd9c949d","path":".github/workflows/build.yml","conclusion":"failure"},{"id":34222848846,"sha":"4a070bd8bb38d7635d45b011399aefaf487362b4","path":".github/workflows/build.yml","conclusion":"failure"},{"id":34222845587,"sha":"b6f3c2cd3305f17658e4a588f530bc72920b0840","path":".github/workflows/build.yml","conclusion":"failure"},{"id":34222843280,"sha":"055e0eccfecfa758cb14941e19c137787967fa23","path":".github/workflows/build.yml","conclusion":"failure"},{"id":34222841421,"sha":"d937e6b18ebf030408e6f1e5ea9c96d6253da134","path":".github/workflows/build.yml","conclusion":"failure"},{"id":34222841146,"sha":"3995e39edab5bec5166b22e4a007bc6537ad20ad","path":".github/workflows/build.yml","conclusion":"failure"}]
+          KEEP = {34341253215, 34316615736}
+          assert os.environ["GITHUB_REPOSITORY"] == REPO
+          BASE = "https://api.github.com/repos/" + REPO
+          HEADERS = {"Authorization": "Bearer " + os.environ["GH_TOKEN"], "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
+          
+          def request(path, method="GET"):
+              assert path.startswith("/actions/")
+              req = urllib.request.Request(BASE + path, headers=HEADERS, method=method)
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as response:
+                      raw = response.read()
+                      return json.loads(raw) if raw else None
+              except urllib.error.HTTPError as exc:
+                  if exc.code == 404:
+                      return None
+                  raise RuntimeError("GitHub HTTP " + str(exc.code) + " for " + method + " " + path) from None
+          
+          removed_runs = []
+          removed_artifacts = []
+          def remove_run(expected):
+              run_id = expected["id"]
+              assert run_id not in KEEP and str(run_id) != os.environ["GITHUB_RUN_ID"]
+              route = "/actions/runs/" + str(run_id)
+              current = request(route)
+              if current is None:
+                  print("Already absent run", run_id)
+                  return
+              assert current["id"] == run_id and current["repository"]["full_name"] == REPO
+              assert current["head_sha"] == expected["sha"] and current["path"] == expected["path"]
+              assert current["status"] == "completed" and current["conclusion"] == expected["conclusion"]
+              artifacts = request(route + "/artifacts?per_page=100")
+              assert artifacts is not None and artifacts["total_count"] == len(artifacts["artifacts"])
+              for artifact in artifacts["artifacts"]:
+                  assert artifact["workflow_run"]["id"] == run_id
+                  artifact_route = "/actions/artifacts/" + str(artifact["id"])
+                  request(artifact_route, "DELETE")
+                  removed_artifacts.append(artifact["id"])
+                  print("Deleted artifact", artifact["id"], artifact["name"], "from run", run_id)
+              request(route, "DELETE")
+              assert request(route) is None, "Run still present after deletion"
+              removed_runs.append(run_id)
+              print("Deleted run", run_id)
+          
+          try:
+              for expected in EXPECTED:
+                  remove_run(expected)
+              # This maintenance commit can trigger the legacy auto-build workflow.
+              # Delete only this commit's completed, artifact-free detection-only run.
+              for attempt in range(6):
+                  listing = request("/actions/runs?head_sha=" + os.environ["GITHUB_SHA"] + "&per_page=100")
+                  assert listing is not None and listing["total_count"] <= 100
+                  pending = False
+                  for current in listing["workflow_runs"]:
+                      if current["path"] != ".github/workflows/build.yml" or current["event"] != "push":
+                          continue
+                      if current["head_sha"] != os.environ["GITHUB_SHA"]:
+                          continue
+                      if current["status"] != "completed":
+                          pending = True
+                          continue
+                      jobs = request("/actions/runs/" + str(current["id"]) + "/jobs?per_page=100")
+                      assert jobs is not None and jobs["total_count"] == len(jobs["jobs"])
+                      compile_jobs = [job for job in jobs["jobs"] if job["name"] in {"Build iOS 15+ IPA", "Build iOS 15+ plugin"}]
+                      artifact_list = request("/actions/runs/" + str(current["id"]) + "/artifacts?per_page=100")
+                      if current["conclusion"] == "success" and len(compile_jobs) == 2 and all(job["conclusion"] == "skipped" for job in compile_jobs) and artifact_list["total_count"] == 0:
+                          remove_run({"id": current["id"], "sha": current["head_sha"], "path": current["path"], "conclusion": current["conclusion"]})
+                      else:
+                          print("Preserved non-empty/current build", current["id"])
+                  if not pending:
+                      break
+                  time.sleep(10)
+              for run_id in KEEP:
+                  assert request("/actions/runs/" + str(run_id)) is not None, "Retained run missing"
+          finally:
+              report = "## One-time cleanup\n\nRemoved runs: " + str(len(removed_runs)) + "\n\nRemoved artifacts: " + str(len(removed_artifacts)) + "\n\nRun IDs: " + ", ".join(map(str, removed_runs)) + "\n\nArtifact IDs: " + ", ".join(map(str, removed_artifacts)) + "\n\nSource files, commits, current Pages deployment and latest successful environment check were not modified.\n"
+              print(report)
+              Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text(report, encoding="utf-8")
