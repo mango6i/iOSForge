@@ -19,7 +19,7 @@
 
 上传解压后的完整源码到 `main`，会自动识别并构建：Theos 工程输出 `.dylib` 和 `.deb`；Xcode 应用输出无证书 `.ipa`。唯一工程与唯一应用 Scheme 可自动识别，多个候选时会要求明确指定，不会随便选择。没有源码时只完成检查，不会生成虚假产物。只改网页、文档或现成二进制不会触发原生编译。
 
-网页使用仅授权目标仓库的 Fine-grained Token：**Actions → Read and write** 用于构建和产物管理；**Contents → Read and write** 用于上传源码。令牌仅保存在当前页面内存，刷新或关闭后重新填写。Windows 不需要安装 Xcode；产物默认保留 14 天。通过 Git 客户端提交和 GitHub 自己的 Run workflow 使用各自的 GitHub 登录授权，不使用网页 Token。
+网页使用仅授权目标仓库的 Fine-grained Token：**Actions → Read and write** 用于构建和产物管理；**Contents → Read and write** 用于上传源码。令牌仅保存在当前页面内存，刷新或关闭后重新填写。不需要Mac安装 Xcode；产物默认保留 14 天。通过 Git 客户端提交和 GitHub 自己的 Run workflow 使用各自的 GitHub 登录授权，不使用网页 Token。
 
 ## 一站式网页操作
 
