@@ -33,6 +33,7 @@ class Manifest:
     theos_archs: tuple[str, ...] = ("arm64", "arm64e")
     package_scheme: str = "rootless"
     prepare_script: Path | None = None
+    source_directory: Path | None = None
 
     @classmethod
     def load(cls, path: Path) -> "Manifest":

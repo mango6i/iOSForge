@@ -50,9 +50,9 @@ def verify() -> None:
         write(root, "app/project.json", json.dumps(spec))
         run([command_path("xcodegen"), "generate", "--spec", root / "app/project.json"], cwd=root / "app")
         common = ["--manifest", str(root / "iosforge.toml")]
-        if cli([*common, "build-tweak", "--output-dir", str(root / "outputs/plugin")]):
+        if cli([*common, "--source-dir", "plugin", "build-tweak", "--output-dir", str(root / "outputs/plugin")]):
             raise BuildError("Theos probe failed")
-        if cli([*common, "build-app", "--unsigned", "--output-dir", str(root / "outputs/app")]):
+        if cli([*common, "--source-dir", "app", "build-app", "--unsigned", "--output-dir", str(root / "outputs/app")]):
             raise BuildError("Unsigned Xcode/CocoaPods/Swift Package probe failed")
         package = next((root / "outputs/plugin").glob("*.deb"))
         deb_list = subprocess.check_output([command_path("dpkg-deb"), "--contents", str(package)], text=True)

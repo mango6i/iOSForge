@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 import sys
 
-from .discovery import find_app, find_plugin
+from .discovery import find_app, find_plugin, scoped_manifest
 from .manifest import Manifest
 from .process import BuildError
 
@@ -25,6 +25,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         manifest = Manifest.load(Path("iosforge.toml"))
+        manifest = scoped_manifest(manifest, os.environ.get("SOURCE_DIRECTORY", "").strip())
         outputs = plan(manifest, args.type)
         if output := os.environ.get("GITHUB_OUTPUT"):
             with Path(output).open("a", encoding="utf-8") as handle:

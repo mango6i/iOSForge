@@ -6,7 +6,7 @@ import sys
 
 from .app import build_app
 from .dependencies import prepare_app, prepare_custom
-from .discovery import plugin_manifest
+from .discovery import plugin_manifest, scoped_manifest
 from .ipa import package_ipa
 from .manifest import Manifest, ManifestError
 from .plugin import build_all, build_deb, build_plugin
@@ -16,6 +16,7 @@ from .process import BuildError
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(prog="iosforge", description="Build iOS 15+ plugins and IPAs")
     root.add_argument("--manifest", type=Path, default=Path("iosforge.toml"))
+    root.add_argument("--source-dir", default="", help="only discover projects inside this repository directory")
     commands = root.add_subparsers(dest="command", required=True)
 
     commands.add_parser("validate", help="validate iosforge.toml and referenced paths")
@@ -53,6 +54,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         manifest = Manifest.load(args.manifest)
+        manifest = scoped_manifest(manifest, args.source_dir)
         if args.command.startswith("build-"):
             prepare_custom(manifest)
         if args.command == "build-app":

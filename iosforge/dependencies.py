@@ -33,9 +33,10 @@ def nearest_file(folder: Path, root: Path, name: str) -> Path | None:
 def prepare_app(manifest: Manifest, project: Path | None = None, scheme: str | None = None) -> Manifest:
     root = manifest.path.parent.resolve()
     selected = find_app(manifest, project)
-    podfile = nearest_file(selected.parent, root, "Podfile")
+    dependency_root = manifest.source_directory or root
+    podfile = nearest_file(selected.parent, dependency_root, "Podfile")
     if podfile:
-        gemfile = nearest_file(podfile.parent, root, "Gemfile")
+        gemfile = nearest_file(podfile.parent, dependency_root, "Gemfile")
         pod_args = ["install"]
         if (podfile.parent / "Podfile.lock").is_file():
             pod_args.append("--deployment")

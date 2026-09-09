@@ -7,7 +7,7 @@
 - 用 Theos/Logos 编译自己编写的 rootless 动态库插件；
 - 需要插件包时生成 `.deb`；
 - 用自己的 Xcode 工程无证书编译 `.ipa`，交给巨魔或自签工具处理；也保留 Apple 证书导出模式；
-- 通过网页控制台触发 GitHub Actions，并下载构建产物。
+- 在同一网页上传源码 ZIP / 文件夹、触发编译、查看最近构建、下载和确认删除云端产物。
 
 ## 最简单的使用方式
 
@@ -19,7 +19,21 @@
 
 上传解压后的完整源码到 `main`，会自动识别并构建：Theos 工程输出 `.dylib` 和 `.deb`；Xcode 应用输出无证书 `.ipa`。唯一工程与唯一应用 Scheme 可自动识别，多个候选时会要求明确指定，不会随便选择。没有源码时只完成检查，不会生成虚假产物。只改网页、文档或现成二进制不会触发原生编译。
 
-自动上传构建和 GitHub 的 Run workflow 不需要网页 Token。网页手动重编才需要 Token；Windows 不需要安装 Xcode。构建产物保留 14 天。
+网页使用仅授权目标仓库的 Fine-grained Token：**Actions → Read and write** 用于构建和产物管理；**Contents → Read and write** 用于上传源码。令牌仅保存在当前页面内存，刷新或关闭后重新填写。Windows 不需要安装 Xcode；产物默认保留 14 天。通过 Git 客户端提交和 GitHub 自己的 Run workflow 使用各自的 GitHub 登录授权，不使用网页 Token。
+
+## 一站式网页操作
+
+1. 选择 `.dylib` / `.deb` / `.ipa`，切换到“上传本地源码”。
+2. 选择源码 ZIP 或完整工程文件夹，检查文件清单、目标仓库和项目名称。
+3. 确认公开范围，粘贴 Token，点击“上传并编译”。源码保存在 `sources/项目名称/`，一次完整提交后自动构建所选类型。上传提交使用 `[skip ci]` 防止推送和手动编译重复运行。
+4. 下载产物 ZIP 并解压。离开后回来，用“最近构建 → 刷新记录 → 查看产物”找回结果。
+5. 不再需要云端副本时点击该产物的“删除”，核对名称后确认。只删除选中的 Artifact，不删除源码、构建记录或本地下载；删除不可恢复，可以重新编译生成新文件。
+
+后续重编选择“使用仓库源码”，填写 `sources/项目名称`。所选目录中的唯一工程自动识别；Xcode 路径覆盖项从仓库根目录填写，且必须在所选目录内。指定目录后不使用根配置中的固定工程路径和 Scheme，最低 iOS、架构与打包布局仍使用根配置。
+
+网页限制：ZIP ≤ 25 MB、展开后 / 文件夹 ≤ 50 MB、最多 1000 个文件、单文件 ≤ 10 MB；一次最多更新 150 个需单独上传的二进制/大文件。不支持加密 ZIP、ZIP64、分卷；含符号链接、子模块或 Git LFS 的复杂工程应使用 Git 客户端。超过限制仍可用 Git 上传，再在网页编译。解压组件 fflate 0.8.2 已随网站提供并附 MIT 许可。
+
+同目录更新必须明确勾选允许覆盖；只更新本次同名文件，不删除缺失的旧文件。源码会保存到指定仓库：**公开仓库的源码所有人可见**。常见凭据检查只是辅助，不是完整的敏感信息防护。上传中关闭页面可能中断；源码保存成功但启动失败时，先刷新构建记录确认，再重试构建，不必重复上传。
 
 ## 已配置的云端环境
 
@@ -83,6 +97,7 @@ python -m pip install -e .
 iosforge validate
 iosforge build-dylib
 iosforge build-deb
+iosforge --source-dir sources/MyPlugin build-dylib
 iosforge build-app --project MyApp.xcodeproj --scheme MyApp --unsigned
 # 已配置本地 Apple 签名环境时：
 iosforge build-app --project MyApp.xcodeproj --scheme MyApp --export-options ExportOptions.plist

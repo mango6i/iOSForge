@@ -1,5 +1,5 @@
 name: GitHub Actions
-run-name: iOSForge · ${{ inputs.build_type || 'auto' }} · ${{ github.ref_name }}
+run-name: iOSForge · ${{ inputs.build_type || 'auto' }} · ${{ github.ref_name }} · ${{ inputs.request_id || github.run_number }}
 on:
   push:
     branches: [main]
@@ -22,6 +22,14 @@ on:
         options: [auto, dylib, deb, ipa]
       xcode_project:
         description: Xcode 工程路径（单工程可留空自动识别）
+        type: string
+        default: ''
+      source_directory:
+        description: 源码目录（网页上传后自动填写，留空搜索整个仓库）
+        type: string
+        default: ''
+      request_id:
+        description: 网页请求编号（自动填写，手动运行可留空）
         type: string
         default: ''
       xcode_scheme:
@@ -63,6 +71,7 @@ jobs:
         env:
           BUILD_TYPE: ${{ inputs.build_type || 'auto' }}
           XCODE_PROJECT: ${{ inputs.xcode_project }}
+          SOURCE_DIRECTORY: ${{ inputs.source_directory }}
         run: python -m iosforge.ci plan --type "$BUILD_TYPE"
   build-plugin:
     name: Build iOS 15+ plugin
@@ -83,13 +92,14 @@ jobs:
       - name: Compile and package
         env:
           BUILD_TYPE: ${{ inputs.build_type || 'auto' }}
+          SOURCE_DIRECTORY: ${{ inputs.source_directory }}
         shell: bash
         run: |
           set -euo pipefail
           case "$BUILD_TYPE" in
-            dylib) iosforge build-dylib --output-dir dist ;;
-            deb) iosforge build-deb --output-dir dist ;;
-            auto) iosforge build-tweak --output-dir dist ;;
+            dylib) iosforge --source-dir "$SOURCE_DIRECTORY" build-dylib --output-dir dist ;;
+            deb) iosforge --source-dir "$SOURCE_DIRECTORY" build-deb --output-dir dist ;;
+            auto) iosforge --source-dir "$SOURCE_DIRECTORY" build-tweak --output-dir dist ;;
             *) echo "Unexpected plugin build type"; exit 1 ;;
           esac
       - uses: actions/upload-artifact@v4
@@ -123,6 +133,7 @@ jobs:
           xcode-version: ${{ vars.IOSFORGE_XCODE_VERSION || '16.4' }}
       - name: Build and package IPA
         env:
+          SOURCE_DIRECTORY: ${{ inputs.source_directory }}
           XCODE_PROJECT: ${{ inputs.xcode_project }}
           XCODE_SCHEME: ${{ inputs.xcode_scheme }}
           EXPORT_OPTIONS: ${{ inputs.export_options || 'ExportOptions.plist' }}
@@ -138,7 +149,7 @@ jobs:
             signed) args+=(--export-options "$EXPORT_OPTIONS") ;;
             *) echo "Unknown IPA signing mode"; exit 1 ;;
           esac
-          iosforge build-app "${args[@]}"
+          iosforge --source-dir "$SOURCE_DIRECTORY" build-app "${args[@]}"
       - uses: actions/upload-artifact@v4
         with:
           name: iosforge-ipa-${{ inputs.ipa_signing || 'unsigned' }}

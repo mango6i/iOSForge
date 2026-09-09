@@ -7,7 +7,7 @@
   <meta name="description" content="iOSForge 新手使用指南：一步步上传源码、配置 iOS 15+ 工程、获取 Token、编译和下载 dylib、deb 或 IPA。" />
   <title>使用指南 · iOSForge</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=studio-light-3" />
+  <link rel="stylesheet" href="./styles.css?v=source-upload-1" />
   <script src="./guide.js?v=studio-light-2" defer></script>
 </head>
 <body>
@@ -69,9 +69,9 @@
             <header class="chapter-toolbar" id="chapter-toolbar" hidden><span class="chapter-icon"><svg class="icon"><use href="#i-book"/></svg></span><div class="chapter-label"><span>新手入门手册</span><strong id="chapter-counter">01 / 09</strong></div><div id="chapter-progress" class="chapter-progress" role="progressbar" aria-label="当前章节位置" aria-valuemin="1" aria-valuemax="9" aria-valuenow="1"><span></span></div></header>
             <section class="guide-section" id="start">
               <span class="section-overline">START HERE</span><h2>先了解：这个网页帮你做什么？</h2>
-              <p>你把<strong>已有的项目源码</strong>放到 GitHub，再回到工作台选择要生成的文件。GitHub 会启动一台云端 Mac，按照项目的编译规则，把源码变成可以下载的产物。你使用 Windows 电脑也可以操作。</p>
-              <div class="guide-result"><svg class="icon"><use href="#i-check"/></svg><p><strong>现在可以先上传，再等编译。</strong>完整源码保存到 main 后，系统会自动识别：Theos 默认生成 dylib 和 deb，Xcode 默认生成无证书 IPA。单工程通常无需修改配置或填写 Scheme。</p></div>
-              <div class="guide-callout"><strong>第一次使用，先确认自己有没有源码。</strong><p>源码是包含代码和编译配置的完整工程。只有一个现成的 IPA、dylib 或 deb，不是源码；更改文件后缀也不能把它变成另一种格式。当前网页负责发起构建，不提供源码上传或自动解压 ZIP 的按钮。</p></div>
+              <p>你可以直接在工作台选择<strong>源码 ZIP 或工程文件夹</strong>，上传后自动编译，完成后下载或删除云端产物，全程在同一个网页操作。源码会保存到你指定的 GitHub 仓库。GitHub 会启动一台云端 Mac，按照项目的编译规则，把源码变成可以下载的产物。你使用 Windows 电脑也可以操作。</p>
+              <div class="guide-result"><svg class="icon"><use href="#i-check"/></svg><p><strong>一条完整的操作路径：</strong>先准备 Token → 选择产物 → 上传本地源码 → 上传并编译 → 下载 → 按需删除。原生单工程通常无需修改配置或填写 Scheme；IPA 默认无证书。</p></div>
+              <div class="guide-callout"><strong>第一次使用，先确认自己有没有源码。</strong><p>源码是包含代码和编译配置的完整工程。只有一个现成的 IPA、dylib 或 deb，不是源码；更改文件后缀也不能把它变成另一种格式。网页会在浏览器中解压源码 ZIP、检查文件，再提交到仓库；不会把现成安装包转换成源码。</p></div>
               <h3>三个选项，应该点哪个？</h3>
               <div class="guide-products">
                 <a class="guide-product" href="#plugin-config"><svg class="icon"><use href="#i-code"/></svg><strong>.dylib</strong><span>动态库插件</span><p>Theos 完整工程</p><span class="guide-product-link">查看准备步骤 ↗</span></a>
@@ -84,21 +84,27 @@
             </section>
 
             <section class="guide-section" id="upload">
-              <span class="section-overline">STEP 01</span><h2>先把自己的源码上传到仓库</h2>
-              <p>下面以插件工程放在 <code>plugin</code> 文件夹为例。文件夹可以叫别的名字，也可以保留原有的多层目录；系统会搜索唯一工程。</p>
+              <span class="section-overline">STEP 01</span><h2>直接在网页上传自己的源码</h2>
+              <p>不用先去 GitHub 手动传文件。首次使用请先按<a href="#token-guide">第四节准备 Token</a>；这个授权让工作台能替你向自己的仓库提交源码和启动编译。</p>
               <ol class="guide-steps">
-                <li><strong>在电脑上解压你的源码。</strong><p>打开源码文件夹，确认能找到 <code>Makefile</code> 和代码文件。Theos 插件通常还需要包信息文件 <code>control</code>、过滤配置 <code>.plist</code> 等；具体保留原工程需要的文件。只有一个 <code>.xm</code> 文件通常还不够。</p></li>
-                <li><strong>把完整插件工程整理到一个名为 plugin 的文件夹。</strong><p>检查 <code>Makefile</code> 是直接位于 <code>plugin/Makefile</code>，而不是多套了一层 <code>plugin/项目名/Makefile</code>。如果你保留了多层目录，配置路径也要包含那一层。</p></li>
-                <li><strong>打开仓库的 Code 页面，登录 mango6i 账号。</strong><p><a href="https://github.com/mango6i/iOSForge" target="_blank" rel="noreferrer">打开你的项目仓库 ↗</a>。右上角看到 <strong>Sign in</strong> 表示还没登录。GitHub 登录和工作台里的 Token 是两件事。</p></li>
-                <li><strong>点击 Add file → Upload files。</strong><p>把整理好的 <code>plugin</code> 文件夹拖入上传区域，保留里面的目录结构。不要只上传源码 ZIP：当前流程不会替你解压后寻找工程。</p></li>
-                <li><strong>检查列表，然后点击 Commit changes。</strong><p>提交说明可以填写“上传插件源码”，分支使用 <code>main</code>。回到文件列表，点开 <code>plugin</code>，应该能看到 <code>Makefile</code> 和代码文件。文件太多或太大时，可用 GitHub Desktop 上传；GitHub 网页上传有大小和数量限制。</p></li>
+                <li><strong>准备完整工程，不要只选一段代码。</strong><p>插件应包含 Makefile、代码，以及原工程需要的 control、plist 和资源。应用应包含 .xcodeproj 或 .xcworkspace、源码、共享 Scheme 和依赖配置。可以选择普通 ZIP；电脑端也可选择整个文件夹。手机不支持文件夹选择时，请选 ZIP。</p></li>
+                <li><strong>在工作台选择产物，再点“上传本地源码”。</strong><p>插件选 .dylib 或 .deb，应用选 .ipa。仓库保持 <code>mango6i/iOSForge</code>，分支保持 <code>main</code>。除非确实想上传到另一仓库，否则不要修改；其他仓库必须已经安装同一套 iOSForge 工作流。</p></li>
+                <li><strong>点击“选择 ZIP”或“选择文件夹”。</strong><p>也可把一个源码 ZIP 拖进上传框。此时文件只在浏览器中检查，尚未上传。检查完成后，会显示文件数量、总大小和前 100 个文件的预览。系统会去掉 ZIP 最外层共同的包装目录，保留工程内部结构。</p></li>
+                <li><strong>填写项目文件夹名称，核对提交位置。</strong><p>例如填 <code>MyPlugin</code>，文件会放到 <code>sources/MyPlugin/</code>。不同项目用不同名称，以便单独编译。上传只会修改该目录，不会覆盖工作台本身。</p></li>
+                <li><strong>检查源码公开范围，再勾选确认。</strong><p>当前 iOSForge 是公开仓库，源码提交后所有人可见。不要上传商业私密源码、账号密码或密钥。网页会拦截常见证书、私钥和 Token，但无法发现所有敏感内容，需要你自己确认。</p></li>
+                <li><strong>粘贴 Token，点击“上传并编译”。</strong><p>上传有进度提示，请保持网页打开。文件会作为一次完整提交保存；保存成功后自动启动你选择的编译类型，不会同时多跑一份自动构建。源码目录会自动填好，下次直接点“开始构建”即可重编。</p></li>
               </ol>
-              <div class="guide-result"><svg class="icon"><use href="#i-check"/></svg><p><strong>完成标志：</strong>仓库里能看到完整工程，Actions 已出现自动构建。单工程可先等待结果，下一节的手动配置只在需要明确指定或调整参数时使用。</p></div>
+              <h3>更新以前上传的项目</h3>
+              <p>使用相同项目名称，并勾选“允许更新本次同名文件”。未上传的旧文件<strong>不会被删除</strong>。如果你删除或改名了许多文件，建议换一个新项目名称，避免旧文件继续参与编译。没有勾选时，已存在的目录会被拦截，不会悄悄覆盖。</p>
+              <h3>上传限制与特殊工程</h3>
+              <div class="table-scroll"><table><thead><tr><th>项目</th><th>当前限制</th></tr></thead><tbody><tr><td>源码 ZIP</td><td>25 MB 以内；不支持加密、分卷和 ZIP64。</td></tr><tr><td>实际源码</td><td>解压后 / 文件夹总计不超过 50 MB、1000 个文件，单个文件不超过 10 MB。</td></tr><tr><td>二进制和大文件</td><td>一次最多更新 150 个需要单独上传的二进制或大文件；上传会适度放慢，减少 GitHub 限流。</td></tr><tr><td>不适合网页上传</td><td>包含符号链接、Git 子模块或 Git LFS 的复杂工程，请使用 Git 客户端，保留原始结构。网页会拒绝 ZIP 符号链接与 LFS 指针。</td></tr></tbody></table></div>
+              <p>超出限制可用 GitHub Desktop 上传完整源码。随后回到工作台，选“使用仓库源码”，把源码目录填写为该工程所在文件夹，照常编译；不要把未经解压的 ZIP 直接放进仓库。</p>
+              <div class="guide-result"><svg class="icon"><use href="#i-check"/></svg><p><strong>完成标志：</strong>看到“源码已保存”和提交链接，右侧出现排队或编译状态。如果保存成功但编译未启动，先刷新最近构建确认没有任务，再点击开始构建；不必重新上传。</p></div>
             </section>
 
             <section class="guide-section" id="plugin-config">
               <span class="section-overline">STEP 02 · DYLIB / DEB</span><h2>确认插件配置，需要时再调整</h2>
-              <p>单个 Theos 工程会自动识别，默认使用 iOS 15.0、arm64 + arm64e、rootless。首次上传可以不改配置。多个工程、只支持单一架构或需要固定路径时，再按下面的步骤调整。IPA 用户可直接看<a href="#ipa-config">应用工程说明</a>。</p>
+              <p>所选源码目录中的单个 Theos 工程会自动识别，默认使用 iOS 15.0、arm64 + arm64e、rootless。首次上传可以不改配置。多个工程、只支持单一架构或需要固定路径时，再按下面的步骤调整。网页指定源码目录后，工程会只在该目录内搜索，根配置里的固定 project_dir / app.project / app.scheme 不用于此次自动选择；最低系统、架构和包布局仍使用根配置。IPA 用户可直接看<a href="#ipa-config">应用工程说明</a>。</p>
               <ol class="guide-steps">
                 <li><strong>在仓库根目录打开 iosforge.toml。</strong><p>“根目录”就是打开仓库后最外面那层，与 <code>README.md</code> 同一层。点击文件右上角的铅笔按钮进入编辑。</p></li>
                 <li><strong>更新已有的项目配置。</strong><p>下面是工程放在 <code>plugin</code> 文件夹时的配置。修改已有的 <code>[project]</code> 和 <code>[theos]</code>，不要在文件末尾重复添加同名区块。项目名可以改，路径要与文件夹一致。</p></li>
@@ -127,47 +133,48 @@ package_scheme = "rootless"</code></pre></div>
               <p>这个步骤通常在首次使用、令牌到期或权限变化时才需要做。每次重新打开工作台，你仍需要重新粘贴令牌；网页不会替你保存它。</p>
               <ol class="guide-steps">
                 <li><strong>打开 GitHub 的访问令牌创建页面。</strong><p><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">创建 Fine-grained token ↗</a>。如果要求登录或验证身份，按 GitHub 提示操作。也可以从头像 → Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token 进入。</p></li>
-                <li><strong>按下面这张表填写。</strong><p>网页只需要启动构建和读取结果，所以只授权你要使用的仓库以及 Actions 权限即可。</p></li>
+                <li><strong>按下面这张表填写。</strong><p>只授权你要使用的仓库，并分别打开编译/产物管理和源码上传所需权限，不要给所有仓库授权。</p></li>
               </ol>
               <div class="table-scroll"><table><thead><tr><th>GitHub 页面上的选项</th><th>填写或选择什么</th></tr></thead><tbody>
                 <tr><td>Token name</td><td>填写 <code>iOSForge 网页构建</code>，便于以后辨认。</td></tr>
                 <tr><td>Expiration</td><td>选择有效期，例如 30 天。到期后需要换新令牌。</td></tr>
                 <tr><td>Resource owner</td><td>选择仓库所属账号 <code>mango6i</code>。</td></tr>
                 <tr><td>Repository access</td><td>选择 <strong>Only select repositories</strong>，然后选中 <strong>iOSForge</strong>。</td></tr>
-                <tr><td>Repository permissions → Actions</td><td>设为 <strong>Read and write</strong>（读取和写入）。只有 Read 不能发起构建。</td></tr>
-                <tr><td>Metadata</td><td>如果自动出现只读权限，保持默认。无需给本网页添加管理仓库或修改源码的权限。</td></tr>
+                <tr><td>Repository permissions → Actions</td><td>设为 <strong>Read and write</strong>（读取和写入）。用于发起构建、读取结果、下载和删除产物。只有 Read 不能启动或删除。</td></tr>
+                <tr><td>Repository permissions → Contents</td><td>设为 <strong>Read and write</strong>，用于网页上传源码；只查看和编译现有源码时无需写入。</td></tr>
+                <tr><td>Metadata</td><td>自动出现只读权限时保持默认；不需要 Administration 或 Workflows 写入权限。</td></tr>
               </tbody></table></div>
               <ol class="guide-steps" start="3">
                 <li><strong>点击 Generate token，复制生成的令牌。</strong><p>它是一长串字符。请自己保管，别提交到公开仓库、发到评论或截图里。如果遗失，可以删除旧令牌再生成新的。</p></li>
                 <li><strong>回到编译工作台，粘贴到 GitHub Token 输入框。</strong><p>默认显示为圆点；右侧的眼睛按钮可以临时显示或隐藏。不要把 GitHub 登录密码填进去。</p></li>
               </ol>
-              <div class="guide-callout"><strong>为什么我登录 GitHub 了，网页还要 Token？</strong><p>GitHub 的登录状态不会自动授权这个独立网页调用编译接口。上传文件用 GitHub 登录；在本网页发起构建用 Token。令牌会从浏览器直接发给 GitHub，仅保留在当前页面内存中。</p></div>
+              <div class="guide-callout"><strong>为什么我登录 GitHub 了，网页还要 Token？</strong><p>GitHub 的登录状态不会自动授权这个独立网页调用编译接口。在本网页上传、编译、下载和删除都使用 Token，不会自动借用 GitHub 的登录状态。令牌会从浏览器直接发给 GitHub，仅保留在当前页面内存中。</p></div>
               <p class="guide-note">权限步骤参考 <a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens" target="_blank" rel="noreferrer">GitHub 访问令牌说明 ↗</a> 与 <a href="https://docs.github.com/en/rest/actions/workflows#create-a-workflow-dispatch-event" target="_blank" rel="noreferrer">手动构建接口权限 ↗</a>。</p>
             </section>
 
             <section class="guide-section" id="build-guide">
-              <span class="section-overline">STEP 04</span><h2>回到工作台，开始第一次构建</h2>
+              <span class="section-overline">STEP 04</span><h2>开始构建，等待云端完成</h2>
               <ol class="guide-steps">
-                <li><strong>点击左侧第一项“编译工作台”。</strong><p>选择 <code>.dylib</code> 或 <code>.deb</code>。如果要做应用，先完成<a href="#ipa-config">第七节 IPA 准备</a>再选择 <code>.ipa</code>。</p></li>
-                <li><strong>检查仓库和分支。</strong><p>GitHub 仓库填写 <code>mango6i/iOSForge</code>，分支填写 <code>main</code>。要使用其他仓库，该仓库也必须包含对应的 iOSForge 工具与 <code>.github/workflows/build.yml</code> 编译流程。</p></li>
-                <li><strong>填入 Token，点击“开始构建”。</strong><p>看到“已提交”或“排队中”说明请求已发送。构建期间按钮会暂时不可点，避免重复提交。保留这个页面以持续查看进度。</p></li>
-                <li><strong>观察右侧的三个步骤。</strong><p>“提交任务”表示 GitHub 接收请求；“云端编译”表示处理源码；“获取产物”表示读取本次输出文件。首次准备环境可能较慢，等待时间取决于排队、依赖和工程大小。</p></li>
+                <li><strong>选择想要的产物。</strong><p>.dylib 和 .deb 使用 Theos 插件工程；.ipa 使用 Xcode 应用。IPA 保持“无证书编译”即可；没有 Apple 证书不用填导出配置。</p></li>
+                <li><strong>确认源码来源。</strong><p>首次上传按第二节操作。已上传过的项目选“使用仓库源码”，源码目录填写 <code>sources/MyPlugin</code> 等实际路径。留空会搜索整个仓库；多个项目时务必填写，避免无法唯一选择。</p></li>
+                <li><strong>确认仓库、分支、Token，点击主按钮。</strong><p>本地源码模式是“上传并编译”；仓库模式是“开始构建”。开始后输入暂时锁定，避免请求过程中换错仓库。不要重复点击或在另一窗口同时提交同一个项目。</p></li>
+                <li><strong>看右侧“构建动态”。</strong><p>排队中：等待 GitHub 提供云端电脑。编译中：正在安装依赖和编译。已完成：下方出现可下载产物。首次需要准备环境和依赖，通常比后续慢，实际时间取决于工程。</p></li>
+                <li><strong>离开后回来，点“刷新记录”。</strong><p>重新填写 Token，确认同一仓库和分支，点击“最近构建 → 刷新记录”，再点击某次任务的“查看产物”。正在运行的任务会继续刷新；关闭网页不会取消已提交的云端构建。</p></li>
               </ol>
-              <div class="guide-callout"><strong>上传后先看 Actions，不用重复启动。</strong><p>main 中的源码修改会自动发起构建。新的请求不会取消已经运行的编译；同分支会排队，但重复请求仍可能替换尚未开始的排队任务。超过约 60 分钟，网页暂停自动刷新并提示你打开日志，不会替你取消云端任务。</p></div>
-              <h3>不用 Token，也能手动操作吗？</h3>
-              <p>可以。源码保存到 main 后的自动构建不需要网页 Token。也可以登录 GitHub，进入仓库 <strong>Actions → GitHub Actions → Run workflow</strong>，选择 <code>main</code>，保持 <code>auto</code> 自动识别，或指定 <code>dylib</code>、<code>deb</code>、<code>ipa</code>。在 GitHub 内操作不需要把 Token 填到本网页。</p>
-              <p><strong>注意选择编译流程：</strong><code>Publish iOSForge Web</code> 是发布网页，不会帮你编译插件或应用。</p>
+              <div class="guide-callout"><strong>失败不等于源码丢了。</strong><p>上传和编译是两个阶段。出现“源码已保存，编译未能启动”时，先刷新记录排除重复任务，再重试构建。出现源码编译错误时，打开 GitHub 日志看第一条实际错误；工具不会自动修复任意项目的代码。</p></div>
             </section>
 
             <section class="guide-section" id="download-guide">
-              <span class="section-overline">STEP 05</span><h2>成功之后，去哪里下载？</h2>
+              <span class="section-overline">STEP 05</span><h2>下载、回看与删除构建产物</h2>
               <ol class="guide-steps">
-                <li><strong>等右侧显示“已完成”。</strong><p>正常情况下，“构建产物”区域会出现文件名、大小和“下载 ZIP”按钮。点击按钮，保存到电脑。</p></li>
-                <li><strong>解压下载的 ZIP。</strong><p>里面才是你选择的 <code>.dylib</code>、<code>.deb</code> 或 <code>.ipa</code> 文件。下载文件带 ZIP 后缀是正常的，不要把 ZIP 直接改名成 IPA。</p></li>
-                <li><strong>如果网页下载失败，点击“在 GitHub 查看日志”。</strong><p>登录 GitHub，在这次运行的总结页找到 <strong>Artifacts</strong> 区域，点击产物名称下载。浏览器跨站下载限制、令牌到期或产物已过期，都可能影响网页下载。</p></li>
+                <li><strong>等到右侧显示构建完成。</strong><p>在“构建产物”里找到需要的文件。也可先刷新最近构建，再点历史任务的“查看产物”，找回此前结果。</p></li>
+                <li><strong>点击“下载 ZIP”。</strong><p>GitHub 会给产物再包一层 ZIP。解压下载的 ZIP，里面才是 .dylib、.deb 或 .ipa。不要把外层 ZIP 改后缀冒充产物。浏览器限制下载时，用下面的 GitHub 日志链接进入同一次运行，在 Artifacts 区域下载。</p></li>
+                <li><strong>检查并保存到自己的电脑或手机。</strong><p>默认云端保留 14 天，过期后无法在网页下载。文件是否能安装或运行，还取决于设备系统、依赖和加载/签名环境。IPA 安装见下一节。</p></li>
+                <li><strong>不再需要云端副本时，点该文件旁的“删除”。</strong><p>先核对确认框中的产物名称、仓库和运行 ID。点“保留文件”或按 Escape 可取消，不会发起删除；只有点“确认永久删除”才会删除这份云端产物。</p></li>
+                <li><strong>删除后核对提示。</strong><p>选中的云端产物消失，源码、构建记录和已下载文件都保留。同一次构建有多个产物时，其他产物不受影响。全部删完会显示空列表，但构建仍然是成功的。</p></li>
               </ol>
-              <p>关闭网页不会直接停止 GitHub 上的任务。但重新打开页面后，当前版本不会自动恢复上一次任务和 Token；可以去仓库的 Actions 历史中找到那次运行。</p>
-              <div class="guide-result"><svg class="icon"><use href="#i-check"/></svg><p><strong>完成标志：</strong>你已解压拿到对应格式的文件。构建成功只表示编译流程通过，后续仍应在目标设备和正确的安装环境中验证。</p></div>
+              <div class="guide-callout"><strong>删除没有回收站。</strong><p>请先下载需要保留的文件。删除后不能恢复原来的下载，只能重新编译生成新产物。网络中断或提示无法确认结果时，请刷新记录并重新打开该任务，核对列表，不要连续重复删除。</p></div>
+              <p class="guide-note">删除权限为 Actions → Read and write。实现对应 <a href="https://docs.github.com/en/rest/actions/artifacts#delete-an-artifact" target="_blank" rel="noreferrer">GitHub 官方产物删除接口 ↗</a>；不会删除整条运行记录。</p>
             </section>
 
             <section class="guide-section" id="ipa-config">
@@ -218,32 +225,31 @@ configuration = "Release"</code></pre></div>
               <div class="faq-list">
                 <details><summary>找不到 Run workflow，或者看不到上传按钮</summary><p>先看 GitHub 页面右上角。如果显示 Sign in，请登录拥有仓库权限的账号。再确认自己打开的是编译流程，而不是单个历史运行页。访问公开仓库不等于已经登录。</p></details>
                 <details><summary>401：访问令牌无效或过期</summary><p>去 GitHub 查看令牌是否过期或被删除。重新复制有效令牌，清空工作台里的旧内容再粘贴。不要填写账号密码，也不要多带空格或换行。</p></details>
-                <details><summary>403：没有权限，或请求额度用完</summary><p>检查令牌是否选中了 iOSForge 仓库，Actions 是否为 Read and write。组织仓库还可能需要管理员批准。如果 GitHub 提示 API 请求额度耗尽，等额度恢复后再试。</p></details>
+                <details><summary>403：没有权限，或请求额度用完</summary><p>检查令牌是否选中了 iOSForge 仓库，Actions 是否为 Read and write；网页上传还需要 Contents 的 Read and write。组织仓库还可能需要管理员批准。如果 GitHub 提示 API 请求额度耗尽，等额度恢复后再试。</p></details>
                 <details><summary>404：找不到仓库或工作流</summary><p>确认仓库写成 mango6i/iOSForge，main 分支中存在 .github/workflows/build.yml。私有仓库授权不正确时也可能返回 404。请检查令牌授权的账号和仓库。</p></details>
-                <details><summary>提示找不到 Theos 工程，或发现多个 Makefile</summary><p>检查上传的是解压后的完整工程，Makefile 包含 Theos 编译配置。单工程可自动识别；多个工程时，在 iosforge.toml 的 [theos].project_dir 中指定真正要编译的目录。带 # 的行不会生效。路径和文件名区分大小写，ZIP 无法直接编译。</p></details>
+                <details><summary>提示找不到 Theos 工程，或发现多个 Makefile</summary><p>检查上传的是解压后的完整工程，Makefile 包含 Theos 编译配置。单工程可自动识别；多个工程时，在网页填写具体源码目录，或在 iosforge.toml 的 [theos].project_dir 中指定（只在未选源码目录时使用）。带 # 的行不会生效。网页上传会解压 ZIP；直接提交到仓库的 ZIP 不会自动解压。</p></details>
                 <details><summary>提示找不到头文件、库，或出现 clang / linker 错误</summary><p>打开运行日志，找到第一个实际编译错误。它通常表示项目依赖缺失、代码不兼容或目标架构不匹配。保留出错文件名和前后几行信息，结合原项目的依赖说明处理。切换网页主题或重新填写 Token 不会修复源码错误。</p></details>
                 <details><summary>IPA 提示 No signing certificate / No profiles</summary><p>如果你要给巨魔或自签工具使用，确认选择了“无证书编译”，GitHub 参数为 ipa_signing = unsigned；不需要填写导出配置。如果仍出现签名错误，检查项目自定义脚本是否额外调用 codesign 或签名服务。若选择的是“证书导出”，则需要检查证书、描述文件、团队和 Bundle ID 是否匹配，并确保在本次云端环境中导入。仅上传 ExportOptions.plist 不会安装证书。</p></details>
                 <details><summary>拿到 unsigned.ipa 后，为什么点一下不能直接安装？</summary><p>unsigned 表示没有 Apple 签名，不是万能免签安装包。兼容且已经安装巨魔的设备可交给 TrollStore 处理；其他用户需要先在自己的签名工具里签名。特殊权限、应用扩展、系统版本与依赖也可能影响安装或启动，详见第七节。</p></details>
                 <details><summary>已经成功了，为什么没有文件？</summary><p>确认运行的是 GitHub Actions 编译流程。没有配置插件源码时，自动推送触发的检查可能成功跳过编译，所以没有产物；Publish iOSForge Web 的成功也不表示插件编译成功。手动选择正确产物后再运行，并查看该次日志。</p></details>
-                <details><summary>修改源码后，为什么没有自动编译？</summary><p>确认源码提交到了 main，而且 Actions 已启用。仅修改网页、说明文档、现成 IPA/deb/dylib 不会触发原生编译。上传后在 Actions 找 GitHub Actions；没有可识别工程时只会完成检查，不会产生文件。多个工程或方案会明确报出选择要求。</p></details>
+                <details><summary>修改源码后，为什么没有自动编译？</summary><p>确认源码提交到了 main，而且 Actions 已启用。仅修改网页、说明文档、现成 IPA/deb/dylib 不会触发原生编译。网页上传会跳过推送自动构建，再明确启动所选类型，避免重复编译。若上传后启动失败，可在工作台刷新记录确认后重试。通过 Git 客户端上传后在 Actions 找 GitHub Actions；没有可识别工程时只会完成检查，不会产生文件。多个工程或方案会明确报出选择要求。</p></details>
                 <details><summary>怎么检查云端环境本身？</summary><p>打开仓库 Actions → Check build environment → Run workflow。它会在临时云端目录真实编译一个原生应用与插件，检查无证书 IPA、CocoaPods、Swift Package、arm64/arm64e dylib 和 rootless deb；结束后删除临时探针。它不会往仓库添加示例工程，也不代表你的源码已经验证通过。</p></details>
-                <details><summary>页面一直排队、显示刷新中断，或者下载按钮没反应</summary><p>先点右侧 GitHub 日志链接，确认任务是否仍在运行。排队取决于 GitHub 的可用环境；刷新中断可能是网络问题。不要连续提交同一分支的新任务。文件下载失败时，可在 GitHub 运行总结页的 Artifacts 区域下载。</p></details>
+                <details><summary>页面一直排队、显示刷新中断，或者下载按钮没反应</summary><p>先刷新最近构建并选择对应任务，确认是否仍在运行；也可点 GitHub 日志链接。排队取决于 GitHub 的可用环境；刷新中断可能是网络问题。不要连续提交同一分支的新任务。文件下载失败时，可在 GitHub 运行总结页的 Artifacts 区域下载。</p></details>
               </div>
             </section>
 
             <section class="guide-section" id="next-time">
-              <span class="section-overline">NEXT TIME</span><h2>第二次使用，就简单了</h2>
-              <p>日常使用，只需要这三步；无证书 IPA 不需要提前准备 Apple 签名环境：</p>
-              <ol class="guide-steps"><li><strong>把解压后的完整源码或源码修改提交到 main。</strong></li><li><strong>在 Actions 查看自动构建，等编译完成。</strong><p>要单独重编某种格式时，再到工作台手动选择；网页发起任务需要有效 Token。</p></li><li><strong>下载构建产物并解压，拿到 dylib、deb 或未签名 IPA。</strong><p>默认产物保存 14 天，及时下载留存。应用安装仍按第七节说明处理。</p></li></ol>
-              <p>暂时没有源码时，可以先保存这个网站。之后也可以把完整源码压缩包交给协作助手，让助手协助上传和配置；这属于对话协助，并不是网页内的上传功能。</p>
+              <span class="section-overline">NEXT TIME</span><h2>下次使用，留在这一个网页就好</h2>
+              <ol class="guide-steps"><li><strong>粘贴有效 Token，核对仓库与分支。</strong><p>令牌不保存在网页，关闭页面后需要重新填写。</p></li><li><strong>新项目选“上传本地源码”；旧项目选“使用仓库源码”。</strong><p>旧项目填上 <code>sources/你的项目名称</code>。更新同一个项目可以再次上传并确认更新同名文件；想要干净版本时换一个新目录。</p></li><li><strong>选择产物并开始编译。</strong><p>IPA 默认无证书。用“最近构建”回看状态和结果，不需要反复去 GitHub 找任务。</p></li><li><strong>下载留存，按需删除云端产物。</strong><p>默认保留 14 天。删除前请检查文件名；不会删除源码或构建记录。</p></li></ol>
+              <p>你也可以把完整源码交给协作助手协助整理和配置。原生工程以外的特殊依赖，仍应按照项目自己的说明准备；网页不会把缺失的工程文件凭空补齐。</p>
               <a class="guide-start-button" href="./">我准备好了，去编译工作台<svg class="icon"><use href="#i-arrow"/></svg></a>
-              <p class="guide-note">补充资料：<a href="https://docs.github.com/en/repositories/working-with-files/managing-files/adding-a-file-to-a-repository" target="_blank" rel="noreferrer">GitHub 上传文件说明 ↗</a> · <a href="https://theos.dev/docs/rootless" target="_blank" rel="noreferrer">Theos rootless 配置 ↗</a></p>
+              <p class="guide-note">第三方解压组件：fflate 0.8.2（MIT），已随网站提供，不从第三方 CDN 加载。</p>
             </section>
             <nav class="chapter-navigation" id="chapter-navigation" aria-label="章节导航" hidden><a id="chapter-prev" href="#start"><svg class="icon"><use href="#i-arrow"/></svg><span><small>上一节</small><strong id="chapter-prev-label">返回</strong></span></a><a id="chapter-next" href="#upload"><span><small>下一节</small><strong id="chapter-next-label">上传自己的源码</strong></span><svg class="icon"><use href="#i-arrow"/></svg></a></nav>
           </article>
           <aside class="guide-toc" aria-label="指南目录">
             <div class="guide-toc-heading"><span class="section-overline">LEARNING PATH</span><h2>第一次构建，从这里开始</h2></div>
-            <nav><a href="#start"><span>01</span>先认识这个工具</a><a href="#upload"><span>02</span>上传自己的源码</a><a href="#plugin-config"><span>03</span>配置插件工程</a><a href="#token-guide"><span>04</span>获取 GitHub Token</a><a href="#build-guide"><span>05</span>发起第一次构建</a><a href="#download-guide"><span>06</span>下载与解压产物</a><a href="#ipa-config"><span>07</span>IPA 应用的准备</a><a href="#troubleshooting"><span>08</span>常见问题与处理</a><a href="#next-time"><span>09</span>下次使用的步骤</a></nav>
+            <nav><a href="#start"><span>01</span>先认识这个工具</a><a href="#upload"><span>02</span>上传自己的源码</a><a href="#plugin-config"><span>03</span>配置插件工程</a><a href="#token-guide"><span>04</span>获取 GitHub Token</a><a href="#build-guide"><span>05</span>发起第一次构建</a><a href="#download-guide"><span>06</span>下载与删除产物</a><a href="#ipa-config"><span>07</span>IPA 应用的准备</a><a href="#troubleshooting"><span>08</span>常见问题与处理</a><a href="#next-time"><span>09</span>下次使用的步骤</a></nav>
             <div class="guide-toc-tip"><svg class="icon"><use href="#i-info"/></svg><p>首次做插件，按前六节操作即可。IPA 无证书编译、巨魔与自签说明都在第七节。</p></div><a class="guide-back" href="./">回到编译工作台<svg class="icon small-icon"><use href="#i-arrow"/></svg></a>
           </aside>
         </div>

@@ -50,8 +50,17 @@ def choose(paths: list[Path], label: str, setting: str, required: bool) -> Path 
     return None
 
 
+def scoped_manifest(manifest: Manifest, directory: str | Path | None) -> Manifest:
+    if not directory:
+        return manifest
+    scope = repository_path(manifest.path.parent, Path(directory))
+    if not scope.is_dir():
+        raise BuildError(f"源码目录不存在：{directory}")
+    return replace(manifest, source_directory=scope, theos_project_dir=None, app_project=None, app_scheme=None)
+
+
 def find_plugin(manifest: Manifest, required: bool = True) -> Path | None:
-    root = manifest.path.parent.resolve()
+    root = manifest.source_directory or manifest.path.parent.resolve()
     if manifest.theos_project_dir:
         path = repository_path(root, manifest.theos_project_dir)
         if not (path / "Makefile").is_file():
@@ -61,10 +70,12 @@ def find_plugin(manifest: Manifest, required: bool = True) -> Path | None:
 
 
 def find_app(manifest: Manifest, override: Path | None = None, required: bool = True) -> Path | None:
-    root = manifest.path.parent.resolve()
+    root = manifest.source_directory or manifest.path.parent.resolve()
     value = override or manifest.app_project
     if value:
-        path = repository_path(root, value)
+        path = repository_path(manifest.path.parent, value)
+        if not path.is_relative_to(root):
+            raise BuildError("指定的 Xcode 工程必须位于所选源码目录内；路径从仓库根目录开始填写。")
         # pod install may create a not-yet-committed workspace later.
         generated_workspace = path.suffix == ".xcworkspace" and (path.parent / "Podfile").is_file()
         if path.suffix not in {".xcodeproj", ".xcworkspace"} or (not path.is_dir() and not generated_workspace):
