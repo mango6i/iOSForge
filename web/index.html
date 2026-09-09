@@ -7,10 +7,11 @@
   <meta name="description" content="iOSForge 编译工作台。在 GitHub 上构建面向 iOS 15+ 的动态库、插件包和应用。" />
   <title>iOSForge · 编译工作台</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=source-upload-1" />
+  <link rel="stylesheet" href="./styles.css?v=temporary-logs-1" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
   <script src="./source-upload.js?v=1" defer></script>
-  <script src="./app.js?v=source-upload-1" defer></script>
+  <script src="./build-logs.js?v=1" defer></script>
+  <script src="./app.js?v=temporary-logs-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">跳到编译工作台</a>
@@ -161,6 +162,17 @@
             <div id="run-meta" class="run-meta" hidden></div>
             <div id="artifact-list" class="artifact-list" hidden><h3 class="artifact-heading">构建产物<span>ARTIFACTS</span></h3><div id="artifacts"></div></div>
             <p id="download-message" class="download-message" role="status" hidden></p>
+            <section id="build-logs" class="build-logs" aria-labelledby="logs-heading">
+              <div class="logs-heading"><div><span class="section-overline">SESSION CONSOLE</span><h3 id="logs-heading">运行日志</h3></div><span id="logs-badge" class="logs-badge">仅当前页面</span></div>
+              <p id="logs-notice" class="field-hint" role="status" aria-live="polite">开始构建后显示动态。成功后自动清空；失败暂留报错，刷新或关闭网页即清空。</p>
+              <div class="logs-toolbar"><label class="logs-job-label" for="logs-job">任务</label><select id="logs-job" aria-label="选择日志任务"><option value="all">全部任务</option></select><button id="logs-errors" type="button" class="secondary-button" aria-pressed="false">只看错误</button><button id="logs-refresh" type="button" class="secondary-button" disabled>刷新日志</button></div>
+              <div id="logs-output" class="logs-output" tabindex="0" aria-label="临时构建日志"><p class="logs-empty">这里显示步骤变化与 GitHub 已提供的编译输出。</p></div>
+              <div class="logs-footer"><span id="logs-count">尚无日志</span><label class="logs-follow"><input id="logs-follow" type="checkbox" checked />跟随最新</label></div>
+              <div class="logs-actions"><button id="logs-copy" type="button" class="secondary-button" disabled>复制给 AI</button><button id="logs-clear" type="button" class="secondary-button" disabled>清空并暂停</button></div>
+              <p class="logs-privacy">步骤约每 15 秒更新。编译原文由 GitHub 按可用情况提供，可能要等任务结束。网页不落盘、不另存日志副本；GitHub 原始运行日志仍按平台规则保留。</p>
+              <p id="logs-action-message" class="field-hint" role="status" hidden></p>
+              <textarea id="logs-copy-fallback" class="logs-copy-fallback" aria-label="无法自动复制时，请手动选择复制以下诊断内容" readonly hidden></textarea>
+            </section>
             <section class="history-panel" aria-labelledby="history-heading"><div class="history-heading"><div><span class="section-overline">RECENT RUNS</span><h3 id="history-heading">最近构建</h3></div><button id="refresh-history" class="secondary-button" type="button">刷新记录</button></div><p id="history-message" class="field-hint" role="status">填好仓库、分支和 Token 后，刷新查看最近 10 次构建。关闭网页也不会丢失云端任务。</p><div id="history-list"></div></section>
             <div class="status-actions"><a id="actions-link" class="secondary-button" href="https://github.com/mango6i/iOSForge/actions" target="_blank" rel="noreferrer"><svg class="icon"><use href="#i-github"/></svg>在 GitHub 查看日志<svg class="icon small-icon"><use href="#i-external"/></svg></a></div>
           </section>

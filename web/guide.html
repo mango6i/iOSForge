@@ -7,7 +7,7 @@
   <meta name="description" content="iOSForge 新手使用指南：一步步上传源码、配置 iOS 15+ 工程、获取 Token、编译和下载 dylib、deb 或 IPA。" />
   <title>使用指南 · iOSForge</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=source-upload-1" />
+  <link rel="stylesheet" href="./styles.css?v=temporary-logs-1" />
   <script src="./guide.js?v=studio-light-2" defer></script>
 </head>
 <body>
@@ -161,7 +161,10 @@ package_scheme = "rootless"</code></pre></div>
                 <li><strong>看右侧“构建动态”。</strong><p>排队中：等待 GitHub 提供云端电脑。编译中：正在安装依赖和编译。已完成：下方出现可下载产物。首次需要准备环境和依赖，通常比后续慢，实际时间取决于工程。</p></li>
                 <li><strong>离开后回来，点“刷新记录”。</strong><p>重新填写 Token，确认同一仓库和分支，点击“最近构建 → 刷新记录”，再点击某次任务的“查看产物”。正在运行的任务会继续刷新；关闭网页不会取消已提交的云端构建。</p></li>
               </ol>
-              <div class="guide-callout"><strong>失败不等于源码丢了。</strong><p>上传和编译是两个阶段。出现“源码已保存，编译未能启动”时，先刷新记录排除重复任务，再重试构建。出现源码编译错误时，打开 GitHub 日志看第一条实际错误；工具不会自动修复任意项目的代码。</p></div>
+              <div class="guide-callout"><strong>失败不等于源码丢了。</strong><p>上传和编译是两个阶段。出现“源码已保存，编译未能启动”时，先刷新记录排除重复任务，再重试构建。出现源码编译错误时，先看工作台的“运行日志”；工具不会自动修复任意项目的代码。</p></div>
+              <h3>运行日志与“复制给 AI”怎么用？</h3>
+              <ol class="guide-steps"><li><strong>构建时看右侧“运行日志”。</strong><p>页面约每 15 秒读取步骤状态，显示当前执行到哪里。GitHub 的编译原文按接口可用情况读取，运行中可能尚未开放；这不是逐行日志直播，也不会用模拟文字冒充实际输出。</p></li><li><strong>失败时先点“只看错误”。</strong><p>它会显示失败步骤、匹配到的报错和附近上下文。任务下拉框可以选择某个具体任务；点“刷新日志”可重新读取 GitHub 当前提供的内容。没有匹配到错误不代表没有错误，请结合原始日志判断。</p></li><li><strong>点击“复制给 AI”，再粘贴到对话里。</strong><p>复制内容会包含仓库、分支、提交、任务编号、已知构建参数以及当前显示的日志片段。把出错的源码文件一起交给 AI，要求先找根因再修改。复制前检查内容是否含私密代码；常见 Token / 私钥遮盖只是辅助，不是完整的敏感信息保护。</p></li><li><strong>用完清空，不自动留下副本。</strong><p>成功后日志自动清空；失败时只在当前页内存暂留，刷新、关闭页面或切换仓库后清空。点“清空并暂停”会立刻清空并停止读取，直到你手动刷新日志。网页不保存日志到浏览器存储、下载文件或源码仓库；你主动复制到剪贴板的内容由你自行保管。</p></li></ol>
+              <p class="guide-note">GitHub Actions 的原始日志仍按 GitHub 自己的规则保留，不属于网页缓存。重新选择失败任务会重新请求 GitHub，而不是恢复本地历史日志。接口尚未开放、日志太大或浏览器阻止跨域读取时，可使用 GitHub 原始日志链接。读取方式见 <a href="https://docs.github.com/en/rest/actions/workflow-jobs#download-job-logs-for-a-workflow-run" target="_blank" rel="noreferrer">GitHub 官方任务日志接口 ↗</a>。</p>
             </section>
 
             <section class="guide-section" id="download-guide">

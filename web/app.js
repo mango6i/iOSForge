@@ -20,6 +20,7 @@ const runMeta = $("#run-meta");
 const artifactList = $("#artifact-list");
 const artifacts = $("#artifacts");
 const downloadMessage = $("#download-message");
+const buildLogs = globalThis.IOSForgeLogs?.create();
 
 const state = { token: "", repo: null, branch: "main", runId: null, busy: false, knownRuns: new Set(), phase: "idle", artifacts: [], history: [] };
 let selectedSource = null;
@@ -43,6 +44,7 @@ function repoBase(repo = state.repo) {
 async function github(path, options = {}) {
   const response = await fetch(`https://api.github.com${path}`, {
     ...options,
+    cache: "no-store",
     headers: {
       Accept: "application/vnd.github+json",
       Authorization: `Bearer ${state.token}`,
@@ -90,6 +92,7 @@ function updatePipeline(phase) {
 }
 
 function setStatus(kind, badge, title, copy, phase = kind) {
+  buildLogs?.event(title, copy, kind);
   state.phase = phase;
   statusBadge.className = `status-badge ${kind}`;
   statusBadge.textContent = badge;
@@ -218,6 +221,7 @@ function runsQuery() {
 
 async function waitForRun() {
   for (let attempt = 0; attempt < 480; attempt += 1) {
+    if (state.closed) return;
     let run;
     if (state.runId) {
       run = await github(`${repoBase()}/actions/runs/${state.runId}`);
@@ -225,9 +229,11 @@ async function waitForRun() {
       const data = await github(runsQuery());
       run = (data.workflow_runs || []).find((item) => !state.knownRuns.has(item.id) && item.display_title?.endsWith(` · ${state.requestId}`) && new Date(item.created_at).getTime() >= state.startedAt - 5000);
     }
+    if (state.closed) return;
     if (run) {
       state.runId = run.id;
       renderRun(run);
+      buildLogs?.update(run);
       if (run.status === "completed") {
         if (run.conclusion === "success") {
           setStatus("running", "整理中", "编译完成，正在获取产物", "正在读取本次构建的可下载文件。", "artifacts");
@@ -242,7 +248,7 @@ async function waitForRun() {
         } else if (["cancelled", "skipped", "neutral"].includes(run.conclusion)) {
           setStatus("idle", "已停止", "本次构建已停止", "任务已被取消或跳过，详细原因可在 GitHub 日志中查看。", "stopped");
         } else {
-          setStatus("error", "未完成", "这次构建没有完成", "请打开 GitHub 日志，查看编译报错后再试。", "error");
+          setStatus("error", "未完成", "这次构建没有完成", "请查看下方运行日志，可复制报错和上下文交给 AI 排查；原文尚未开放时可稍后刷新。", "error");
         }
         return;
       }
@@ -276,6 +282,7 @@ form.addEventListener("submit", async (event) => {
   }
 
   state.token = token;
+  state.closed = false;
   state.repo = repo;
   state.branch = branch;
   state.runId = null;
@@ -288,6 +295,7 @@ form.addEventListener("submit", async (event) => {
 
   state.requestId = Array.from(crypto.getRandomValues(new Uint8Array(12)), n => n.toString(16).padStart(2, "0")).join("");
   const inputs = { build_type: buildTypeInput.value, request_id: state.requestId };
+  buildLogs?.start({ base: repoBase(), repoName: `${repo.owner}/${repo.name}`, branch, token, source: sourceDirectory, buildType: buildTypeInput.value, signing: buildTypeInput.value === "ipa" ? ipaSigningInput.value : "不适用" });
   if (sourceDirectory) inputs.source_directory = sourceDirectory;
   if (buildTypeInput.value === "ipa") {
     inputs.xcode_project = projectInput.value.trim();
@@ -426,7 +434,7 @@ const dropzone = $("#upload-dropzone");
 dropzone.addEventListener("dragover", event => { event.preventDefault(); if (!state.busy) dropzone.classList.add("is-dragging"); });
 dropzone.addEventListener("dragleave", () => dropzone.classList.remove("is-dragging"));
 dropzone.addEventListener("drop", event => { event.preventDefault(); dropzone.classList.remove("is-dragging"); selectSource(event.dataTransfer.files, false); });
-[repoInput, branchInput].forEach(input => input.addEventListener("input", () => { updateDestination(); state.history = []; $("#history-list").replaceChildren(); $("#history-message").textContent = "仓库或分支已修改，请刷新记录。"; }));
+[repoInput, branchInput].forEach(input => input.addEventListener("input", () => { buildLogs?.close(); updateDestination(); state.history = []; $("#history-list").replaceChildren(); $("#history-message").textContent = "仓库或分支已修改，请刷新记录。"; }));
 
 $("#refresh-history").addEventListener("click", async () => {
   if (state.busy) return;
@@ -435,6 +443,7 @@ $("#refresh-history").addEventListener("click", async () => {
   const changed = !state.repo || repoBase(repo) !== repoBase() || state.branch !== (branchInput.value.trim() || "main");
   state.repo = repo; state.token = token; state.branch = branchInput.value.trim() || "main";
   if (changed) { state.runId = null; state.artifacts = []; artifactList.hidden = true; runMeta.hidden = true; setStatus("idle", "待命", "已切换仓库或分支", "选择一条构建记录查看产物。"); }
+  if (changed) buildLogs?.close();
   setBusy(true, "正在读取记录…");
   $("#history-message").textContent = "正在读取 GitHub 上的构建记录…";
   state.history = []; $("#history-list").replaceChildren();
@@ -457,6 +466,8 @@ $("#history-list").addEventListener("click", async event => {
   const button = event.target.closest("[data-run-id]");
   if (!button || state.busy || !state.history.some(run => String(run.id) === button.dataset.runId)) return;
   state.runId = Number(button.dataset.runId); state.artifacts = []; artifactList.hidden = true; downloadMessage.hidden = true;
+  state.closed = false;
+  buildLogs?.start({ base: repoBase(), repoName: `${state.repo.owner}/${state.repo.name}`, branch: state.branch, token: state.token });
   setBusy(true, "正在读取构建…");
   try { await waitForRun(); } catch (error) { setStatus("error", "刷新中断", "无法读取本次构建", error.message); }
   finally { setBusy(false); }
@@ -499,3 +510,4 @@ artifacts.addEventListener("click", async event => {
 updateIpaFields();
 updateLinks();
 updateSourceMode();
+globalThis.window?.addEventListener?.("pagehide", () => { state.closed = true; state.token = ""; tokenInput.value = ""; selectedSource = null; });
