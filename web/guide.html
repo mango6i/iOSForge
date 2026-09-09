@@ -70,6 +70,7 @@
             <section class="guide-section" id="start">
               <span class="section-overline">START HERE</span><h2>先了解：这个网页帮你做什么？</h2>
               <p>你把<strong>已有的项目源码</strong>放到 GitHub，再回到工作台选择要生成的文件。GitHub 会启动一台云端 Mac，按照项目的编译规则，把源码变成可以下载的产物。你使用 Windows 电脑也可以操作。</p>
+              <div class="guide-result"><svg class="icon"><use href="#i-check"/></svg><p><strong>现在可以先上传，再等编译。</strong>完整源码保存到 main 后，系统会自动识别：Theos 默认生成 dylib 和 deb，Xcode 默认生成无证书 IPA。单工程通常无需修改配置或填写 Scheme。</p></div>
               <div class="guide-callout"><strong>第一次使用，先确认自己有没有源码。</strong><p>源码是包含代码和编译配置的完整工程。只有一个现成的 IPA、dylib 或 deb，不是源码；更改文件后缀也不能把它变成另一种格式。当前网页负责发起构建，不提供源码上传或自动解压 ZIP 的按钮。</p></div>
               <h3>三个选项，应该点哪个？</h3>
               <div class="guide-products">
@@ -84,7 +85,7 @@
 
             <section class="guide-section" id="upload">
               <span class="section-overline">STEP 01</span><h2>先把自己的源码上传到仓库</h2>
-              <p>下面以插件工程放在 <code>plugin</code> 文件夹为例。文件夹名字可以不同，但后面的配置必须与实际名字一致。</p>
+              <p>下面以插件工程放在 <code>plugin</code> 文件夹为例。文件夹可以叫别的名字，也可以保留原有的多层目录；系统会搜索唯一工程。</p>
               <ol class="guide-steps">
                 <li><strong>在电脑上解压你的源码。</strong><p>打开源码文件夹，确认能找到 <code>Makefile</code> 和代码文件。Theos 插件通常还需要包信息文件 <code>control</code>、过滤配置 <code>.plist</code> 等；具体保留原工程需要的文件。只有一个 <code>.xm</code> 文件通常还不够。</p></li>
                 <li><strong>把完整插件工程整理到一个名为 plugin 的文件夹。</strong><p>检查 <code>Makefile</code> 是直接位于 <code>plugin/Makefile</code>，而不是多套了一层 <code>plugin/项目名/Makefile</code>。如果你保留了多层目录，配置路径也要包含那一层。</p></li>
@@ -92,12 +93,12 @@
                 <li><strong>点击 Add file → Upload files。</strong><p>把整理好的 <code>plugin</code> 文件夹拖入上传区域，保留里面的目录结构。不要只上传源码 ZIP：当前流程不会替你解压后寻找工程。</p></li>
                 <li><strong>检查列表，然后点击 Commit changes。</strong><p>提交说明可以填写“上传插件源码”，分支使用 <code>main</code>。回到文件列表，点开 <code>plugin</code>，应该能看到 <code>Makefile</code> 和代码文件。文件太多或太大时，可用 GitHub Desktop 上传；GitHub 网页上传有大小和数量限制。</p></li>
               </ol>
-              <div class="guide-result"><svg class="icon"><use href="#i-check"/></svg><p><strong>完成标志：</strong>仓库里能看到你的工程文件，而不只是一个压缩包。下一步要告诉编译工具：工程放在哪里。</p></div>
+              <div class="guide-result"><svg class="icon"><use href="#i-check"/></svg><p><strong>完成标志：</strong>仓库里能看到完整工程，Actions 已出现自动构建。单工程可先等待结果，下一节的手动配置只在需要明确指定或调整参数时使用。</p></div>
             </section>
 
             <section class="guide-section" id="plugin-config">
-              <span class="section-overline">STEP 02 · DYLIB / DEB</span><h2>给插件工程填写配置</h2>
-              <p>如果你要编译 IPA，可以直接看<a href="#ipa-config">应用工程的配置步骤</a>。编译 dylib 或 deb，继续下面的操作。</p>
+              <span class="section-overline">STEP 02 · DYLIB / DEB</span><h2>确认插件配置，需要时再调整</h2>
+              <p>单个 Theos 工程会自动识别，默认使用 iOS 15.0、arm64 + arm64e、rootless。首次上传可以不改配置。多个工程、只支持单一架构或需要固定路径时，再按下面的步骤调整。IPA 用户可直接看<a href="#ipa-config">应用工程说明</a>。</p>
               <ol class="guide-steps">
                 <li><strong>在仓库根目录打开 iosforge.toml。</strong><p>“根目录”就是打开仓库后最外面那层，与 <code>README.md</code> 同一层。点击文件右上角的铅笔按钮进入编辑。</p></li>
                 <li><strong>更新已有的项目配置。</strong><p>下面是工程放在 <code>plugin</code> 文件夹时的配置。修改已有的 <code>[project]</code> 和 <code>[theos]</code>，不要在文件末尾重复添加同名区块。项目名可以改，路径要与文件夹一致。</p></li>
@@ -108,13 +109,15 @@ kind = "tweak"
 minimum_ios = "15.0"
 
 [theos]
-project_dir = "plugin"</code></pre></div>
+project_dir = "plugin"
+archs = ["arm64", "arm64e"]
+package_scheme = "rootless"</code></pre></div>
               <p>原文件里如果写的是 <code># project_dir = "plugin"</code>，请去掉开头的 <code>#</code>。带 <code>#</code> 的行只是说明文字，不会生效。路径区分大小写，<code>Plugin</code> 和 <code>plugin</code> 要写一致。</p>
               <ol class="guide-steps" start="3">
-                <li><strong>检查插件 Makefile 的系统目标。</strong><p>仓库配置要求 iOS 15.0 起步；Theos 的实际编译目标还需要在工程 Makefile 中设置。将目标系统设为 <code>15.0</code>，并按你的设备和插件环境选择架构。</p></li>
+                <li><strong>确认源码支持这些目标。</strong><p>编译工具会把最低系统、架构和 rootless 设置传给 Theos。默认等价于下方的系统目标；不必为了使用本工具重复修改 Makefile。如果依赖只支持 arm64，在上方配置中把 archs 改为 <code>["arm64"]</code>。</p></li>
               </ol>
               <div class="code-block"><div class="code-toolbar"><span>Makefile · iOS 15 目标</span><button type="button" class="copy-button" data-copy="target-code">复制这一行</button></div><pre><code id="target-code">TARGET = iphone:clang:latest:15.0</code></pre></div>
-              <p>如果你的项目面向 <strong>rootless</strong> 插件环境，在工程已有的 Makefile 配置中使用 <code>THEOS_PACKAGE_SCHEME = rootless</code>，放在引入 Theos 规则之前。它是插件安装布局的选择，并不等于“所有 iOS 15+ 设备都可直接安装”。已有项目要同时检查依赖是否适配 rootless。</p>
+              <p>rootless 是插件的安装布局，默认路径带 <code>/var/jb</code>；不等于“所有 iOS 15+ 设备都可直接安装”。已有项目仍需检查依赖和资源路径是否兼容 rootless。如果你明确使用传统 rootful 环境，可将 package_scheme 改为 <code>"rootful"</code>。</p>
               <ol class="guide-steps" start="4"><li><strong>点击 Commit changes 保存修改。</strong><p>配置里的 <code>project_dir</code> 应当指向包含 Makefile 的目录。例如 Makefile 在 <code>sources/MyPlugin/Makefile</code>，就填写 <code>project_dir = "sources/MyPlugin"</code>。</p></li></ol>
               <div class="guide-result"><svg class="icon"><use href="#i-check"/></svg><p><strong>完成标志：</strong>工程路径已经填写并保存，路径下确实有 Makefile。dylib 和 deb 共用这套源码配置。</p></div>
             </section>
@@ -150,9 +153,9 @@ project_dir = "plugin"</code></pre></div>
                 <li><strong>填入 Token，点击“开始构建”。</strong><p>看到“已提交”或“排队中”说明请求已发送。构建期间按钮会暂时不可点，避免重复提交。保留这个页面以持续查看进度。</p></li>
                 <li><strong>观察右侧的三个步骤。</strong><p>“提交任务”表示 GitHub 接收请求；“云端编译”表示处理源码；“获取产物”表示读取本次输出文件。首次准备环境可能较慢，等待时间取决于排队、依赖和工程大小。</p></li>
               </ol>
-              <div class="guide-callout"><strong>等待时不用一直点“开始构建”。</strong><p>同一分支的新构建可能取消前一个任务。超过约 30 分钟，网页会暂停自动刷新并提示你打开日志；这并不代表网页替你取消了云端任务。</p></div>
+              <div class="guide-callout"><strong>上传后先看 Actions，不用重复启动。</strong><p>main 中的源码修改会自动发起构建。新的请求不会取消已经运行的编译；同分支会排队，但重复请求仍可能替换尚未开始的排队任务。超过约 60 分钟，网页暂停自动刷新并提示你打开日志，不会替你取消云端任务。</p></div>
               <h3>不用 Token，也能手动操作吗？</h3>
-              <p>可以。登录 GitHub 后，进入仓库 <strong>Actions → GitHub Actions → Run workflow</strong>，选择 <code>main</code>，再选 <code>dylib</code>、<code>deb</code> 或 <code>ipa</code> 后运行。这是在 GitHub 内操作，因此不需要把 Token 填到本网页。</p>
+              <p>可以。源码保存到 main 后的自动构建不需要网页 Token。也可以登录 GitHub，进入仓库 <strong>Actions → GitHub Actions → Run workflow</strong>，选择 <code>main</code>，保持 <code>auto</code> 自动识别，或指定 <code>dylib</code>、<code>deb</code>、<code>ipa</code>。在 GitHub 内操作不需要把 Token 填到本网页。</p>
               <p><strong>注意选择编译流程：</strong><code>Publish iOSForge Web</code> 是发布网页，不会帮你编译插件或应用。</p>
             </section>
 
@@ -173,7 +176,7 @@ project_dir = "plugin"</code></pre></div>
               <ol class="guide-steps">
                 <li><strong>上传完整 Xcode 项目。</strong><p>保留 <code>.xcodeproj</code> 或 <code>.xcworkspace</code> 目录、应用代码、资源和项目依赖文件。它们在文件系统里是目录，不要解散里面的文件。若原项目使用 workspace，就填写 workspace 路径。</p></li>
                 <li><strong>确认 Scheme 已共享。</strong><p>Scheme 是 Xcode 中的一套构建方案。在 Xcode 的 Product → Scheme → Manage Schemes 中查看名称并勾选 Shared，再把对应修改提交。拿到别人的源码时，先确认对方提供的 Scheme 名字。</p></li>
-                <li><strong>填写应用的项目配置。</strong><p>下面假设工程在仓库最外层，叫 <code>MyApp.xcodeproj</code>，Scheme 叫 <code>MyApp</code>。请换成真实名字。如果同一仓库还要编译插件，用 <code>kind = "hybrid"</code> 并保留完整的 <code>[theos]</code> 配置。</p></li>
+                <li><strong>单个应用工程可以跳过手动配置。</strong><p>系统会识别唯一的 Xcode 工程和共享应用 Scheme。只有多个工程、多个方案或想固定选择时，才填写下面的配置，把示例名字换成真实名称。已有 [project] 或 [app] 时修改原段落，不要重复添加。</p></li>
               </ol>
               <div class="code-block"><div class="code-toolbar"><span>iosforge.toml · 应用配置</span><button type="button" class="copy-button" data-copy="app-config-code">复制配置</button></div><pre><code id="app-config-code">[project]
 name = "MyApp"
@@ -186,15 +189,18 @@ scheme = "MyApp"
 configuration = "Release"</code></pre></div>
               <ol class="guide-steps" start="4">
                 <li><strong>选择编译模式：巨魔或后续自签，保持默认“无证书编译”。</strong><p>这个模式不需要 Apple 开发者证书、不需要 Provisioning Profile（描述文件），也不需要 <code>ExportOptions.plist</code>。云端关闭 Xcode 的代码签名，将编译出的应用放进 <code>Payload</code> 文件夹，再打包成 <code>MyApp-unsigned.ipa</code>。文件名中的 unsigned 表示“未签名”，不是编译失败。</p></li>
-                <li><strong>回到工作台，选择 .ipa，填入工程路径和 Scheme。</strong><p>编译模式保持“无证书编译”，检查仓库与分支，再填 GitHub Token，点击“开始构建”。这里的 GitHub Token 只是触发云端任务的凭证，与 Apple 证书是两回事。</p></li>
+                <li><strong>上传到 main 后，先在 Actions 查看自动构建。</strong><p>默认就会生成无证书 IPA。要从网页重新运行时，选择 .ipa，工程路径和 Scheme 可留空自动识别，再填写 GitHub Token 后开始。Token 是网页触发任务的凭证，与 Apple 证书是两回事。</p></li>
               </ol>
               <div class="table-scroll"><table><thead><tr><th>输入框</th><th>示例</th><th>怎么确认</th></tr></thead><tbody>
-                <tr><td>Xcode 工程路径</td><td><code>MyApp.xcodeproj</code></td><td>从仓库最外层开始写；放在 app 里就是 <code>app/MyApp.xcodeproj</code>。</td></tr>
-                <tr><td>Scheme</td><td><code>MyApp</code></td><td>填写 Xcode 中已共享的方案名，不是随便起的名字。</td></tr>
+                <tr><td>Xcode 工程路径</td><td>单工程留空</td><td>多工程才填写真实路径，例如 <code>app/MyApp.xcodeproj</code>；存在对应 workspace 时优先使用它。</td></tr>
+                <tr><td>Scheme</td><td>唯一应用方案留空</td><td>多个方案才填写真实的共享 Scheme 名称，不是随便起的名字。</td></tr>
                 <tr><td>IPA 编译模式</td><td>无证书编译</td><td>巨魔或后续自签选这一项；在 GitHub 的 Run workflow 中对应 <code>ipa_signing = unsigned</code>。</td></tr>
                 <tr><td>导出配置文件</td><td>无证书模式不需要</td><td>仅切换到“证书导出”时才显示，需要填写真实的 <code>ExportOptions.plist</code> 路径。</td></tr>
               </tbody></table></div>
               <p>完成这些准备后，再点击“开始构建”。应用归档会使用项目配置里的最低系统版本，默认 iOS 15.0。源码或第三方依赖使用了更高系统才有的能力时，仍需在代码中处理兼容性。</p>
+              <h3>哪些环境已经自动处理？</h3>
+              <p>云端提供 macOS、Xcode、iPhoneOS SDK、Python、Ruby 与 CocoaPods。发现 Podfile 时自动安装 Pods；存在 Podfile.lock 时保持锁定版本，有 Gemfile 时使用项目的 Bundler 环境。Swift Package 由 Xcode 解析。Git 子模块与 Git LFS 文件也会拉取。</p>
+              <p class="guide-note">这里预配的是原生 Xcode 与 Theos 工程。Flutter、React Native、Carthage、私有依赖、特殊编译器版本或自定义生成流程，需要原项目的额外准备步骤；可在 <code>[build].prepare_script</code> 指定仓库内的脚本。不要把不认识的脚本或账号密钥提交到公开仓库。</p>
               <h3>下载后怎么安装？按你的设备选一条路</h3>
               <ol class="guide-steps">
                 <li><strong>先解压 GitHub 下载的 ZIP。</strong><p>找到里面的 <code>MyApp-unsigned.ipa</code>，然后把这个 IPA 传到手机。不需要再把 IPA 本身解压，也不要把外层 ZIP 改成 IPA 后缀。</p></li>
@@ -214,20 +220,21 @@ configuration = "Release"</code></pre></div>
                 <details><summary>401：访问令牌无效或过期</summary><p>去 GitHub 查看令牌是否过期或被删除。重新复制有效令牌，清空工作台里的旧内容再粘贴。不要填写账号密码，也不要多带空格或换行。</p></details>
                 <details><summary>403：没有权限，或请求额度用完</summary><p>检查令牌是否选中了 iOSForge 仓库，Actions 是否为 Read and write。组织仓库还可能需要管理员批准。如果 GitHub 提示 API 请求额度耗尽，等额度恢复后再试。</p></details>
                 <details><summary>404：找不到仓库或工作流</summary><p>确认仓库写成 mango6i/iOSForge，main 分支中存在 .github/workflows/build.yml。私有仓库授权不正确时也可能返回 404。请检查令牌授权的账号和仓库。</p></details>
-                <details><summary>提示未配置 Theos 工程，或找不到 Makefile</summary><p>打开 iosforge.toml，确认 project_dir 这一行没有以 # 开头。然后按路径点进仓库文件夹，检查 Makefile 是否就在那一层、大小写是否一致。只上传一个 ZIP 不能通过这项检查。</p></details>
+                <details><summary>提示找不到 Theos 工程，或发现多个 Makefile</summary><p>检查上传的是解压后的完整工程，Makefile 包含 Theos 编译配置。单工程可自动识别；多个工程时，在 iosforge.toml 的 [theos].project_dir 中指定真正要编译的目录。带 # 的行不会生效。路径和文件名区分大小写，ZIP 无法直接编译。</p></details>
                 <details><summary>提示找不到头文件、库，或出现 clang / linker 错误</summary><p>打开运行日志，找到第一个实际编译错误。它通常表示项目依赖缺失、代码不兼容或目标架构不匹配。保留出错文件名和前后几行信息，结合原项目的依赖说明处理。切换网页主题或重新填写 Token 不会修复源码错误。</p></details>
                 <details><summary>IPA 提示 No signing certificate / No profiles</summary><p>如果你要给巨魔或自签工具使用，确认选择了“无证书编译”，GitHub 参数为 ipa_signing = unsigned；不需要填写导出配置。如果仍出现签名错误，检查项目自定义脚本是否额外调用 codesign 或签名服务。若选择的是“证书导出”，则需要检查证书、描述文件、团队和 Bundle ID 是否匹配，并确保在本次云端环境中导入。仅上传 ExportOptions.plist 不会安装证书。</p></details>
                 <details><summary>拿到 unsigned.ipa 后，为什么点一下不能直接安装？</summary><p>unsigned 表示没有 Apple 签名，不是万能免签安装包。兼容且已经安装巨魔的设备可交给 TrollStore 处理；其他用户需要先在自己的签名工具里签名。特殊权限、应用扩展、系统版本与依赖也可能影响安装或启动，详见第七节。</p></details>
                 <details><summary>已经成功了，为什么没有文件？</summary><p>确认运行的是 GitHub Actions 编译流程。没有配置插件源码时，自动推送触发的检查可能成功跳过编译，所以没有产物；Publish iOSForge Web 的成功也不表示插件编译成功。手动选择正确产物后再运行，并查看该次日志。</p></details>
-                <details><summary>修改源码后，为什么没有自动编译？</summary><p>当前自动触发设置只覆盖部分工具和配置路径，不覆盖任意源码目录。保存源码后，可以回本网页点击开始构建。如果需要“每次修改自己的源码都自动编译”，要把实际源码目录加入 build.yml 的 push 路径规则。</p></details>
+                <details><summary>修改源码后，为什么没有自动编译？</summary><p>确认源码提交到了 main，而且 Actions 已启用。仅修改网页、说明文档、现成 IPA/deb/dylib 不会触发原生编译。上传后在 Actions 找 GitHub Actions；没有可识别工程时只会完成检查，不会产生文件。多个工程或方案会明确报出选择要求。</p></details>
+                <details><summary>怎么检查云端环境本身？</summary><p>打开仓库 Actions → Check build environment → Run workflow。它会在临时云端目录真实编译一个原生应用与插件，检查无证书 IPA、CocoaPods、Swift Package、arm64/arm64e dylib 和 rootless deb；结束后删除临时探针。它不会往仓库添加示例工程，也不代表你的源码已经验证通过。</p></details>
                 <details><summary>页面一直排队、显示刷新中断，或者下载按钮没反应</summary><p>先点右侧 GitHub 日志链接，确认任务是否仍在运行。排队取决于 GitHub 的可用环境；刷新中断可能是网络问题。不要连续提交同一分支的新任务。文件下载失败时，可在 GitHub 运行总结页的 Artifacts 区域下载。</p></details>
               </div>
             </section>
 
             <section class="guide-section" id="next-time">
               <span class="section-overline">NEXT TIME</span><h2>第二次使用，就简单了</h2>
-              <p>项目和签名环境配置好后，日常操作就是：</p>
-              <ol class="guide-steps"><li><strong>把修改后的源码保存到同一个仓库、同一个分支。</strong></li><li><strong>打开工作台，选择产物，检查仓库和分支，粘贴有效 Token。</strong></li><li><strong>点击开始构建，等完成后下载并解压。</strong></li></ol>
+              <p>日常使用，只需要这三步；无证书 IPA 不需要提前准备 Apple 签名环境：</p>
+              <ol class="guide-steps"><li><strong>把解压后的完整源码或源码修改提交到 main。</strong></li><li><strong>在 Actions 查看自动构建，等编译完成。</strong><p>要单独重编某种格式时，再到工作台手动选择；网页发起任务需要有效 Token。</p></li><li><strong>下载构建产物并解压，拿到 dylib、deb 或未签名 IPA。</strong><p>默认产物保存 14 天，及时下载留存。应用安装仍按第七节说明处理。</p></li></ol>
               <p>暂时没有源码时，可以先保存这个网站。之后也可以把完整源码压缩包交给协作助手，让助手协助上传和配置；这属于对话协助，并不是网页内的上传功能。</p>
               <a class="guide-start-button" href="./">我准备好了，去编译工作台<svg class="icon"><use href="#i-arrow"/></svg></a>
               <p class="guide-note">补充资料：<a href="https://docs.github.com/en/repositories/working-with-files/managing-files/adding-a-file-to-a-repository" target="_blank" rel="noreferrer">GitHub 上传文件说明 ↗</a> · <a href="https://theos.dev/docs/rootless" target="_blank" rel="noreferrer">Theos rootless 配置 ↗</a></p>

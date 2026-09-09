@@ -30,6 +30,9 @@ class Manifest:
     app_project: Path | None
     app_scheme: str | None
     app_configuration: str
+    theos_archs: tuple[str, ...] = ("arm64", "arm64e")
+    package_scheme: str = "rootless"
+    prepare_script: Path | None = None
 
     @classmethod
     def load(cls, path: Path) -> "Manifest":
@@ -53,10 +56,18 @@ class Manifest:
         if _version_tuple(minimum_ios) < (15, 0):
             raise ManifestError("iOSForge requires [project].minimum_ios >= 15.0")
 
+        path = path.resolve()
         root = path.parent
         theos_project = theos.get("project_dir")
         theos_root = theos.get("root") or None
         app_project = app.get("project") or None
+        archs = theos.get("archs", ["arm64", "arm64e"])
+        if not isinstance(archs, list) or not archs or any(item not in {"arm64", "arm64e"} for item in archs):
+            raise ManifestError("[theos].archs must contain arm64 and/or arm64e")
+        package_scheme = theos.get("package_scheme", "rootless")
+        if package_scheme not in {"rootless", "rootful"}:
+            raise ManifestError("[theos].package_scheme must be rootless or rootful")
+        prepare_script = data.get("build", {}).get("prepare_script")
         return cls(
             path=path,
             name=name,
@@ -67,6 +78,9 @@ class Manifest:
             app_project=(root / app_project).resolve() if app_project else None,
             app_scheme=str(app.get("scheme")).strip() if app.get("scheme") else None,
             app_configuration=str(app.get("configuration", "Release")),
+            theos_archs=tuple(archs),
+            package_scheme=package_scheme,
+            prepare_script=(root / prepare_script).resolve() if prepare_script else None,
         )
 
     def validate(self) -> list[str]:
@@ -82,4 +96,3 @@ class Manifest:
             if not self.app_scheme:
                 errors.append("[app].scheme is required for app builds")
         return errors
-

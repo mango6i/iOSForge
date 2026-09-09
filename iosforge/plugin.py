@@ -23,8 +23,15 @@ def _build_package(manifest: Manifest) -> Path:
         raise BuildError(f"Theos root does not exist: {theos_root}")
 
     make = shutil.which("gmake") or command_path("make")
-    run([make, "package", "FINALPACKAGE=1", f"THEOS={theos_root}"], cwd=project_dir)
+    before = {path: path.stat().st_mtime_ns for path in project_dir.glob("packages/*.deb")}
+    run([
+        make, "package", "FINALPACKAGE=1", f"THEOS={theos_root}",
+        f"TARGET=iphone:clang:latest:{manifest.minimum_ios}",
+        f"ARCHS={' '.join(manifest.theos_archs)}",
+        f"THEOS_PACKAGE_SCHEME={'' if manifest.package_scheme == 'rootful' else 'rootless'}",
+    ], cwd=project_dir)
     packages = sorted(project_dir.glob("packages/*.deb"), key=lambda path: path.stat().st_mtime)
+    packages = [path for path in packages if before.get(path) != path.stat().st_mtime_ns]
     if not packages:
         raise BuildError("Theos completed but no .deb package was found in packages/")
 
@@ -41,6 +48,10 @@ def build_deb(manifest: Manifest, output_dir: Path) -> list[Path]:
 
 def build_plugin(manifest: Manifest, output_dir: Path) -> list[Path]:
     package = _build_package(manifest)
+    return extract_dylibs(package, output_dir)
+
+
+def extract_dylibs(package: Path, output_dir: Path) -> list[Path]:
     output_dir.mkdir(parents=True, exist_ok=True)
     dpkg_deb = command_path("dpkg-deb")
     results: list[Path] = []
@@ -50,9 +61,18 @@ def build_plugin(manifest: Manifest, output_dir: Path) -> list[Path]:
         dylibs = sorted(extracted.rglob("*.dylib"))
         if not dylibs:
             raise BuildError(f"Theos package contains no .dylib: {package}")
+        if len({path.name for path in dylibs}) != len(dylibs):
+            raise BuildError("包内存在同名 dylib，无法安全地合并输出。请调整插件名称。")
         for dylib in dylibs:
             result = output_dir / dylib.name
             shutil.copy2(dylib, result)
             results.append(result)
     return results
 
+
+def build_all(manifest: Manifest, output_dir: Path) -> list[Path]:
+    package = _build_package(manifest)
+    results = extract_dylibs(package, output_dir)
+    result = output_dir / package.name
+    shutil.copy2(package, result)
+    return [result, *results]

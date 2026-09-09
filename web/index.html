@@ -8,7 +8,7 @@
   <title>iOSForge · 编译工作台</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="./styles.css?v=studio-light-3" />
-  <script src="./app.js?v=studio-light-3" defer></script>
+  <script src="./app.js?v=environment-ready-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">跳到编译工作台</a>
@@ -103,12 +103,13 @@
                     <label class="signing-option"><input type="radio" name="ipa_signing" value="signed" /><span><strong>证书导出</strong><span>已配置 Apple 签名环境</span></span></label>
                   </fieldset>
                   <div class="field-row">
-                    <label class="field"><span>Xcode 工程路径</span><input id="xcode-project" placeholder="MyApp.xcodeproj" autocomplete="off" spellcheck="false" /></label>
-                    <label class="field"><span>Scheme</span><input id="xcode-scheme" placeholder="MyApp" autocomplete="off" spellcheck="false" /></label>
+                    <label class="field"><span>Xcode 工程路径 · 可选</span><input id="xcode-project" placeholder="留空自动识别工程" autocomplete="off" spellcheck="false" /></label>
+                    <label class="field"><span>Scheme · 可选</span><input id="xcode-scheme" placeholder="留空自动识别方案" autocomplete="off" spellcheck="false" /></label>
                   </div>
                   <label id="export-options-field" class="field" hidden><span>导出配置文件</span><input id="export-options" value="ExportOptions.plist" autocomplete="off" spellcheck="false" /></label>
                   <p id="signing-hint" class="field-hint">输出未签名 IPA，无需 Apple 证书。普通设备需后续自签；巨魔需设备与系统兼容。</p>
                   <a class="ipa-guide-link" href="./guide.html#ipa-config">不知道怎么选？查看 IPA 准备与安装说明 ↗</a>
+                  <p class="field-hint">单个工程可直接留空；多个工程或方案时再指定。常见 CocoaPods 与 Swift Package 依赖会在云端处理。</p>
                 </div>
               </div>
 

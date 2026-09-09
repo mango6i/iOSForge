@@ -5,15 +5,20 @@ kind = "tweak"
 minimum_ios = "15.0"
 
 [theos]
-# 上传你自己的 Theos 工程后填写，例如：
+# 单个 Theos 工程自动识别；多个工程时才需要填写：
 # project_dir = "plugin"
+archs = ["arm64", "arm64e"]
+package_scheme = "rootless"
 
 # For local builds you can set this path, or simply export THEOS.
 # root = "/opt/theos"
 
 [app]
-# Fill these in when this repository also contains an Xcode project.
+# 单个 Xcode 工程与唯一应用 Scheme 自动识别；不唯一时填写：
 # project = "MyApp.xcodeproj"
 # scheme = "MyApp"
 configuration = "Release"
 
+[build]
+# 特殊工程的自定义依赖准备脚本（可选，需在仓库内）：
+# prepare_script = "ci/prepare.sh"

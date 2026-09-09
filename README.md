@@ -17,7 +17,21 @@
 - `deb`：生成 Debian 插件包；
 - `ipa`：构建 IPA；`ipa_signing` 默认 `unsigned`，不需要 Apple 证书或导出配置。
 
-修改 `iosforge/**`、`iosforge.toml`、`pyproject.toml` 或编译工作流后推送到 `main`，会自动检查 Theos 工程；未配置源码时会跳过插件构建。仅修改自己的其他源码目录时，请从网页手动启动构建，或把实际目录加入工作流的 push 路径规则。Windows 电脑不需要安装 Xcode，GitHub 会使用 macOS Runner 完成 iOS 原生构建。
+上传解压后的完整源码到 `main`，会自动识别并构建：Theos 工程输出 `.dylib` 和 `.deb`；Xcode 应用输出无证书 `.ipa`。唯一工程与唯一应用 Scheme 可自动识别，多个候选时会要求明确指定，不会随便选择。没有源码时只完成检查，不会生成虚假产物。只改网页、文档或现成二进制不会触发原生编译。
+
+自动上传构建和 GitHub 的 Run workflow 不需要网页 Token。网页手动重编才需要 Token；Windows 不需要安装 Xcode。构建产物保留 14 天。
+
+## 已配置的云端环境
+
+- macOS 15、Xcode 16.4、iPhoneOS SDK、Python 3.12、Ruby 3.3、CocoaPods 1.16.2。
+- Theos 与补充 SDK 固定到已选定的提交，提供 iOS 15.6 / 16.5 补充 SDK；Xcode 自带 SDK 用于原生应用。SDK 版本不等于应用的最低系统版本。
+- GNU Make、ldid、dpkg；默认插件目标 iOS 15.0、arm64 + arm64e、rootless。
+- Podfile 自动 `pod install`；有锁文件时使用 `--deployment`，有 Gemfile 时先 `bundle install` 再 `bundle exec pod install`。CocoaPods 完成后自动选择唯一 workspace；SPM 由 Xcode 解析。
+- Git 子模块递归拉取、Git LFS 拉取、Theos 安装缓存、输入与产物检查。并发请求不会取消已运行的编译。
+
+在 **Actions → Check build environment → Run workflow** 可真实检查 IPA、CocoaPods、SPM、Theos/Logos、dylib 与 rootless deb。探针源码和产物只写入临时 Runner，结束后删除；仓库不会重新添加示例工程或测试目录。自检成功不代表未来项目源码或真机安装一定成功。
+
+如果工程要求其他已安装的 Xcode 版本，可在仓库 Actions Variables 设置 `IOSFORGE_XCODE_VERSION`。Flutter、React Native、Carthage、私有依赖及特殊构建工具不是通用自动安装范围；需遵循原项目要求，可通过下方准备脚本接入。不要提交私钥或依赖凭据。
 
 网页控制台位于 [`web/`](web/)。第一次发布时，在 **Settings → Pages → Source** 选择 **GitHub Actions**，然后运行 `Publish iOSForge Web`。网页不会保存 GitHub Token，只在当前页面内存中调用 GitHub API。
 
@@ -32,22 +46,28 @@ kind = "tweak"
 minimum_ios = "15.0"
 
 [theos]
-# 上传你自己的 Theos 工程后填写，例如：
+# 单工程可省略，多个工程时指定：
 # project_dir = "plugin"
+archs = ["arm64", "arm64e"]
+package_scheme = "rootless"
 
 [app]
 # project = "MyApp.xcodeproj"
 # scheme = "MyApp"
 configuration = "Release"
+
+[build]
+# 可选：特殊项目的依赖准备脚本，路径必须在仓库内。
+# prepare_script = "ci/prepare.sh"
 ```
 
-`kind` 支持 `tweak`、`app` 和 `hybrid`。Xcode 构建使用配置的最低版本作为 `IPHONEOS_DEPLOYMENT_TARGET`，默认 15.0；Theos 工程还需在自己的 Makefile 中设置对应的 TARGET。源码与第三方依赖仍需兼容目标系统。
+`kind` 支持 `tweak`、`app` 和 `hybrid`；构建命令会按目标解析对应工程。Xcode 和 Theos 均使用这里的最低系统版本，默认 15.0；插件架构和包布局也由这些配置传入，覆盖普通 Makefile 同名变量。源码与依赖仍需兼容目标系统；仅支持 arm64 的依赖需将 archs 改为 `["arm64"]`。
 
 ## IPA 无证书编译
 
 1. 上传完整 Xcode 应用工程及依赖，确认 Scheme 已共享。
 2. 在网页选择 `.ipa`，保留默认的“无证书编译”。
-3. 填写工程路径（如 `MyApp.xcodeproj` 或 `MyApp.xcworkspace`）和 Scheme，然后启动构建。
+3. 单工程与唯一应用方案可留空；多个候选时填写真实工程路径和 Scheme，然后启动构建。也可直接等待上传源码后自动开始的构建。
 4. 下载 `iosforge-ipa-unsigned` 产物，解压外层 ZIP，得到 `MyApp-unsigned.ipa`。
 
 此模式关闭 Xcode 代码签名，直接将归档中的应用打包为 `Payload/*.app`，**不需要 Apple 开发者证书、Provisioning Profile 或 ExportOptions.plist**。嵌入的扩展、框架、文件权限与包内符号链接会随应用一起打包。
@@ -75,8 +95,7 @@ iosforge build-app --project MyApp.xcodeproj --scheme MyApp --export-options Exp
 - `.github/workflows/`：插件、IPA 和网页发布流程；
 - `iosforge/`：构建工具源码；
 - `web/`：网页控制台；
-- 你自己的 Theos 工程：在 `iosforge.toml` 的 `[theos].project_dir` 中指定；
-- 你自己的 Xcode 工程：在网页或 Actions 的 IPA 参数中指定。
+- 你自己的 Theos / Xcode 工程：唯一时自动识别；多个时在配置或 IPA 参数中指定。
 
 ## 安全边界
 

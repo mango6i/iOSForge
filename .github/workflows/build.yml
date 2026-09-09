@@ -1,183 +1,147 @@
 name: GitHub Actions
-
+run-name: iOSForge · ${{ inputs.build_type || 'auto' }} · ${{ github.ref_name }}
 on:
   push:
-    branches:
-      - main
-    paths:
-      - "iosforge/**"
-      - "iosforge.toml"
-      - "pyproject.toml"
-      - ".github/workflows/build.yml"
+    branches: [main]
+    paths-ignore:
+      - 'web/**'
+      - '**/*.md'
+      - 'LICENSE'
+      - '.github/workflows/pages.yml'
+      - '.github/workflows/environment.yml'
+      - '**/*.ipa'
+      - '**/*.deb'
+      - '**/*.dylib'
   workflow_dispatch:
     inputs:
       build_type:
-        description: "选择构建类型"
+        description: auto 自动识别全部工程，或指定产物
         required: true
-        default: dylib
+        default: auto
         type: choice
-        options:
-          - dylib
-          - deb
-          - ipa
+        options: [auto, dylib, deb, ipa]
       xcode_project:
-        description: "Xcode 工程路径，例如 MyApp.xcodeproj 或 MyApp.xcworkspace"
-        required: false
-        default: ""
+        description: Xcode 工程路径（单工程可留空自动识别）
         type: string
+        default: ''
       xcode_scheme:
-        description: "Xcode Scheme 名称"
-        required: false
-        default: ""
+        description: Scheme（唯一共享应用方案可留空）
         type: string
+        default: ''
       ipa_signing:
-        description: "IPA 模式：unsigned 无证书（巨魔/后续自签）；signed 证书导出"
-        required: true
-        default: unsigned
+        description: unsigned 无证书（巨魔/后续自签）；signed 证书导出
         type: choice
-        options:
-          - unsigned
-          - signed
+        default: unsigned
+        options: [unsigned, signed]
       export_options:
-        description: "仅 signed 模式需要：ExportOptions.plist 路径"
-        required: false
-        default: ExportOptions.plist
+        description: 仅 signed 模式需要的导出配置
         type: string
-
+        default: ExportOptions.plist
 permissions:
   contents: read
-
 concurrency:
-  group: iosforge-${{ github.ref }}
-  cancel-in-progress: true
-
+  group: iosforge-build-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
-  detect-plugin:
-    name: Check plugin source
-    if: ${{ github.event_name == 'push' || inputs.build_type == 'dylib' || inputs.build_type == 'deb' }}
+  detect-source:
+    name: Identify uploaded source
     runs-on: ubuntu-latest
     outputs:
-      available: ${{ steps.detect.outputs.available }}
+      plugin: ${{ steps.plan.outputs.plugin }}
+      app: ${{ steps.plan.outputs.app }}
     steps:
       - uses: actions/checkout@v4
-      - name: Detect configured Theos project
-        id: detect
+        with:
+          submodules: recursive
+          lfs: true
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Find projects
+        id: plan
         env:
-          EVENT_NAME: ${{ github.event_name }}
-          BUILD_TYPE: ${{ inputs.build_type }}
+          BUILD_TYPE: ${{ inputs.build_type || 'auto' }}
+          XCODE_PROJECT: ${{ inputs.xcode_project }}
+        run: python -m iosforge.ci plan --type "$BUILD_TYPE"
+  build-plugin:
+    name: Build iOS 15+ plugin
+    needs: detect-source
+    if: needs.detect-source.outputs.plugin == 'true'
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          lfs: true
+          persist-credentials: false
+      - uses: ./.github/actions/setup-ios
+        with:
+          xcode-version: ${{ vars.IOSFORGE_XCODE_VERSION || '16.4' }}
+          theos: 'true'
+      - name: Compile and package
+        env:
+          BUILD_TYPE: ${{ inputs.build_type || 'auto' }}
         shell: bash
         run: |
           set -euo pipefail
-          python - <<'PY'
-          import os
-          from pathlib import Path
-          import tomllib
-
-          manifest = Path("iosforge.toml")
-          project_dir = None
-          if manifest.exists():
-              with manifest.open("rb") as handle:
-                  project_dir = tomllib.load(handle).get("theos", {}).get("project_dir")
-          available = bool(project_dir and (Path(project_dir) / "Makefile").is_file())
-          with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as output:
-              output.write(f"available={'true' if available else 'false'}\n")
-          if not available:
-              print("未配置 Theos 工程，已跳过自动插件构建。请在 iosforge.toml 的 [theos].project_dir 中填写自己的工程路径。")
-              if os.environ["EVENT_NAME"] == "workflow_dispatch" and os.environ["BUILD_TYPE"] in {"dylib", "deb"}:
-                  raise SystemExit(1)
-
-  build-plugin:
-    name: Build dylib
-    needs: detect-plugin
-    if: ${{ needs.detect-plugin.outputs.available == 'true' && (github.event_name == 'push' || inputs.build_type == 'dylib' || inputs.build_type == 'deb') }}
-    runs-on: macos-14
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install Theos
-        shell: bash
-        run: |
-          export THEOS="$RUNNER_TEMP/theos"
-          git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/theos/theos.git "$THEOS"
-          rm -rf "$THEOS/sdks"
-          git clone --depth 1 https://github.com/theos/sdks.git "$THEOS/sdks"
-          echo "THEOS=$THEOS" >> "$GITHUB_ENV"
-          brew install ldid dpkg
-      - name: Install iOSForge
-        run: python -m pip install -e .
-      - name: Validate project
-        run: iosforge validate
-      - name: Build dylib
-        if: ${{ github.event_name == 'push' || inputs.build_type == 'dylib' }}
-        run: iosforge build-dylib --output-dir dist
-      - name: Build deb
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.build_type == 'deb' }}
-        run: iosforge build-deb --output-dir dist
+          case "$BUILD_TYPE" in
+            dylib) iosforge build-dylib --output-dir dist ;;
+            deb) iosforge build-deb --output-dir dist ;;
+            auto) iosforge build-tweak --output-dir dist ;;
+            *) echo "Unexpected plugin build type"; exit 1 ;;
+          esac
       - uses: actions/upload-artifact@v4
-        if: ${{ github.event_name == 'push' || inputs.build_type == 'dylib' }}
+        if: inputs.build_type != 'deb'
         with:
           name: iosforge-dylib
           path: dist/*.dylib
           if-no-files-found: error
+          retention-days: 14
       - uses: actions/upload-artifact@v4
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.build_type == 'deb' }}
+        if: github.event_name == 'push' || inputs.build_type == 'auto' || inputs.build_type == 'deb'
         with:
           name: iosforge-deb
           path: dist/*.deb
           if-no-files-found: error
-
+          retention-days: 14
   build-ipa:
-    name: Build IPA
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.build_type == 'ipa' }}
-    runs-on: macos-14
-    timeout-minutes: 30
+    name: Build iOS 15+ IPA
+    needs: detect-source
+    if: needs.detect-source.outputs.app == 'true'
+    runs-on: macos-15
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-      - name: Install iOSForge
-        run: python -m pip install -e .
-      - name: Check IPA inputs
+          submodules: recursive
+          lfs: true
+          persist-credentials: false
+      - uses: ./.github/actions/setup-ios
+        with:
+          xcode-version: ${{ vars.IOSFORGE_XCODE_VERSION || '16.4' }}
+      - name: Build and package IPA
         env:
           XCODE_PROJECT: ${{ inputs.xcode_project }}
           XCODE_SCHEME: ${{ inputs.xcode_scheme }}
-          EXPORT_OPTIONS: ${{ inputs.export_options }}
-          IPA_SIGNING: ${{ inputs.ipa_signing }}
+          EXPORT_OPTIONS: ${{ inputs.export_options || 'ExportOptions.plist' }}
+          IPA_SIGNING: ${{ inputs.ipa_signing || 'unsigned' }}
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$XCODE_PROJECT" || { echo "请填写 xcode_project"; exit 1; }
-          test -n "$XCODE_SCHEME" || { echo "请填写 xcode_scheme"; exit 1; }
-          test -d "$XCODE_PROJECT" || { echo "找不到 Xcode 工程目录: $XCODE_PROJECT"; exit 1; }
+          args=(--output-dir dist)
+          if [ -n "$XCODE_PROJECT" ]; then args+=(--project "$XCODE_PROJECT"); fi
+          if [ -n "$XCODE_SCHEME" ]; then args+=(--scheme "$XCODE_SCHEME"); fi
           case "$IPA_SIGNING" in
-            unsigned) echo "无证书编译：无需 Apple 证书、描述文件或 ExportOptions.plist。" ;;
-            signed) test -f "$EXPORT_OPTIONS" || { echo "找不到 ExportOptions.plist: $EXPORT_OPTIONS"; exit 1; } ;;
-            *) echo "未知 IPA 模式: $IPA_SIGNING"; exit 1 ;;
+            unsigned) args+=(--unsigned) ;;
+            signed) args+=(--export-options "$EXPORT_OPTIONS") ;;
+            *) echo "Unknown IPA signing mode"; exit 1 ;;
           esac
-      - name: Build and export IPA
-        env:
-          XCODE_PROJECT: ${{ inputs.xcode_project }}
-          XCODE_SCHEME: ${{ inputs.xcode_scheme }}
-          EXPORT_OPTIONS: ${{ inputs.export_options }}
-          IPA_SIGNING: ${{ inputs.ipa_signing }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          signing_args=(--unsigned)
-          if [ "$IPA_SIGNING" = "signed" ]; then
-            signing_args=(--export-options "$EXPORT_OPTIONS")
-          fi
-          iosforge build-app \
-            --project "$XCODE_PROJECT" \
-            --scheme "$XCODE_SCHEME" \
-            "${signing_args[@]}" \
-            --output-dir dist
+          iosforge build-app "${args[@]}"
       - uses: actions/upload-artifact@v4
         with:
-          name: iosforge-ipa-${{ inputs.ipa_signing }}
+          name: iosforge-ipa-${{ inputs.ipa_signing || 'unsigned' }}
           path: dist/*.ipa
           if-no-files-found: error
+          retention-days: 14

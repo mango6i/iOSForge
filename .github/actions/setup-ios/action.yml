@@ -1,0 +1,85 @@
+name: Prepare iOS build environment
+description: Reproducible iOS 15+ native build tools
+inputs:
+  xcode-version:
+    description: Installed Xcode version
+    default: '16.4'
+  theos:
+    description: Install Theos and patched SDKs
+    default: 'false'
+  diagnostics:
+    description: Install disposable verification tools
+    default: 'false'
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - name: Select Xcode
+      shell: bash
+      env:
+        XCODE_VERSION: ${{ inputs.xcode-version }}
+      run: |
+        set -euo pipefail
+        [[ "$XCODE_VERSION" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]] || { echo "Invalid Xcode version"; exit 1; }
+        developer_dir="/Applications/Xcode_${XCODE_VERSION}.app/Contents/Developer"
+        test -d "$developer_dir" || { echo "Runner does not contain Xcode $XCODE_VERSION. Set IOSFORGE_XCODE_VERSION to an installed version."; exit 1; }
+        echo "DEVELOPER_DIR=$developer_dir" >> "$GITHUB_ENV"
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.3'
+    - name: Install common tools
+      shell: bash
+      env:
+        HOMEBREW_NO_AUTO_UPDATE: '1'
+        INSTALL_THEOS: ${{ inputs.theos }}
+        DIAGNOSTICS: ${{ inputs.diagnostics }}
+      run: |
+        set -euo pipefail
+        if [ "$INSTALL_THEOS" = "true" ]; then brew install make ldid dpkg; fi
+        if [ "$DIAGNOSTICS" = "true" ]; then brew install xcodegen; fi
+        gem install cocoapods -v 1.16.2 --no-document
+        python -m pip install -e .
+        xcodebuild -version
+        xcrun --sdk iphoneos --show-sdk-version
+        pod --version
+    - uses: actions/cache/restore@v4
+      if: inputs.theos == 'true'
+      id: theos-cache
+      with:
+        path: ${{ runner.temp }}/iosforge-theos
+        key: theos-v1-${{ runner.os }}-${{ runner.arch }}-5280bd038207-0222fd5413cf
+    - name: Install pinned Theos and SDKs
+      if: inputs.theos == 'true' && steps.theos-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        theos_dir="$RUNNER_TEMP/iosforge-theos"
+        git init "$theos_dir"
+        git -C "$theos_dir" remote add origin https://github.com/theos/theos.git
+        git -C "$theos_dir" fetch --depth 1 origin 5280bd038207e14f8bd76f5417aa2fe641c03228
+        git -C "$theos_dir" checkout --detach FETCH_HEAD
+        git -C "$theos_dir" submodule update --init --recursive --depth 1
+        git init "$theos_dir/sdks"
+        git -C "$theos_dir/sdks" remote add origin https://github.com/theos/sdks.git
+        git -C "$theos_dir/sdks" sparse-checkout init --cone
+        git -C "$theos_dir/sdks" sparse-checkout set iPhoneOS15.6.sdk iPhoneOS16.5.sdk
+        git -C "$theos_dir/sdks" fetch --depth 1 --filter=blob:none origin 0222fd5413cf4b9af096f37b4621afa2688572f7
+        git -C "$theos_dir/sdks" checkout --detach FETCH_HEAD
+    - name: Validate Theos installation
+      if: inputs.theos == 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        theos_dir="$RUNNER_TEMP/iosforge-theos"
+        test -f "$theos_dir/makefiles/common.mk"
+        test -d "$theos_dir/sdks/iPhoneOS16.5.sdk"
+        test "$(git -C "$theos_dir" rev-parse HEAD)" = 5280bd038207e14f8bd76f5417aa2fe641c03228
+        test "$(git -C "$theos_dir/sdks" rev-parse HEAD)" = 0222fd5413cf4b9af096f37b4621afa2688572f7
+        echo "THEOS=$theos_dir" >> "$GITHUB_ENV"
+    - uses: actions/cache/save@v4
+      if: inputs.theos == 'true' && steps.theos-cache.outputs.cache-hit != 'true'
+      with:
+        path: ${{ runner.temp }}/iosforge-theos
+        key: ${{ steps.theos-cache.outputs.cache-primary-key }}

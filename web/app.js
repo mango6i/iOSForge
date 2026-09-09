@@ -116,8 +116,8 @@ function updateLinks() {
 function updateIpaFields() {
   const ipa = buildTypeInput.value === "ipa";
   ipaFields.hidden = !ipa;
-  projectInput.required = ipa;
-  schemeInput.required = ipa;
+  projectInput.required = false;
+  schemeInput.required = false;
   const signed = ipa && ipaSigningInput.value === "signed";
   $("#export-options-field").hidden = !signed;
   exportOptionsInput.required = signed;
@@ -205,7 +205,7 @@ function runsQuery() {
 }
 
 async function waitForRun() {
-  for (let attempt = 0; attempt < 240; attempt += 1) {
+  for (let attempt = 0; attempt < 480; attempt += 1) {
     let run;
     if (state.runId) {
       run = await github(`${repoBase()}/actions/runs/${state.runId}`);
@@ -242,7 +242,7 @@ async function waitForRun() {
     }
     await new Promise((resolve) => setTimeout(resolve, 7500));
   }
-  setStatus("idle", "查看日志", "自动刷新已暂停", "网页已等待约 30 分钟，任务可能仍在运行，请在 GitHub 查看最新状态。", "stopped");
+  setStatus("idle", "查看日志", "自动刷新已暂停", "网页已等待约 60 分钟，任务可能仍在运行，请在 GitHub 查看最新状态。", "stopped");
 }
 
 form.addEventListener("submit", async (event) => {
@@ -253,9 +253,6 @@ form.addEventListener("submit", async (event) => {
   const token = tokenInput.value.trim();
   if (!repo) return setStatus("error", "检查输入", "仓库地址格式不正确", "请输入 owner/repository，例如 mango6i/iOSForge。");
   if (!token) return setStatus("error", "需要令牌", "请填写 GitHub Token", "令牌需要拥有目标仓库的 Actions 写入权限。");
-  if (buildTypeInput.value === "ipa" && (!projectInput.value.trim() || !schemeInput.value.trim())) {
-    return setStatus("error", "检查输入", "请补充 IPA 配置", "需要填写 Xcode 工程路径和 Scheme。");
-  }
   if (buildTypeInput.value === "ipa" && ipaSigningInput.value === "signed" && !exportOptionsInput.value.trim()) {
     return setStatus("error", "检查输入", "请填写导出配置", "证书导出模式需要 ExportOptions.plist 的真实路径；无证书模式不需要。");
   }

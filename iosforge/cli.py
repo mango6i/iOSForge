@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import replace
 from pathlib import Path
 import sys
 
 from .app import build_app
+from .dependencies import prepare_app, prepare_custom
+from .discovery import plugin_manifest
 from .ipa import package_ipa
 from .manifest import Manifest, ManifestError
-from .plugin import build_deb, build_plugin
+from .plugin import build_all, build_deb, build_plugin
 from .process import BuildError
 
 
@@ -28,6 +29,8 @@ def parser() -> argparse.ArgumentParser:
 
     deb = commands.add_parser("build-deb", help="build a Theos/Logos plugin into a .deb package")
     deb.add_argument("--output-dir", type=Path, default=Path("dist"))
+    both = commands.add_parser("build-tweak", help="build a Theos project once and output both dylib and deb")
+    both.add_argument("--output-dir", type=Path, default=Path("dist"))
 
     app = commands.add_parser("build-app", help="archive and export an Xcode app into an IPA")
     app.add_argument("--project", type=Path, help="override [app].project")
@@ -50,12 +53,12 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         manifest = Manifest.load(args.manifest)
+        if args.command.startswith("build-"):
+            prepare_custom(manifest)
         if args.command == "build-app":
-            manifest = replace(
-                manifest,
-                app_project=args.project.resolve() if args.project else manifest.app_project,
-                app_scheme=args.scheme or manifest.app_scheme,
-            )
+            manifest = prepare_app(manifest, args.project, args.scheme)
+        elif args.command in {"build-dylib", "build-plugin", "build-deb", "build-tweak"}:
+            manifest = plugin_manifest(manifest)
         errors = manifest.validate()
         if errors:
             for error in errors:
@@ -68,6 +71,9 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"Created {path}")
         elif args.command == "build-deb":
             for path in build_deb(manifest, args.output_dir):
+                print(f"Created {path}")
+        elif args.command == "build-tweak":
+            for path in build_all(manifest, args.output_dir):
                 print(f"Created {path}")
         elif args.command == "build-app":
             export_options = args.export_options.resolve() if args.export_options else None
