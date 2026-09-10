@@ -105,7 +105,8 @@ input::placeholder { color: var(--subtle); opacity: 1; font-family: var(--font);
 input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { border-color: var(--accent-strong); box-shadow: 0 0 0 3px #81acff12; }
 .input-wrap { display: flex; position: relative; align-items: center; }
 .input-wrap > .icon { position: absolute; left: 12px; width: 16px; height: 16px; color: var(--subtle); pointer-events: none; }
-.input-wrap input:not([type="radio"]) { padding-left: 37px; }
+/* Match the base field exclusions so icon spacing wins over its padding shorthand. */
+.input-wrap > input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):not([type="hidden"]) { padding-left: 44px; }.token-input-wrap > input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):not([type="hidden"]) { padding-right: 48px; }
 .ipa-fields { padding: 16px; margin-top: 16px; border: 1px solid var(--border); border-radius: 8px; background: #edf5ff; }
 .signing-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0; margin: 0 0 18px; border: 0; min-width: 0; }
 .signing-options legend { margin-bottom: 9px; color: var(--muted); font-size: .8125rem; }
