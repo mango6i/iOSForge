@@ -207,10 +207,17 @@
     const current = tree.tree?.find(item => item.path === project && item.type === "tree" && item.mode === "040000");
     if (!current) fail(`项目 ${target} 已不存在，请刷新项目列表。`);
     if (!/^[0-9a-f]{40}$/i.test(expectedSha || "") || current.sha !== expectedSha) fail(`项目 ${target} 在读取后发生了变化。为避免误删，请刷新项目列表后重新确认。`);
+    const deletions = [{ path: target, mode: "040000", type: "tree", sha: null }];
+    const downloadRoot = snapshot.root.tree?.find(item => item.path === "Download" && item.type === "tree" && item.mode === "040000");
+    if (downloadRoot) {
+      const downloadTree = await api(`${base}/git/trees/${downloadRoot.sha}`);
+      const projectOutputs = downloadTree.tree?.find(item => item.path === project && item.type === "tree" && item.mode === "040000");
+      if (projectOutputs) deletions.push({ path: `Download/${project}`, mode: "040000", type: "tree", sha: null });
+    }
     const createdTree = await api(`${base}/git/trees`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ base_tree: snapshot.commit.tree.sha, tree: [{ path: target, mode: "040000", type: "tree", sha: null }] }),
+      body: JSON.stringify({ base_tree: snapshot.commit.tree.sha, tree: deletions }),
     });
     const created = await api(`${base}/git/commits`, {
       method: "POST",
@@ -229,7 +236,7 @@
       try { head = (await api(snapshot.refPath)).object?.sha; } catch { fail(`删除结果暂时无法确认，请先检查 GitHub 提交记录，不要重复操作。提交编号：${created.sha}`); }
       if (head !== created.sha) throw error;
     }
-    return { sha: created.sha, path: target };
+    return { sha: created.sha, path: target, outputPath: deletions.length > 1 ? `Download/${project}` : "", outputsRemoved: deletions.length > 1 };
   }
   globalThis.IOSForgeUpload = Object.freeze({ limits, readZip, readFolder, prepare, destination, publish, listProjects, removeProject, crc32 });
 })();

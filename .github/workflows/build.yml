@@ -46,7 +46,7 @@ on:
         type: string
         default: ExportOptions.plist
 permissions:
-  contents: read
+  contents: write
 concurrency:
   group: iosforge-build-${{ github.ref }}
   cancel-in-progress: false
@@ -102,20 +102,14 @@ jobs:
             auto) iosforge --source-dir "$SOURCE_DIRECTORY" build-tweak --output-dir dist ;;
             *) echo "Unexpected plugin build type"; exit 1 ;;
           esac
-      - uses: actions/upload-artifact@v4
-        if: inputs.build_type != 'deb'
-        with:
-          name: iosforge-dylib
-          path: dist/*.dylib
-          if-no-files-found: error
-          retention-days: 14
-      - uses: actions/upload-artifact@v4
-        if: github.event_name == 'push' || inputs.build_type == 'auto' || inputs.build_type == 'deb'
-        with:
-          name: iosforge-deb
-          path: dist/*.deb
-          if-no-files-found: error
-          retention-days: 14
+      - name: Save actual plugin files to Download
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          IOSFORGE_REPOSITORY: ${{ github.repository }}
+          IOSFORGE_BRANCH: ${{ github.ref_name }}
+          IOSFORGE_RUN_ID: ${{ github.run_id }}
+          SOURCE_DIRECTORY: ${{ inputs.source_directory }}
+        run: python3 .github/scripts/publish_outputs.py --output-dir dist
   build-ipa:
     name: Build iOS 15+ IPA
     needs: detect-source
@@ -150,9 +144,11 @@ jobs:
             *) echo "Unknown IPA signing mode"; exit 1 ;;
           esac
           iosforge --source-dir "$SOURCE_DIRECTORY" build-app "${args[@]}"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: iosforge-ipa-${{ inputs.ipa_signing || 'unsigned' }}
-          path: dist/*.ipa
-          if-no-files-found: error
-          retention-days: 14
+      - name: Save actual IPA file to Download
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          IOSFORGE_REPOSITORY: ${{ github.repository }}
+          IOSFORGE_BRANCH: ${{ github.ref_name }}
+          IOSFORGE_RUN_ID: ${{ github.run_id }}
+          SOURCE_DIRECTORY: ${{ inputs.source_directory }}
+        run: python3 .github/scripts/publish_outputs.py --output-dir dist
