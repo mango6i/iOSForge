@@ -153,7 +153,7 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 .primary-button:disabled { opacity: .6; }
 .button-arrow { position: absolute; right: 17px; width: 17px; height: 17px; }
 .form-footnote { color: var(--subtle); text-align: center; font-size: .75rem; line-height: 1.7; margin: 11px 0 0; }
-.status-panel { display: flex; flex-direction: column; padding: 26px 26px 22px; background: radial-gradient(ellipse at 50% 26%, #d9eeffbb, transparent 53%), linear-gradient(160deg, #fffffff5, #f7fbfff2); }
+.status-panel { position: sticky; top: 18px; display: flex; flex-direction: column; max-height: calc(100vh - 36px); overflow-y: auto; overscroll-behavior: contain; scrollbar-color: #b7cce6 transparent; padding: 26px 26px 22px; background: radial-gradient(ellipse at 50% 26%, #d9eeffbb, transparent 53%), linear-gradient(160deg, #fffffff5, #f7fbfff2); }
 .status-badge { display: inline-flex; gap: 7px; align-items: center; padding: 4px 9px; color: var(--muted); background: #f3f7fc; border: 1px solid var(--border); border-radius: 6px; font-size: .8125rem; line-height: 1.5; }
 .status-badge::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
 .status-badge.running { color: var(--accent); border-color: #8bb5ff40; background: #8bb5ff08; }
@@ -276,6 +276,7 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .workspace-grid, .management-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; }
   .management-grid { margin-top: 18px; }
   .build-panel, .status-panel, .project-manager, .history-panel { padding: 25px; }
+  .status-panel { position: relative; top: auto; max-height: none; overflow: visible; overscroll-behavior: auto; }
   input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):not([type="hidden"]) { font-size: 1rem; }
   .status-visual { width: 138px; height: 138px; margin-top: 0; }
   .status-card { padding-top: 0; }
