@@ -7,11 +7,11 @@
   <meta name="description" content="iOSForge 编译工作台。在 GitHub 上构建面向 iOS 15+ 的动态库、插件包和应用。" />
   <title>iOSForge · 编译工作台</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=self-use-2" />
+  <link rel="stylesheet" href="./styles.css?v=project-cleanup-1" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
-  <script src="./source-upload.js?v=1" defer></script>
+  <script src="./source-upload.js?v=project-cleanup-1" defer></script>
   <script src="./build-logs.js?v=1" defer></script>
-  <script src="./app.js?v=own-workspace-1" defer></script>
+  <script src="./app.js?v=project-cleanup-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">跳到编译工作台</a>
@@ -119,6 +119,11 @@
                   <p class="field-hint">支持完整 Theos / Xcode 源码，不是现成 IPA、deb 或 dylib。单个文件上限 10 MB。<a href="./guide.html#upload">查看上传说明 ↗</a></p>
                 </div>
                 <p id="upload-result" class="upload-result" role="status" hidden></p>
+                <section class="project-manager" aria-labelledby="project-manager-title">
+                  <div class="project-manager-heading"><div><span class="section-overline">SOURCE PROJECTS</span><h4 id="project-manager-title">项目源码管理</h4></div><button id="refresh-projects" class="secondary-button" type="button">读取项目</button></div>
+                  <div class="project-manager-controls"><label class="field" for="project-list"><span>仓库中的项目</span><select id="project-list" disabled><option value="">尚未读取项目</option></select></label><button id="delete-project" class="danger-button" type="button" disabled>删除这个项目</button></div>
+                  <p id="project-message" class="field-hint" role="status">点击“读取项目”查看 sources/ 下已上传的工程。删除项目源码、构建记录和云端产物是三项独立操作。</p>
+                </section>
                 <div id="ipa-fields" class="ipa-fields" hidden>
                   <fieldset class="signing-options">
                     <legend>IPA 编译模式</legend>
@@ -188,6 +193,7 @@
   </div>
   <dialog id="delete-dialog" class="delete-dialog" aria-labelledby="delete-title" aria-describedby="delete-description"><span class="section-overline">CLOUD STORAGE</span><h2 id="delete-title">删除这份云端产物？</h2><p id="delete-target" class="delete-target"></p><p id="delete-description">删除后无法恢复下载；需要重新编译才能生成新文件。此操作不会删除源码、构建记录或你已经下载的文件。</p><div class="dialog-actions"><button id="cancel-delete" type="button" class="secondary-button" autofocus>保留文件</button><button id="confirm-delete" type="button" class="danger-button">确认永久删除</button></div></dialog>
   <dialog id="delete-runs-dialog" class="delete-dialog" aria-labelledby="delete-runs-title" aria-describedby="delete-runs-description"><span class="section-overline">BUILD HISTORY</span><h2 id="delete-runs-title">永久删除所选构建记录？</h2><p id="delete-runs-scope" class="delete-target"></p><ul id="delete-runs-targets" class="delete-runs-targets"></ul><p id="delete-runs-description">这些记录、对应日志和全部云端产物会一起删除，无法恢复。请先下载需要的文件、复制要排查的报错。源码、提交历史和本地下载不受影响。</p><div class="dialog-actions"><button id="cancel-delete-runs" type="button" class="secondary-button" autofocus>保留记录</button><button id="confirm-delete-runs" type="button" class="danger-button">确认永久删除</button></div></dialog>
+  <dialog id="delete-project-dialog" class="delete-dialog" aria-labelledby="delete-project-title" aria-describedby="delete-project-description"><span class="section-overline">SOURCE PROJECT</span><h2 id="delete-project-title">从仓库删除这个项目？</h2><p id="delete-project-target" class="delete-target"></p><p id="delete-project-description">这会提交一次删除，把该项目目录从当前分支移除。构建记录、日志和云端产物继续保留；文件仍可能存在于 Git 提交历史中，公开仓库的历史内容不会因此变成私密。</p><div class="dialog-actions"><button id="cancel-delete-project" type="button" class="secondary-button" autofocus>保留项目</button><button id="confirm-delete-project" type="button" class="danger-button">确认删除项目</button></div></dialog>
   <noscript><p class="noscript-message">请开启 JavaScript 以使用编译工作台。也可以到你自己的 GitHub 仓库，在 Actions 中发起构建。</p></noscript>
 </body>
 </html>
