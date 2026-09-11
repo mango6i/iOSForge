@@ -9,9 +9,9 @@
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="./styles.css?v=right-management-2" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
-  <script src="./source-upload.js?v=repository-downloads-1" defer></script>
+  <script src="./source-upload.js?v=sources-downloads-1" defer></script>
   <script src="./build-logs.js?v=1" defer></script>
-  <script src="./app.js?v=repository-downloads-1" defer></script>
+  <script src="./app.js?v=sources-downloads-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">跳到编译工作台</a>
@@ -160,7 +160,7 @@
             <ol class="pipeline" aria-label="构建流程">
               <li data-step="submit"><span class="pipeline-marker">1</span><div><strong>提交任务</strong><span>连接 GitHub Actions</span></div><span class="pipeline-state">等待</span></li>
               <li data-step="build"><span class="pipeline-marker">2</span><div><strong>云端编译</strong><span>在 macOS 上处理源码</span></div><span class="pipeline-state">等待</span></li>
-              <li data-step="artifacts"><span class="pipeline-marker">3</span><div><strong>保存产物</strong><span>写入仓库 Download</span></div><span class="pipeline-state">等待</span></li>
+              <li data-step="artifacts"><span class="pipeline-marker">3</span><div><strong>保存产物</strong><span>写入 sources/Download</span></div><span class="pipeline-state">等待</span></li>
             </ol>
 
             <div id="run-meta" class="run-meta" hidden></div>
@@ -182,9 +182,9 @@
           <section class="panel project-manager" aria-labelledby="project-manager-title">
             <div class="project-manager-heading"><div><span class="section-overline">SOURCE PROJECTS</span><h3 id="project-manager-title">项目源码管理</h3></div><button id="refresh-projects" class="secondary-button" type="button">读取项目</button></div>
             <div class="project-manager-controls"><label class="field" for="project-list"><span>仓库中的项目</span><select id="project-list" disabled><option value="">尚未读取项目</option></select></label><button id="delete-project" class="danger-button" type="button" disabled>删除这个项目</button></div>
-            <p id="project-message" class="field-hint" role="status">点击“读取项目”查看 sources/ 下的工程。删除项目会同时删除它的全部上传源码和 Download 构建产物；构建记录与日志保留。</p>
+            <p id="project-message" class="field-hint" role="status">点击“读取项目”查看源码工程；sources/Download 不会被当成项目。删除项目会同时删除该项目全部源码，并清空 sources/Download 中的全部成品。</p>
           </section>
-          <section class="panel history-panel" aria-labelledby="history-heading"><div class="history-heading"><div><span class="section-overline">RECENT RUNS</span><h3 id="history-heading">最近构建</h3></div><button id="refresh-history" class="secondary-button" type="button">刷新记录</button></div><p id="history-message" class="field-hint" role="status">填好仓库、分支和 Token 后刷新，每次读取 30 条记录。失败记录不一定有产物。</p><div id="history-toolbar" class="history-toolbar" hidden><label class="history-select-all"><input id="select-all-runs" type="checkbox" /><span>全选已加载的已结束记录</span></label><div class="history-batch-actions"><button id="select-failed-runs" class="secondary-button" type="button">只选失败 / 取消</button><button id="delete-selected-runs" class="danger-button" type="button" disabled>删除所选（0）</button></div><p>仅处理当前仓库、分支的编译记录；不含网页部署。删除记录会删除 Actions 日志，但不会删除 Download 中的真实产物或源码。</p></div><div id="history-list"></div><button id="load-more-runs" class="secondary-button history-load-more" type="button" hidden>再加载 30 条记录</button><p class="history-retention-note">真实产物保存在仓库的 Download/项目名/运行编号/ 中，直到你删除单个文件或删除整个项目。Git 不保存空目录，最后一个文件删除后空的 Download 会自动消失。<a href="./guide.html#history-cleanup" target="_blank" rel="noreferrer">查看清理说明 ↗</a></p></section>
+          <section class="panel history-panel" aria-labelledby="history-heading"><div class="history-heading"><div><span class="section-overline">RECENT RUNS</span><h3 id="history-heading">最近构建</h3></div><button id="refresh-history" class="secondary-button" type="button">刷新记录</button></div><p id="history-message" class="field-hint" role="status">填好仓库、分支和 Token 后刷新，每次读取 30 条记录。查看产物时显示 sources/Download 中当前存在的成品。</p><div id="history-toolbar" class="history-toolbar" hidden><label class="history-select-all"><input id="select-all-runs" type="checkbox" /><span>全选已加载的已结束记录</span></label><div class="history-batch-actions"><button id="select-failed-runs" class="secondary-button" type="button">只选失败 / 取消</button><button id="delete-selected-runs" class="danger-button" type="button" disabled>删除所选（0）</button></div><p>仅处理当前仓库、分支的编译记录；不含网页部署。删除记录会删除 Actions 日志，但不会删除 sources/Download 中的真实产物或源码。</p></div><div id="history-list"></div><button id="load-more-runs" class="secondary-button history-load-more" type="button" hidden>再加载 30 条记录</button><p class="history-retention-note">真实产物统一保存在 sources/Download/文件名.ipa|deb|dylib；同名文件在下次成功构建时更新。删除最后一个成品后，空的 Download 文件夹会自动消失。<a href="./guide.html#history-cleanup" target="_blank" rel="noreferrer">查看清理说明 ↗</a></p></section>
           </div>
         </div>
 
@@ -193,9 +193,9 @@
       </main>
     </div>
   </div>
-  <dialog id="delete-dialog" class="delete-dialog" aria-labelledby="delete-title" aria-describedby="delete-description"><span class="section-overline">DOWNLOAD FILE</span><h2 id="delete-title">删除这份构建产物？</h2><p id="delete-target" class="delete-target"></p><p id="delete-description">这会从仓库 Download 中删除该真实文件。删除后需重新编译才能生成；源码、构建记录和已下载到本地的文件不受影响。最后一个文件删除后空目录会自动消失。</p><div class="dialog-actions"><button id="cancel-delete" type="button" class="secondary-button" autofocus>保留文件</button><button id="confirm-delete" type="button" class="danger-button">确认永久删除</button></div></dialog>
-  <dialog id="delete-runs-dialog" class="delete-dialog" aria-labelledby="delete-runs-title" aria-describedby="delete-runs-description"><span class="section-overline">BUILD HISTORY</span><h2 id="delete-runs-title">永久删除所选构建记录？</h2><p id="delete-runs-scope" class="delete-target"></p><ul id="delete-runs-targets" class="delete-runs-targets"></ul><p id="delete-runs-description">这些 Actions 记录和对应日志会被删除，无法恢复。Download 中的真实产物、项目源码、提交历史和本地下载不受影响；产物请使用它旁边的“删除”，或删除整个项目。</p><div class="dialog-actions"><button id="cancel-delete-runs" type="button" class="secondary-button" autofocus>保留记录</button><button id="confirm-delete-runs" type="button" class="danger-button">确认永久删除</button></div></dialog>
-  <dialog id="delete-project-dialog" class="delete-dialog" aria-labelledby="delete-project-title" aria-describedby="delete-project-description"><span class="section-overline">WHOLE PROJECT</span><h2 id="delete-project-title">删除整个项目？</h2><p id="delete-project-target" class="delete-target"></p><p id="delete-project-description">这会在一次提交中删除 sources/项目名 下的全部上传源码，以及 Download/项目名 下的所有 IPA、DEB、DYLIB 产物。其他项目不受影响；构建记录与日志继续保留。文件仍可能存在于 Git 历史中，公开仓库的历史内容不会因此变成私密。</p><div class="dialog-actions"><button id="cancel-delete-project" type="button" class="secondary-button" autofocus>保留项目</button><button id="confirm-delete-project" type="button" class="danger-button">确认删除全部</button></div></dialog>
+  <dialog id="delete-dialog" class="delete-dialog" aria-labelledby="delete-title" aria-describedby="delete-description"><span class="section-overline">DOWNLOAD FILE</span><h2 id="delete-title">删除这份构建产物？</h2><p id="delete-target" class="delete-target"></p><p id="delete-description">这会从仓库 sources/Download 中删除该真实文件。删除后需重新编译才能生成；源码、构建记录和已下载到本地的文件不受影响。最后一个文件删除后 Download 文件夹会自动消失。</p><div class="dialog-actions"><button id="cancel-delete" type="button" class="secondary-button" autofocus>保留文件</button><button id="confirm-delete" type="button" class="danger-button">确认永久删除</button></div></dialog>
+  <dialog id="delete-runs-dialog" class="delete-dialog" aria-labelledby="delete-runs-title" aria-describedby="delete-runs-description"><span class="section-overline">BUILD HISTORY</span><h2 id="delete-runs-title">永久删除所选构建记录？</h2><p id="delete-runs-scope" class="delete-target"></p><ul id="delete-runs-targets" class="delete-runs-targets"></ul><p id="delete-runs-description">这些 Actions 记录和对应日志会被删除，无法恢复。sources/Download 中的真实产物、项目源码、提交历史和本地下载不受影响；产物请使用它旁边的“删除”，或删除整个项目。</p><div class="dialog-actions"><button id="cancel-delete-runs" type="button" class="secondary-button" autofocus>保留记录</button><button id="confirm-delete-runs" type="button" class="danger-button">确认永久删除</button></div></dialog>
+  <dialog id="delete-project-dialog" class="delete-dialog" aria-labelledby="delete-project-title" aria-describedby="delete-project-description"><span class="section-overline">WHOLE PROJECT</span><h2 id="delete-project-title">删除整个项目？</h2><p id="delete-project-target" class="delete-target"></p><p id="delete-project-description">这会在一次提交中删除所选 sources/项目名 下的全部上传源码，并删除共享的 sources/Download 文件夹及其中所有 IPA、DEB、DYLIB。其他项目的源码不受影响；构建记录与日志继续保留。文件仍可能存在于 Git 历史中。</p><div class="dialog-actions"><button id="cancel-delete-project" type="button" class="secondary-button" autofocus>保留项目</button><button id="confirm-delete-project" type="button" class="danger-button">确认删除全部</button></div></dialog>
   <noscript><p class="noscript-message">请开启 JavaScript 以使用编译工作台。也可以到你自己的 GitHub 仓库，在 Actions 中发起构建。</p></noscript>
 </body>
 </html>
