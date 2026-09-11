@@ -24,7 +24,7 @@ Guide: https://mango6i.github.io/iOSForge/guide.html#own-repository
 
 The web UI uses the GitHub API directly; no personal repository is selected by default. Private repositories reduce public exposure, but do not remove risks from untrusted source, dependencies, workflow code, credentials, collaborators, or browser extensions. GitHub Actions uses your own account's quota.
 
-iOS target: 15.0 or later. IPA defaults to unsigned; Theos outputs dylib/deb. Successful binaries are committed as real files under Download/<project>/<run-id>/, with no outer ZIP. Native Xcode projects and Theos projects are supported. Generated projects such as XcodeGen specs require their generation step before normal project discovery; merely including project.yml is not sufficient in this version.
+iOS target: 15.0 or later. IPA defaults to unsigned; Theos outputs dylib/deb. Successful binaries are committed as real files directly under sources/Download/, with no outer ZIP or nested run folder. Native Xcode projects and Theos projects are supported. Generated projects such as XcodeGen specs require their generation step before normal project discovery; merely including project.yml is not sufficient in this version.
 '''
 
 def build():

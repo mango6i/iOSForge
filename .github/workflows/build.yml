@@ -108,7 +108,6 @@ jobs:
           IOSFORGE_REPOSITORY: ${{ github.repository }}
           IOSFORGE_BRANCH: ${{ github.ref_name }}
           IOSFORGE_RUN_ID: ${{ github.run_id }}
-          SOURCE_DIRECTORY: ${{ inputs.source_directory }}
         run: python3 .github/scripts/publish_outputs.py --output-dir dist
   build-ipa:
     name: Build iOS 15+ IPA
@@ -150,5 +149,4 @@ jobs:
           IOSFORGE_REPOSITORY: ${{ github.repository }}
           IOSFORGE_BRANCH: ${{ github.ref_name }}
           IOSFORGE_RUN_ID: ${{ github.run_id }}
-          SOURCE_DIRECTORY: ${{ inputs.source_directory }}
         run: python3 .github/scripts/publish_outputs.py --output-dir dist

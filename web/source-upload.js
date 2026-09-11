@@ -115,6 +115,7 @@
   }
   function destination(name) {
     if (!/^[\p{L}\p{N}][\p{L}\p{N}._-]{0,63}$/u.test(name) || /[.]$/.test(name)) fail("项目名称请用字母、汉字或数字开头，后接字母、数字、点、短横线或下划线，最多 64 字。");
+    if (/^download$/i.test(name)) fail("Download 是构建成品专用目录，请换一个项目名称。");
     return `sources/${name}`;
   }
   function base64(bytes) { let raw = ""; for (let i = 0; i < bytes.length; i += 8192) raw += String.fromCharCode(...bytes.subarray(i, i + 8192)); return btoa(raw); }
@@ -193,7 +194,7 @@
     if (!sources) return { head: snapshot.head, projects: [] };
     const tree = await api(`${base}/git/trees/${sources.sha}`);
     const projects = (tree.tree || [])
-      .filter(item => item.type === "tree" && item.mode === "040000" && /^[\p{L}\p{N}][\p{L}\p{N}._-]{0,63}$/u.test(item.path) && !/[.]$/.test(item.path))
+      .filter(item => item.type === "tree" && item.mode === "040000" && !/^download$/i.test(item.path) && /^[\p{L}\p{N}][\p{L}\p{N}._-]{0,63}$/u.test(item.path) && !/[.]$/.test(item.path))
       .map(item => ({ name: item.path, path: `sources/${item.path}`, sha: item.sha }))
       .sort((a, b) => a.name.localeCompare(b.name, "zh-CN"));
     return { head: snapshot.head, projects };
@@ -208,12 +209,8 @@
     if (!current) fail(`项目 ${target} 已不存在，请刷新项目列表。`);
     if (!/^[0-9a-f]{40}$/i.test(expectedSha || "") || current.sha !== expectedSha) fail(`项目 ${target} 在读取后发生了变化。为避免误删，请刷新项目列表后重新确认。`);
     const deletions = [{ path: target, mode: "040000", type: "tree", sha: null }];
-    const downloadRoot = snapshot.root.tree?.find(item => item.path === "Download" && item.type === "tree" && item.mode === "040000");
-    if (downloadRoot) {
-      const downloadTree = await api(`${base}/git/trees/${downloadRoot.sha}`);
-      const projectOutputs = downloadTree.tree?.find(item => item.path === project && item.type === "tree" && item.mode === "040000");
-      if (projectOutputs) deletions.push({ path: `Download/${project}`, mode: "040000", type: "tree", sha: null });
-    }
+    const downloadOutputs = tree.tree?.find(item => item.path === "Download" && item.type === "tree" && item.mode === "040000");
+    if (downloadOutputs) deletions.push({ path: "sources/Download", mode: "040000", type: "tree", sha: null });
     const createdTree = await api(`${base}/git/trees`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -236,7 +233,7 @@
       try { head = (await api(snapshot.refPath)).object?.sha; } catch { fail(`删除结果暂时无法确认，请先检查 GitHub 提交记录，不要重复操作。提交编号：${created.sha}`); }
       if (head !== created.sha) throw error;
     }
-    return { sha: created.sha, path: target, outputPath: deletions.length > 1 ? `Download/${project}` : "", outputsRemoved: deletions.length > 1 };
+    return { sha: created.sha, path: target, outputPath: deletions.length > 1 ? "sources/Download" : "", outputsRemoved: deletions.length > 1 };
   }
   globalThis.IOSForgeUpload = Object.freeze({ limits, readZip, readFolder, prepare, destination, publish, listProjects, removeProject, crc32 });
 })();

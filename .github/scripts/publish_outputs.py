@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Publish finished iOSForge binaries as real repository files.
-
-Files are stored under Download/<project>/<run-id>/ so the web console can
-download or delete each binary without GitHub's outer Artifact ZIP wrapper.
-"""
+"""Publish finished iOSForge binaries as real files in sources/Download."""
 
 from __future__ import annotations
 
@@ -13,7 +9,7 @@ import json
 import os
 import sys
 import time
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
@@ -35,24 +31,6 @@ def required_env(name: str) -> str:
     if not value:
         raise RuntimeError(f"Missing required environment variable: {name}")
     return value
-
-
-def safe_project_name(source_directory: str, repository_root: Path) -> str:
-    normalized = source_directory.strip().replace("\\", "/").strip("/")
-    parts = [part for part in PurePosixPath(normalized).parts if part not in {"", "."}]
-    if "sources" in parts and parts.index("sources") + 1 < len(parts):
-        candidate = parts[parts.index("sources") + 1]
-    elif parts:
-        candidate = parts[-1]
-    else:
-        source_root = repository_root / "sources"
-        children = sorted(path.name for path in source_root.iterdir() if path.is_dir()) if source_root.is_dir() else []
-        candidate = children[0] if len(children) == 1 else "repository-root"
-
-    cleaned = "".join(char if char.isalnum() or char in "._-" else "-" for char in candidate).rstrip(".")[:64]
-    if not cleaned or not cleaned[0].isalnum():
-        cleaned = f"project-{cleaned.lstrip('._-')}".rstrip("-")
-    return cleaned or "repository-root"
 
 
 def collect_outputs(output_dir: Path) -> list[Path]:
@@ -109,8 +87,8 @@ class GitHubApi:
         return json.loads(data) if data else {}
 
 
-def publish(api: GitHubApi, branch: str, project: str, run_id: str, files: list[Path]) -> list[str]:
-    destination = f"Download/{project}/{run_id}"
+def publish(api: GitHubApi, branch: str, run_id: str, files: list[Path]) -> list[str]:
+    destination = "sources/Download"
     blobs = []
     for path in files:
         blob = api.request(
@@ -166,8 +144,7 @@ def main() -> int:
     run_id = required_env("IOSFORGE_RUN_ID")
     if not run_id.isdecimal():
         raise RuntimeError("IOSFORGE_RUN_ID must be numeric.")
-    project = safe_project_name(os.environ.get("SOURCE_DIRECTORY", ""), repository_root)
-    paths = publish(GitHubApi(repository, required_env("GITHUB_TOKEN")), branch, project, run_id, files)
+    paths = publish(GitHubApi(repository, required_env("GITHUB_TOKEN")), branch, run_id, files)
     print("Saved actual build files:")
     for path in paths:
         print(f"- {path}")
