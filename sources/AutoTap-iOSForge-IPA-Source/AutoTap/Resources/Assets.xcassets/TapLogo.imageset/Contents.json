@@ -1,0 +1,12 @@
+{
+  "images" : [
+    { "filename" : "tap-logo-256.png", "idiom" : "universal", "scale" : "1x" },
+    { "filename" : "tap-logo-512.png", "idiom" : "universal", "scale" : "2x" },
+    { "filename" : "tap-logo-768.png", "idiom" : "universal", "scale" : "3x" }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
+
