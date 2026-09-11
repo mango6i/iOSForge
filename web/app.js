@@ -22,7 +22,7 @@ const artifacts = $("#artifacts");
 const downloadMessage = $("#download-message");
 const buildLogs = globalThis.IOSForgeLogs?.create();
 
-const state = { token: "", repo: null, branch: "main", runId: null, busy: false, knownRuns: new Set(), phase: "idle", artifacts: [], history: [] };
+const state = { token: "", repo: null, branch: "main", runId: null, busy: false, knownRuns: new Set(), phase: "idle", artifacts: [], history: [], projects: [] };
 const selectedRuns = new Set();
 let historyPage = 0, historyHasMore = false;
 let selectedSource = null;
@@ -75,6 +75,7 @@ function invalidateWorkspace() {
   $("#workspace-status").dataset.visibility = "unknown";
   $("#allow-public-upload").checked = false;
   $("#public-upload-warning").hidden = true;
+  resetProjects("仓库信息变化后，请重新读取项目。");
 }
 
 async function verifyWorkspace({ upload = false } = {}) {
@@ -147,9 +148,10 @@ function setBusy(busy, label = "构建处理中…") {
   submitButton.disabled = busy;
   $("#submit-label").textContent = busy ? label : uploadMode() ? "上传并编译" : "开始构建";
   form.setAttribute("aria-busy", String(busy));
-  form.querySelectorAll("input, button").forEach((input) => { input.disabled = busy; });
+  form.querySelectorAll("input, button, select").forEach((input) => { input.disabled = busy; });
   document.querySelectorAll("#history-list button, #refresh-history, #artifacts button").forEach(button => { button.disabled = busy; });
   updateHistoryControls();
+  updateProjectControls();
 }
 
 function updateLinks() {
@@ -237,20 +239,15 @@ function renderArtifacts(items) {
   });
 }
 
-async function downloadArtifact(id, name) {
-  const response = await fetch(`https://api.github.com${repoBase()}/actions/artifacts/${encodeURIComponent(id)}/zip`, {
-    headers: { Accept: "application/vnd.github+json", Authorization: `Bearer ${state.token}`, "X-GitHub-Api-Version": "2022-11-28" },
-  });
-  if (!response.ok) throw new Error("下载暂时不可用，请通过下方 GitHub 日志链接下载产物。");
-  const blob = await response.blob();
-  const url = URL.createObjectURL(blob);
+function downloadArtifact(id) {
+  if (!state.runId || !state.repo || !state.artifacts.some(item => String(item.id) === String(id))) throw new Error("产物信息已变化，请重新打开本次构建。");
   const anchor = element("a");
-  anchor.href = url;
-  anchor.download = `${name}.zip`;
+  anchor.href = `https://github.com/${encodeURIComponent(state.repo.owner)}/${encodeURIComponent(state.repo.name)}/actions/runs/${encodeURIComponent(state.runId)}/artifacts/${encodeURIComponent(id)}`;
+  anchor.target = "_blank";
+  anchor.rel = "noreferrer";
   document.body.append(anchor);
   anchor.click();
   anchor.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function runsQuery() {
@@ -410,22 +407,18 @@ $("#token-toggle").addEventListener("click", () => {
 });
 repoInput.addEventListener("input", updateLinks);
 branchInput.addEventListener("input", updateLinks);
-artifacts.addEventListener("click", async (event) => {
+artifacts.addEventListener("click", (event) => {
   const button = event.target.closest("[data-artifact-id]");
   if (!button || button.disabled || state.busy || !state.artifacts.some(item => String(item.id) === button.dataset.artifactId)) return;
-  setBusy(true, "下载处理中…");
-  button.disabled = true;
-  button.textContent = "下载中…";
-  downloadMessage.hidden = true;
   try {
-    await downloadArtifact(button.dataset.artifactId, button.dataset.artifactName);
+    downloadArtifact(button.dataset.artifactId);
+    downloadMessage.textContent = "已交给 GitHub 开始下载。若新标签页提示登录，请登录 GitHub 后再点一次；网页不会再把整个 ZIP 读进内存等待。";
+    downloadMessage.dataset.kind = "success";
+    downloadMessage.hidden = false;
   } catch (error) {
     downloadMessage.textContent = error.message || "下载失败，请通过 GitHub 日志页面下载产物。";
+    downloadMessage.dataset.kind = "error";
     downloadMessage.hidden = false;
-  } finally {
-    setBusy(false);
-    button.disabled = false;
-    button.textContent = "下载 ZIP";
   }
 });
 
@@ -484,6 +477,89 @@ $("#check-workspace").addEventListener("click", async () => {
   setBusy(true, "正在核对仓库…");
   try { await verifyWorkspace(); }
   catch (error) { $("#workspace-status").textContent = `未通过检查：${error.message}`; }
+  finally { setBusy(false); }
+});
+
+function updateProjectControls() {
+  const select = $("#project-list"), remove = $("#delete-project");
+  if (!select || !remove) return;
+  const project = state.projects.find(item => item.name === select.value);
+  const locked = state.busy || !historyMatchesInputs();
+  select.disabled = locked || !state.projects.length;
+  remove.disabled = locked || !project;
+}
+function renderProjects(message) {
+  const select = $("#project-list");
+  const previous = select.value;
+  select.replaceChildren();
+  if (!state.projects.length) {
+    const option = element("option", "", "没有找到可管理的项目");
+    option.value = ""; select.append(option);
+  } else {
+    state.projects.forEach(project => {
+      const option = element("option", "", project.path);
+      option.value = project.name; select.append(option);
+    });
+    if (state.projects.some(project => project.name === previous)) select.value = previous;
+  }
+  if (message !== undefined) $("#project-message").textContent = message;
+  updateProjectControls();
+}
+function resetProjects(message = "点击“读取项目”查看 sources/ 下已上传的工程。") {
+  state.projects = [];
+  if ($("#project-list")) renderProjects(message);
+}
+function confirmProjectDeletion(project) {
+  const target = `${project.path} · ${state.repo.owner}/${state.repo.name} · ${state.branch}`;
+  const dialog = $("#delete-project-dialog");
+  if (typeof dialog.showModal !== "function") return Promise.resolve(window.confirm(`从仓库当前版本删除项目源码：${target}？\n构建记录和产物保留。文件可从 Git 历史恢复，但公开仓库的历史内容不会因此消失。`));
+  $("#delete-project-target").textContent = target;
+  return new Promise(resolve => {
+    let confirmed = false;
+    const close = () => { cleanup(); resolve(confirmed); };
+    const approve = () => { confirmed = true; dialog.close(); };
+    const cancel = () => dialog.close();
+    const cleanup = () => { dialog.removeEventListener("close", close); $("#confirm-delete-project").removeEventListener("click", approve); $("#cancel-delete-project").removeEventListener("click", cancel); };
+    dialog.addEventListener("close", close); $("#confirm-delete-project").addEventListener("click", approve); $("#cancel-delete-project").addEventListener("click", cancel);
+    dialog.showModal(); $("#cancel-delete-project").focus();
+  });
+}
+$("#project-list").addEventListener("change", updateProjectControls);
+$("#refresh-projects").addEventListener("click", async () => {
+  if (state.busy) return;
+  const repo = parseRepo(repoInput.value), token = tokenInput.value.trim();
+  if (!repo || !token) { resetProjects("请先填写正确的仓库和 GitHub Token。"); return; }
+  state.repo = repo; state.token = token; state.branch = branchInput.value.trim() || "main"; state.closed = false;
+  setBusy(true, "正在读取项目…");
+  $("#project-message").textContent = "正在读取 sources/ 下的项目…";
+  try {
+    await verifyWorkspace();
+    const data = await IOSForgeUpload.listProjects({ api: github, base: repoBase(), branch: state.branch });
+    if (state.closed || !historyMatchesInputs()) throw new Error("页面会话已变化，请重新读取项目。");
+    state.projects = data.projects;
+    renderProjects(state.projects.length ? `已找到 ${state.projects.length} 个项目。选择后可删除当前源码目录。` : "sources/ 下暂无项目；上传源码后会显示在这里。");
+  } catch (error) { resetProjects(error.message || "读取项目失败，请稍后重试。"); }
+  finally { setBusy(false); }
+});
+$("#delete-project").addEventListener("click", async () => {
+  if (state.busy || !historyMatchesInputs()) return;
+  const selected = state.projects.find(project => project.name === $("#project-list").value);
+  if (!selected) return;
+  setBusy(true, "正在确认删除…");
+  try {
+    await verifyWorkspace();
+    if (!await confirmProjectDeletion(selected)) return;
+    $("#project-message").textContent = `正在从仓库当前版本删除 ${selected.path}…`;
+    const result = await IOSForgeUpload.removeProject({ api: github, base: repoBase(), branch: state.branch, project: selected.name, expectedSha: selected.sha });
+    state.projects = state.projects.filter(project => project.name !== selected.name);
+    if ($("#source-directory").value.trim() === selected.path) $("#source-directory").value = "";
+    renderProjects();
+    const message = $("#project-message");
+    message.replaceChildren(document.createTextNode(`已删除 ${result.path} 的当前文件。构建记录和产物仍保留。`));
+    const link = element("a", "", "查看删除提交 ↗");
+    link.href = `https://github.com/${state.repo.owner}/${state.repo.name}/commit/${result.sha}`; link.target = "_blank"; link.rel = "noreferrer";
+    message.append(" ", link);
+  } catch (error) { $("#project-message").textContent = `项目删除未完成：${error.message || "请刷新项目列表后重试。"}`; }
   finally { setBusy(false); }
 });
 
@@ -672,13 +748,15 @@ artifacts.addEventListener("click", async event => {
   try {
     await verifyWorkspace();
     if (!await confirmDelete(artifact)) return;
-    downloadMessage.hidden = false; downloadMessage.textContent = `正在删除 ${artifact.name}…`;
+    downloadMessage.hidden = false; downloadMessage.dataset.kind = "pending"; downloadMessage.textContent = `正在删除 ${artifact.name}…`;
     await github(`${repoBase()}/actions/artifacts/${artifact.id}`, { method: "DELETE" });
     renderArtifacts(state.artifacts.filter(item => item.id !== artifact.id));
+    downloadMessage.dataset.kind = "success";
     downloadMessage.textContent = `已永久删除云端产物 ${artifact.name}。源码、构建记录和已下载文件未受影响。`;
     if (!state.artifacts.length && state.phase === "success") setStatus("success", "已完成", "本次云端产物已清空", "构建记录保留。需要文件时，可重新编译生成。", "empty");
   } catch (error) {
     downloadMessage.hidden = false;
+    downloadMessage.dataset.kind = "error";
     downloadMessage.textContent = `未能确认删除结果：${error.message || "网络中断"}。请刷新记录并重新查看本次产物；不要重复点击删除。`;
   } finally { setBusy(false); }
 });
