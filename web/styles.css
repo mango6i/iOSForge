@@ -25,8 +25,8 @@
 html { scroll-behavior: smooth; scroll-padding-top: 24px; }
 body { margin: 0; background: var(--bg); color: var(--text); font-size: 1rem; line-height: 1.6; }
 a { color: inherit; text-decoration: none; }
-button, input { font: inherit; }
-button, a, input, summary { -webkit-tap-highlight-color: transparent; }
+button, input, select { font: inherit; }
+button, a, input, select, summary { -webkit-tap-highlight-color: transparent; }
 button { cursor: pointer; }
 button:disabled { cursor: wait; }
 button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; }
@@ -106,7 +106,7 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 .input-wrap { display: flex; position: relative; align-items: center; }
 .input-wrap > .icon { position: absolute; left: 12px; width: 16px; height: 16px; color: var(--subtle); pointer-events: none; }
 /* Match the base field exclusions so icon spacing wins over its padding shorthand. */
-.input-wrap > input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):not([type="hidden"]) { padding-left: 44px; }.token-input-wrap > input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):not([type="hidden"]) { padding-right: 48px; }
+.input-wrap > input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):not([type="hidden"]) { padding-left: 44px; }
 .ipa-fields { padding: 16px; margin-top: 16px; border: 1px solid var(--border); border-radius: 8px; background: #edf5ff; }
 .signing-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0; margin: 0 0 18px; border: 0; min-width: 0; }
 .signing-options legend { margin-bottom: 9px; color: var(--muted); font-size: .8125rem; }
@@ -124,7 +124,7 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 .token-label { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 7px; font-size: .875rem; }
 .token-label > span { display: inline-flex; align-items: center; gap: 5px; color: var(--subtle); font-size: .75rem; }
 .token-label .icon { width: 13px; height: 13px; }
-.token-input-wrap input { padding-right: 48px !important; }
+.token-input-wrap > input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):not([type="hidden"]) { padding-right: 48px; }
 .icon-button { position: absolute; right: 2px; top: 2px; height: 41px; width: 43px; display: grid; place-items: center; color: var(--subtle); border: 0; background: transparent; border-radius: 5px; }
 .icon-button:hover, .icon-button[aria-pressed="true"] { color: var(--accent); background: #deedff; }
 .token-help { margin-top: 8px; }
@@ -204,7 +204,8 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 .download-button:hover { background: #2766dc15; }
 .download-button:disabled { opacity: .55; }
 .artifact-empty, .download-message { font-size: .875rem; color: var(--muted); margin: 8px 0 16px; overflow-wrap: anywhere; }
-.download-message { color: var(--error); }
+.download-message[data-kind="success"] { color: var(--success); }
+.download-message[data-kind="error"] { color: var(--error); }
 .status-actions { margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border-soft); }
 .secondary-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 9px 13px; border: 1px solid #cbdcf1; border-radius: 7px; background: #f8fbff; color: #395b86; font-size: .875rem; min-height: 38px; transition: color 160ms, background 160ms; }
 .secondary-button:disabled, .danger-button:disabled { opacity: .5; cursor: not-allowed; }
@@ -434,6 +435,16 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 .source-switch input:checked + span { color: #205dbe; border-color: #c2d8f4; background: #fff; box-shadow: 0 3px 8px #37669e0c; font-weight: 600; }
 .source-switch input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
 .source-directory-field { margin-top: 17px; }
+.project-manager { margin-top: 18px; padding: 17px; border: 1px solid var(--border); border-radius: 10px; background: linear-gradient(145deg, #f9fcff, #eef6ff); }
+.project-manager-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.project-manager-heading h4 { margin: 0; color: #294866; font-size: .9375rem; font-weight: 600; }
+.project-manager-heading .secondary-button { flex-shrink: 0; padding: 8px 11px; }
+.project-manager-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; margin-top: 14px; }
+.project-manager select { width: 100%; min-width: 0; height: 45px; padding: 0 36px 0 12px; border: 1px solid #cddcef; border-radius: 7px; background: var(--input); color: var(--text); font-family: var(--mono), var(--font); font-size: .8125rem; outline: none; }
+.project-manager select:focus { border-color: var(--accent-strong); box-shadow: 0 0 0 3px #81acff12; }
+.project-manager .danger-button { min-height: 45px; white-space: nowrap; }
+#project-message { margin-top: 12px; overflow-wrap: anywhere; }
+#project-message a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 .upload-panel { margin-top: 22px; }
 .upload-dropzone { display: flex; align-items: center; flex-direction: column; padding: 27px 16px 23px; border: 1px dashed #9abde9; border-radius: 12px; text-align: center; background: radial-gradient(ellipse at top, #e4f3ff, transparent 75%), #f8fbff; transition: border-color .15s, background .15s; }
 .upload-dropzone > .icon { width: 31px; height: 31px; color: #3579c8; margin-bottom: 12px; }
@@ -517,6 +528,9 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .artifact-row { flex-wrap: wrap; gap: 10px; }
   .artifact-controls { width: 100%; justify-content: flex-end; }
   .upload-dropzone { padding-inline: 12px; }
+  .project-manager { padding: 15px; }
+  .project-manager-controls { grid-template-columns: minmax(0, 1fr); }
+  .project-manager .danger-button { justify-self: start; }
   .delete-dialog { padding: 22px; }
 }
 @media (max-width: 1200px) {
