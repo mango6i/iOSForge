@@ -1,0 +1,10 @@
+[project]
+name = "AutoTap"
+kind = "app"
+minimum_ios = "14.0"
+
+[app]
+project = "AutoTap.xcodeproj"
+scheme = "AutoTap"
+configuration = "Release"
+
