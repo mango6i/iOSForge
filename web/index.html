@@ -7,7 +7,7 @@
   <meta name="description" content="iOSForge 编译工作台。在 GitHub 上构建面向 iOS 15+ 的动态库、插件包和应用。" />
   <title>iOSForge · 编译工作台</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=sticky-status-1" />
+  <link rel="stylesheet" href="./styles.css?v=right-management-1" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
   <script src="./source-upload.js?v=project-cleanup-1" defer></script>
   <script src="./build-logs.js?v=1" defer></script>
@@ -148,6 +148,7 @@
             </form>
           </section>
 
+          <div class="activity-column">
           <section class="panel status-panel" id="status-panel" data-phase="idle" aria-labelledby="status-heading">
             <div class="panel-heading"><div><span class="section-overline">BUILD ACTIVITY</span><h2 id="status-heading">构建动态</h2></div><span id="status-badge" class="status-badge idle">待命</span></div>
             <div id="status-card" class="status-card idle-card" role="status" aria-live="polite" aria-atomic="true">
@@ -178,15 +179,13 @@
             </section>
             <div class="status-actions"><a id="actions-link" class="secondary-button" href="https://github.com" target="_blank" rel="noreferrer" hidden><svg class="icon"><use href="#i-github"/></svg>在 GitHub 查看日志<svg class="icon small-icon"><use href="#i-external"/></svg></a></div>
           </section>
-        </div>
-
-        <div class="management-grid">
           <section class="panel project-manager" aria-labelledby="project-manager-title">
             <div class="project-manager-heading"><div><span class="section-overline">SOURCE PROJECTS</span><h3 id="project-manager-title">项目源码管理</h3></div><button id="refresh-projects" class="secondary-button" type="button">读取项目</button></div>
             <div class="project-manager-controls"><label class="field" for="project-list"><span>仓库中的项目</span><select id="project-list" disabled><option value="">尚未读取项目</option></select></label><button id="delete-project" class="danger-button" type="button" disabled>删除这个项目</button></div>
             <p id="project-message" class="field-hint" role="status">点击“读取项目”查看 sources/ 下已上传的工程。删除项目源码、构建记录和云端产物是三项独立操作。</p>
           </section>
           <section class="panel history-panel" aria-labelledby="history-heading"><div class="history-heading"><div><span class="section-overline">RECENT RUNS</span><h3 id="history-heading">最近构建</h3></div><button id="refresh-history" class="secondary-button" type="button">刷新记录</button></div><p id="history-message" class="field-hint" role="status">填好仓库、分支和 Token 后刷新，每次读取 30 条记录。失败记录不一定有产物。</p><div id="history-toolbar" class="history-toolbar" hidden><label class="history-select-all"><input id="select-all-runs" type="checkbox" /><span>全选已加载的已结束记录</span></label><div class="history-batch-actions"><button id="select-failed-runs" class="secondary-button" type="button">只选失败 / 取消</button><button id="delete-selected-runs" class="danger-button" type="button" disabled>删除所选（0）</button></div><p>仅处理当前仓库、分支的编译记录；不含网页部署。删除记录会一并删除日志和云端产物，源码不受影响。</p></div><div id="history-list"></div><button id="load-more-runs" class="secondary-button history-load-more" type="button" hidden>再加载 30 条记录</button><p class="history-retention-note">编译产物当前保留 14 天，到期由 GitHub 清理；这不等于删除构建记录。批量删除需要手动确认，尚未开启定时清理记录。<a href="./guide.html#history-cleanup" target="_blank" rel="noreferrer">查看清理说明 ↗</a></p></section>
+          </div>
         </div>
 
         <aside class="workspace-note"><span class="note-icon"><svg class="icon"><use href="#i-info"/></svg></span><p><strong>你的源码，你的构建。</strong> 本页面调用仓库中已有的编译流程。首次使用可参考项目配置指南。</p><a href="./guide.html">查看指南<svg class="icon small-icon"><use href="#i-external"/></svg></a></aside>
