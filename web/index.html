@@ -7,7 +7,7 @@
   <meta name="description" content="iOSForge 编译工作台。在 GitHub 上构建面向 iOS 15+ 的动态库、插件包和应用。" />
   <title>iOSForge · 编译工作台</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=own-workspace-1" />
+  <link rel="stylesheet" href="./styles.css?v=self-use-2" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
   <script src="./source-upload.js?v=1" defer></script>
   <script src="./build-logs.js?v=1" defer></script>
@@ -96,10 +96,10 @@
                 <h3 class="form-section-title"><span class="step-number">02</span>配置源码</h3>
                 <fieldset class="source-switch"><legend class="sr-only">源码来源</legend><label><input type="radio" name="source_mode" value="repository" checked /><span>使用仓库源码</span></label><label><input type="radio" name="source_mode" value="upload" /><span>上传本地源码</span></label></fieldset>
                 <div class="source-fields">
-                  <label class="field"><span>你自己的 GitHub 仓库</span><span class="input-wrap"><svg class="icon"><use href="#i-repo"/></svg><input id="repo" name="repo" value="" placeholder="你的用户名/你的构建仓库" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="repository-help" required /></span></label>
+                  <label class="field"><span>你自己的 GitHub 仓库</span><span class="input-wrap"><svg class="icon"><use href="#i-repo"/></svg><input id="repo" name="repo" value="mango6i/iOSForge" placeholder="mango6i/iOSForge" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="repository-help" required /></span></label>
                   <label class="field"><span>分支</span><span class="input-wrap"><svg class="icon"><use href="#i-branch"/></svg><input id="branch" name="branch" value="main" placeholder="main" autocomplete="off" autocapitalize="none" spellcheck="false" required /></span></label>
                 </div>
-                <p id="repository-help" class="field-hint">每个人使用自己名下的仓库，不会默认提交到网站作者的仓库。私密源码请使用 Private 私有仓库。<a href="./guide.html#own-repository" target="_blank" rel="noreferrer">首次使用：建立自己的构建仓库 ↗</a></p>
+                <p id="repository-help" class="field-hint">当前为你的个人工作台，默认使用 mango6i/iOSForge；分支保持 main。需要保护源码时，请先将仓库改为 Private 私有仓库。<a href="./guide.html#own-repository" target="_blank" rel="noreferrer">首次使用：建立自己的构建仓库 ↗</a></p>
                 <label id="source-directory-field" class="field source-directory-field"><span>源码目录 · 可选</span><input id="source-directory" placeholder="留空搜索仓库，或填写 sources/MyProject" autocomplete="off" spellcheck="false" /></label>
                 <div id="upload-panel" class="upload-panel" hidden>
                   <div id="upload-dropzone" class="upload-dropzone">
