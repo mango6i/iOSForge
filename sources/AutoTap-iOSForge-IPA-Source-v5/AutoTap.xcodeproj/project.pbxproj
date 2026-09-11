@@ -1,0 +1,288 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B00000000000000000000001 /* AutoTapApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000001 /* AutoTapApp.swift */; };
+		B00000000000000000000002 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000002 /* AppDelegate.swift */; };
+		B00000000000000000000003 /* AutomationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000003 /* AutomationModels.swift */; };
+		B00000000000000000000004 /* ProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000004 /* ProfileStore.swift */; };
+		B00000000000000000000005 /* BackgroundKeeper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000005 /* BackgroundKeeper.swift */; };
+		B00000000000000000000006 /* AutomationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000006 /* AutomationEngine.swift */; };
+		B00000000000000000000007 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000007 /* AppModel.swift */; };
+		B00000000000000000000008 /* ATTouchDispatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000008 /* ATTouchDispatcher.m */; };
+		B00000000000000000000012 /* ATSystemOverlayController.m in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000015 /* ATSystemOverlayController.m */; };
+		B0000000000000000000000B /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000B /* Theme.swift */; };
+		B0000000000000000000000C /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000C /* RootView.swift */; };
+		B0000000000000000000000D /* ModeEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000D /* ModeEditorView.swift */; };
+		B0000000000000000000000E /* EditorComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000E /* EditorComponents.swift */; };
+		B0000000000000000000000F /* GeneralSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000F /* GeneralSettingsView.swift */; };
+		B00000000000000000000010 /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000010 /* ShareSheet.swift */; };
+		B00000000000000000000011 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000011 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A00000000000000000000001 /* AutoTapApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoTapApp.swift; sourceTree = "<group>"; };
+		A00000000000000000000002 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		A00000000000000000000003 /* AutomationModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomationModels.swift; sourceTree = "<group>"; };
+		A00000000000000000000004 /* ProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileStore.swift; sourceTree = "<group>"; };
+		A00000000000000000000005 /* BackgroundKeeper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundKeeper.swift; sourceTree = "<group>"; };
+		A00000000000000000000006 /* AutomationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomationEngine.swift; sourceTree = "<group>"; };
+		A00000000000000000000007 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		A00000000000000000000008 /* ATTouchDispatcher.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ATTouchDispatcher.m; sourceTree = "<group>"; };
+		A00000000000000000000009 /* ATTouchDispatcher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ATTouchDispatcher.h; sourceTree = "<group>"; };
+		A0000000000000000000000A /* AutoTap-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AutoTap-Bridging-Header.h"; sourceTree = "<group>"; };
+		A0000000000000000000000B /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		A0000000000000000000000C /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		A0000000000000000000000D /* ModeEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModeEditorView.swift; sourceTree = "<group>"; };
+		A0000000000000000000000E /* EditorComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorComponents.swift; sourceTree = "<group>"; };
+		A0000000000000000000000F /* GeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsView.swift; sourceTree = "<group>"; };
+		A00000000000000000000010 /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
+		A00000000000000000000011 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A00000000000000000000012 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A00000000000000000000013 /* AutoTap.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AutoTap.entitlements; sourceTree = "<group>"; };
+		A00000000000000000000014 /* AutoTap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AutoTap.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A00000000000000000000015 /* ATSystemOverlayController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ATSystemOverlayController.m; sourceTree = "<group>"; };
+		A00000000000000000000016 /* ATSystemOverlayController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ATSystemOverlayController.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D00000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		E00000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				E00000000000000000000002 /* AutoTap */,
+				E00000000000000000000007 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		E00000000000000000000002 /* AutoTap */ = {
+			isa = PBXGroup;
+			children = (
+				A00000000000000000000001 /* AutoTapApp.swift */,
+				A00000000000000000000002 /* AppDelegate.swift */,
+				E00000000000000000000003 /* Models */,
+				E00000000000000000000004 /* Services */,
+				E00000000000000000000005 /* Private */,
+				E00000000000000000000006 /* Views */,
+				E00000000000000000000008 /* Resources */,
+				A00000000000000000000012 /* Info.plist */,
+				A00000000000000000000013 /* AutoTap.entitlements */,
+			);
+			path = AutoTap;
+			sourceTree = "<group>";
+		};
+		E00000000000000000000003 /* Models */ = {isa = PBXGroup; children = (A00000000000000000000003 /* AutomationModels.swift */,); path = Models; sourceTree = "<group>"; };
+		E00000000000000000000004 /* Services */ = {isa = PBXGroup; children = (A00000000000000000000004 /* ProfileStore.swift */, A00000000000000000000005 /* BackgroundKeeper.swift */, A00000000000000000000006 /* AutomationEngine.swift */, A00000000000000000000007 /* AppModel.swift */,); path = Services; sourceTree = "<group>"; };
+		E00000000000000000000005 /* Private */ = {isa = PBXGroup; children = (A00000000000000000000008 /* ATTouchDispatcher.m */, A00000000000000000000009 /* ATTouchDispatcher.h */, A00000000000000000000015 /* ATSystemOverlayController.m */, A00000000000000000000016 /* ATSystemOverlayController.h */, A0000000000000000000000A /* AutoTap-Bridging-Header.h */,); path = Private; sourceTree = "<group>"; };
+		E00000000000000000000006 /* Views */ = {isa = PBXGroup; children = (A0000000000000000000000B /* Theme.swift */, A0000000000000000000000C /* RootView.swift */, A0000000000000000000000D /* ModeEditorView.swift */, A0000000000000000000000E /* EditorComponents.swift */, A0000000000000000000000F /* GeneralSettingsView.swift */, A00000000000000000000010 /* ShareSheet.swift */,); path = Views; sourceTree = "<group>"; };
+		E00000000000000000000007 /* Products */ = {isa = PBXGroup; children = (A00000000000000000000014 /* AutoTap.app */,); name = Products; sourceTree = "<group>"; };
+		E00000000000000000000008 /* Resources */ = {isa = PBXGroup; children = (A00000000000000000000011 /* Assets.xcassets */,); path = Resources; sourceTree = "<group>"; };
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		C00000000000000000000001 /* AutoTap */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F00000000000000000000002 /* Build configuration list for PBXNativeTarget "AutoTap" */;
+			buildPhases = (
+				D00000000000000000000002 /* Sources */,
+				D00000000000000000000001 /* Frameworks */,
+				D00000000000000000000003 /* Resources */,
+				D00000000000000000000004 /* Embed TrollStore entitlements */,
+			);
+			buildRules = ();
+			dependencies = ();
+			name = AutoTap;
+			productName = AutoTap;
+			productReference = A00000000000000000000014 /* AutoTap.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C00000000000000000000002 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = { C00000000000000000000001 = { CreatedOnToolsVersion = 16.0; }; };
+			};
+			buildConfigurationList = F00000000000000000000001 /* Build configuration list for PBXProject "AutoTap" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = zh_CN;
+			hasScannedForEncodings = 0;
+			knownRegions = (Base, en, zh_CN,);
+			mainGroup = E00000000000000000000001;
+			productRefGroup = E00000000000000000000007 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (C00000000000000000000001 /* AutoTap */,);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		D00000000000000000000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (B00000000000000000000011 /* Assets.xcassets in Resources */,);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		D00000000000000000000004 /* Embed TrollStore entitlements */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = ();
+			inputFileListPaths = ();
+			inputPaths = ();
+			name = "Embed TrollStore entitlements";
+			outputFileListPaths = ();
+			outputPaths = ();
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ \"$PLATFORM_NAME\" = \"iphoneos\" ] && [ \"$CODE_SIGNING_ALLOWED\" = \"NO\" ]; then\n  export PATH=\"/opt/homebrew/bin:/usr/local/bin:$PATH\"\n  entitlements_path=\"$SRCROOT/AutoTap/AutoTap.entitlements\"\n  executable_path=\"$TARGET_BUILD_DIR/$EXECUTABLE_PATH\"\n  if command -v ldid >/dev/null 2>&1; then\n    ldid -S\"$entitlements_path\" \"$executable_path\"\n  elif [ -x /usr/bin/codesign ]; then\n    /usr/bin/codesign --force --sign - --entitlements \"$entitlements_path\" --generate-entitlement-der \"$executable_path\"\n  else\n    echo \"error: neither ldid nor codesign is available to embed TrollStore entitlements\"\n    exit 1\n  fi\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D00000000000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B00000000000000000000001 /* AutoTapApp.swift in Sources */,
+				B00000000000000000000002 /* AppDelegate.swift in Sources */,
+				B00000000000000000000003 /* AutomationModels.swift in Sources */,
+				B00000000000000000000004 /* ProfileStore.swift in Sources */,
+				B00000000000000000000005 /* BackgroundKeeper.swift in Sources */,
+				B00000000000000000000006 /* AutomationEngine.swift in Sources */,
+				B00000000000000000000007 /* AppModel.swift in Sources */,
+				B00000000000000000000008 /* ATTouchDispatcher.m in Sources */,
+				B00000000000000000000012 /* ATSystemOverlayController.m in Sources */,
+				B0000000000000000000000B /* Theme.swift in Sources */,
+				B0000000000000000000000C /* RootView.swift in Sources */,
+				B0000000000000000000000D /* ModeEditorView.swift in Sources */,
+				B0000000000000000000000E /* EditorComponents.swift in Sources */,
+				B0000000000000000000000F /* GeneralSettingsView.swift in Sources */,
+				B00000000000000000000010 /* ShareSheet.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		F00000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		F00000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		F00000000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = AutoTap/AutoTap.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				ENABLE_BITCODE = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = AutoTap/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.local.autotap;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_OBJC_BRIDGING_HEADER = "AutoTap/Private/AutoTap-Bridging-Header.h";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		F00000000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = AutoTap/AutoTap.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				ENABLE_BITCODE = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = AutoTap/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.local.autotap;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_OBJC_BRIDGING_HEADER = "AutoTap/Private/AutoTap-Bridging-Header.h";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		F00000000000000000000001 /* Build configuration list for PBXProject "AutoTap" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (F00000000000000000000003 /* Debug */, F00000000000000000000004 /* Release */,);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F00000000000000000000002 /* Build configuration list for PBXNativeTarget "AutoTap" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (F00000000000000000000005 /* Debug */, F00000000000000000000006 /* Release */,);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = C00000000000000000000002 /* Project object */;
+}
