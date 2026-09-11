@@ -178,5 +178,58 @@
     progress(100, "源码已提交，正在启动编译。");
     return { sha: created.sha, directory: target, changed: true };
   }
-  globalThis.IOSForgeUpload = Object.freeze({ limits, readZip, readFolder, prepare, destination, publish, crc32 });
+  async function repositorySnapshot({ api, base, branch }) {
+    const refPath = `${base}/git/ref/heads/${encodeURIComponent(branch)}`;
+    const head = (await api(refPath)).object?.sha;
+    if (!/^[0-9a-f]{40}$/i.test(head || "")) fail("无法读取分支最新版本，请刷新后重试。");
+    const commit = await api(`${base}/git/commits/${head}`);
+    if (!/^[0-9a-f]{40}$/i.test(commit.tree?.sha || "")) fail("无法读取仓库文件树，请刷新后重试。");
+    const root = await api(`${base}/git/trees/${commit.tree.sha}`);
+    return { refPath, head, commit, root };
+  }
+  async function listProjects({ api, base, branch }) {
+    const snapshot = await repositorySnapshot({ api, base, branch });
+    const sources = snapshot.root.tree?.find(item => item.path === "sources" && item.type === "tree" && item.mode === "040000");
+    if (!sources) return { head: snapshot.head, projects: [] };
+    const tree = await api(`${base}/git/trees/${sources.sha}`);
+    const projects = (tree.tree || [])
+      .filter(item => item.type === "tree" && item.mode === "040000" && /^[\p{L}\p{N}][\p{L}\p{N}._-]{0,63}$/u.test(item.path) && !/[.]$/.test(item.path))
+      .map(item => ({ name: item.path, path: `sources/${item.path}`, sha: item.sha }))
+      .sort((a, b) => a.name.localeCompare(b.name, "zh-CN"));
+    return { head: snapshot.head, projects };
+  }
+  async function removeProject({ api, base, branch, project, expectedSha }) {
+    const target = destination(project);
+    const snapshot = await repositorySnapshot({ api, base, branch });
+    const sources = snapshot.root.tree?.find(item => item.path === "sources" && item.type === "tree" && item.mode === "040000");
+    if (!sources) fail(`项目 ${target} 已不存在，请刷新项目列表。`);
+    const tree = await api(`${base}/git/trees/${sources.sha}`);
+    const current = tree.tree?.find(item => item.path === project && item.type === "tree" && item.mode === "040000");
+    if (!current) fail(`项目 ${target} 已不存在，请刷新项目列表。`);
+    if (!/^[0-9a-f]{40}$/i.test(expectedSha || "") || current.sha !== expectedSha) fail(`项目 ${target} 在读取后发生了变化。为避免误删，请刷新项目列表后重新确认。`);
+    const createdTree = await api(`${base}/git/trees`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ base_tree: snapshot.commit.tree.sha, tree: [{ path: target, mode: "040000", type: "tree", sha: null }] }),
+    });
+    const created = await api(`${base}/git/commits`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: `Delete ${target} from iOSForge`, tree: createdTree.sha, parents: [snapshot.head] }),
+    });
+    if ((await api(snapshot.refPath)).object?.sha !== snapshot.head) fail("删除期间分支出现了新提交，已停止更新以保护最新修改。请刷新后重试。");
+    try {
+      await api(`${base}/git/refs/heads/${encodeURIComponent(branch)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sha: created.sha, force: false }),
+      });
+    } catch (error) {
+      let head;
+      try { head = (await api(snapshot.refPath)).object?.sha; } catch { fail(`删除结果暂时无法确认，请先检查 GitHub 提交记录，不要重复操作。提交编号：${created.sha}`); }
+      if (head !== created.sha) throw error;
+    }
+    return { sha: created.sha, path: target };
+  }
+  globalThis.IOSForgeUpload = Object.freeze({ limits, readZip, readFolder, prepare, destination, publish, listProjects, removeProject, crc32 });
 })();
