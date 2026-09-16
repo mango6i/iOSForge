@@ -110,7 +110,7 @@
               <h3>上传限制与特殊工程</h3>
               <div class="table-scroll"><table><thead><tr><th>项目</th><th>当前限制</th></tr></thead><tbody><tr><td>源码 ZIP</td><td>25 MB 以内；不支持加密、分卷和 ZIP64。</td></tr><tr><td>实际源码</td><td>解压后 / 文件夹总计不超过 50 MB、1000 个文件，单个文件不超过 10 MB。</td></tr><tr><td>二进制和大文件</td><td>一次最多更新 150 个需要单独上传的二进制或大文件；上传会适度放慢，减少 GitHub 限流。</td></tr><tr><td>不适合网页上传</td><td>包含符号链接、Git 子模块或 Git LFS 的复杂工程，请使用 Git 客户端，保留原始结构。网页会拒绝 ZIP 符号链接与 LFS 指针。</td></tr></tbody></table></div>
               <p>超出限制可用 GitHub Desktop 上传完整源码。随后回到工作台，选“使用仓库源码”，把源码目录填写为该工程所在文件夹，照常编译；不要把未经解压的 ZIP 直接放进仓库。</p>
-              <div class="guide-result"><svg class="icon"><use href="#i-check"/></svg><p><strong>完成标志：</strong>看到“源码已保存”和提交链接，右侧出现排队或编译状态。如果保存成功但编译未启动，先刷新最近构建确认没有任务，再点击开始构建；不必重新上传。</p></div>
+              <div class="guide-result"><svg class="icon"><use href="#i-check"/></svg><p><strong>完成标志：</strong>看到“源码已保存”和提交链接，右侧出现排队或编译状态。如果保存成功但编译未启动，先刷新任务记录确认没有重复编译，再点击开始构建；不必重新上传。</p></div>
             </section>
 
             <section class="guide-section" id="plugin-config">
@@ -204,7 +204,7 @@ package_scheme = "rootless"</code></pre></div>
                 <li><strong>确认源码来源。</strong><p>首次上传按第二节操作。已上传过的项目选“使用仓库源码”，源码目录填写 <code>sources/MyPlugin</code> 等实际路径。留空会搜索整个仓库；多个项目时务必填写，避免无法唯一选择。</p></li>
                 <li><strong>确认仓库、分支、Token，点击主按钮。</strong><p>本地源码模式是“上传并编译”；仓库模式是“开始构建”。开始后输入暂时锁定，避免请求过程中换错仓库。不要重复点击或在另一窗口同时提交同一个项目。</p></li>
                 <li><strong>看右侧“构建动态”。</strong><p>排队中：等待 GitHub 提供云端电脑。编译中：正在安装依赖和编译。已完成：下方出现可下载产物。首次需要准备环境和依赖，通常比后续慢，实际时间取决于工程。</p></li>
-                <li><strong>离开后回来，点“刷新记录”。</strong><p>重新填写 Token，确认同一仓库和分支，点击“最近构建 → 刷新记录”，再点击某次任务的“查看产物”。正在运行的任务会继续刷新；关闭网页不会取消已提交的云端构建。</p></li>
+                <li><strong>离开后回来，点“刷新全部记录”。</strong><p>重新填写 Token，确认同一仓库和分支，点击“任务记录 → 刷新全部记录”。编译工作流可点“查看产物”；网页发布和环境检查可点“打开记录”。正在运行的任务会继续显示；关闭网页不会取消已提交的云端任务。</p></li>
               </ol>
               <div class="guide-callout"><strong>失败不等于源码丢了。</strong><p>上传和编译是两个阶段。出现“源码已保存，编译未能启动”时，先刷新记录排除重复任务，再重试构建。出现源码编译错误时，先看工作台的“运行日志”；工具不会自动修复任意项目的代码。</p></div>
               <h3>运行日志与“复制给 AI”怎么用？</h3>
@@ -215,7 +215,7 @@ package_scheme = "rootless"</code></pre></div>
             <section class="guide-section" id="download-guide">
               <span class="section-overline">STEP 05</span><h2>下载、回看与删除构建产物</h2>
               <ol class="guide-steps">
-                <li><strong>等到右侧显示构建完成。</strong><p>在“构建产物”里找到需要的文件。也可先刷新最近构建，再点历史任务的“查看产物”，找回此前结果。</p></li>
+                <li><strong>等到右侧显示构建完成。</strong><p>在“构建产物”里找到需要的文件。也可刷新全部任务记录，再在编译工作流旁点“查看产物”，找回当前集中保存的成品。</p></li>
                 <li><strong>点击“下载 IPA / DEB / DYLIB”。</strong><p>网页直接打开仓库 <code>sources/Download</code> 中的真实文件，不再下载外层 ZIP，也不用解压。若新标签页提示登录，请先登录拥有该仓库权限的 GitHub 账号，再回工作台点一次。</p></li>
                 <li><strong>检查并保存到自己的电脑或手机。</strong><p>真实文件会一直保存在当前分支，直到你主动删除。它会占用仓库体积，单个文件必须小于 95 MiB。文件是否能安装或运行，还取决于设备系统、依赖和加载/签名环境；IPA 安装见下一节。</p></li>
                 <li><strong>不再需要仓库副本时，点该文件旁的“删除”。</strong><p>先核对确认框中的真实文件名、仓库和运行 ID。点“保留文件”或按 Escape 可取消；只有点“确认永久删除”才会从 <code>sources/Download</code> 删除这一个文件。</p></li>
@@ -227,12 +227,12 @@ package_scheme = "rootless"</code></pre></div>
               <p>如果项目以后完全不用了，项目管理可以一键清理所选项目的全部源码，并删除集中存放成品的 <code>sources/Download</code> 文件夹。由于所有项目成品都按你的设置放在同一个 Download 中，这一步会清空其中全部成品，但不会删除其他源码项目。</p>
               <ol class="guide-steps"><li><strong>在右侧“项目源码管理”点“读取项目”。</strong><p>先确认仓库、分支和 Token 正确。网页只列出 <code>sources/</code> 下面的源码项目；专用的 <code>Download</code> 文件夹会被排除，不会误显示成项目。</p></li><li><strong>从下拉框选择项目。</strong><p>认真核对完整路径，例如 <code>sources/HailuoiOS</code>。如果项目刚被更新，先重新读取，避免按旧版本执行。</p></li><li><strong>点“删除这个项目”，再看确认框。</strong><p>只有点“确认删除全部”才会在一次提交中删除所选项目的全部上传代码，以及 <code>sources/Download</code> 中全部 IPA、DEB、DYLIB；取消或按 Escape 不会改动仓库。分支在确认期间发生变化时，系统会停止，避免覆盖最新修改。</p></li><li><strong>删除完成后看提交链接。</strong><p>所选 <code>sources/项目名</code> 与存在的 <code>sources/Download</code> 会一起从当前分支消失。其他源码项目、构建记录与日志仍保留。Git 是版本历史：普通删除仍可从旧提交恢复；如果内容曾位于公开仓库，删除当前目录不会抹掉公开历史。</p></li></ol>
               <div class="guide-callout"><strong>项目删除需要 Contents → Read and write。</strong><p>没有这项权限会收到 403。删除整个项目会生成一次普通 Git 提交，不强制覆盖分支；网络中断或提示结果无法确认时，先查看提交记录并重新读取项目，不要连续重复点击。</p></div>
-              <h3 id="history-cleanup">最近构建太多？批量删除怎么用</h3>
-              <p>“构建记录”是一次 Actions 任务，“产物”是仓库 <code>sources/Download</code> 中的真实文件。失败任务可能没有产物，但仍有一条记录；二者需要按目的分别清理。</p>
-              <ol class="guide-steps"><li><strong>确认仓库、分支和 Token，点击“刷新记录”。</strong><p>每次读取 30 条当前分支的编译记录。想处理更早的记录，先点“再加载 30 条记录”。这里不会列出或删除 GitHub Pages 部署、环境检查等其他工作流。</p></li><li><strong>勾选要清理的任务。</strong><p>可以逐条勾选；点“只选失败 / 取消”会选中已加载的失败、取消、超时等未成功记录。想连成功记录一起清理，可勾选“全选已加载的已结束记录”。“全选”不包含尚未加载的记录，也不跨仓库或分支。排队和编译中的记录不能勾选。</p></li><li><strong>点击“删除所选（数量）”，先核对清单。</strong><p>确认框会显示仓库、分支、数量、成功记录数量，以及每条任务的编号和名称。删除后对应 Actions 日志无法恢复，请先复制要排查的报错。<strong>这一步不会删除 sources/Download 真实产物或项目源码。</strong></p></li><li><strong>确认永久删除，保持网页打开。</strong><p>系统逐条核对最新状态，再删除。任务已被重新运行、状态变化或不属于该编译工作流时，会跳过；网络或权限出错会停止后续删除，并告诉你已经确认删除多少条。</p></li><li><strong>看结果，再点“刷新记录”。</strong><p>要删除产物，请点产物旁的“删除”；要连源码和全部集中成品一起删，请用“项目源码管理”。网络中断时最后一条记录可能已经删除，先刷新核对，不要直接重复操作。</p></li></ol>
+              <h3 id="history-cleanup">Actions 记录太多？批量删除怎么用</h3>
+              <p>“任务记录”包含编译、网页发布和环境检查等 Actions 任务；“产物”是仓库 <code>sources/Download</code> 中的真实文件。任务可能没有产物，但仍有一条记录；二者需要按目的分别清理。</p>
+              <ol class="guide-steps"><li><strong>确认仓库、分支和 Token，点击“刷新全部记录”。</strong><p>一次读取最多 100 条当前分支的 Actions 记录，包括 IPA / 插件编译、GitHub Pages 网页发布和环境检查。想处理更早的记录，点“再加载 100 条记录”。</p></li><li><strong>勾选要清理的任务。</strong><p>可以逐条勾选；点“只选失败 / 取消”会选中已加载的失败、取消、超时等未成功记录。想连成功记录一起清理，可勾选“全选已加载的已结束记录”。“全选”不包含尚未加载的记录，也不跨仓库或分支。排队和运行中的记录不能勾选。</p></li><li><strong>点击“删除所选（数量）”，先核对清单。</strong><p>确认框会显示仓库、分支、数量、成功记录数量，以及每条任务所属工作流、编号和名称。删除后对应 Actions 日志无法恢复，请先复制要排查的报错。<strong>这一步不会删除 sources/Download 真实产物、项目源码或已经发布的网页。</strong></p></li><li><strong>确认永久删除，保持网页打开。</strong><p>系统逐条核对工作流、分支、提交、状态和运行次数，再删除。任务被重新运行或状态发生变化时会跳过；网络或权限出错会停止后续删除，并告诉你已经确认删除多少条。</p></li><li><strong>看结果，再点“刷新全部记录”。</strong><p>要删除产物，请点产物旁的“删除”；要连源码和全部集中成品一起删，请用“项目源码管理”。网络中断时最后一条记录可能已经删除，先刷新核对，不要直接重复操作。</p></li></ol>
               <h3>能不能过几天自动清理？</h3>
               <p>真实产物是仓库文件，<strong>不会按 14 天自动过期</strong>。它会一直存在，直到你删除单个产物或删除整个项目。同名成品在下一次成功构建时更新。GitHub 不保存空目录，所以删完最后一个产物后，空的 <code>sources/Download</code> 会自动消失。</p>
-              <p>本版本没有启用定时删除构建记录。如果以后需要自动清理，应先确定“保留几天”“仅失败还是包含成功”“保留多少个成功版本”，再配置云端执行；不能依赖一个关闭网页就停止的倒计时。未明确规则前，不会自动删除你的成功版本。</p>
+              <p>本版本没有启用定时删除 Actions 记录。如果以后需要自动清理，应先确定“保留几天”“仅失败还是包含成功”“保留多少个成功版本”，再配置云端执行；不能依赖一个关闭网页就停止的倒计时。未明确规则前，不会自动删除你的成功记录。</p>
               <p class="guide-note">注意仓库容量：每个产物限制在 95 MiB 以内。长期保留大量 IPA 会增大仓库和克隆体积；建议下载留存后及时从 <code>sources/Download</code> 删除不再需要的文件。</p>
             </section>
 
@@ -293,13 +293,13 @@ configuration = "Release"</code></pre></div>
                 <details><summary>已经成功了，为什么没有文件？</summary><p>确认运行的是 GitHub Actions 编译流程。没有配置插件源码时，自动推送触发的检查可能成功跳过编译，所以没有产物；Publish iOSForge Web 的成功也不表示插件编译成功。手动选择正确产物后再运行，并查看该次日志。</p></details>
                 <details><summary>修改源码后，为什么没有自动编译？</summary><p>确认源码提交到了 main，而且 Actions 已启用。仅修改网页、说明文档、现成 IPA/deb/dylib 不会触发原生编译。网页上传会跳过推送自动构建，再明确启动所选类型，避免重复编译。若上传后启动失败，可在工作台刷新记录确认后重试。通过 Git 客户端上传后在 Actions 找 GitHub Actions；没有可识别工程时只会完成检查，不会产生文件。多个工程或方案会明确报出选择要求。</p></details>
                 <details><summary>怎么检查云端环境本身？</summary><p>打开仓库 Actions → Check build environment → Run workflow。它会在临时云端目录真实编译一个原生应用与插件，检查无证书 IPA、CocoaPods、Swift Package、arm64/arm64e dylib 和 rootless deb；结束后删除临时探针。它不会往仓库添加示例工程，也不代表你的源码已经验证通过。</p></details>
-                <details><summary>页面一直排队、显示刷新中断，或者下载按钮没反应</summary><p>先刷新最近构建并选择对应任务，确认是否仍在运行；也可点 GitHub 日志链接。排队取决于 GitHub 的可用环境；刷新中断可能是网络问题。不要连续提交同一分支的新任务。下载会直接打开仓库 <code>sources/Download</code> 中的真实文件：如果没有开始，查看浏览器是否拦截新标签页，并确认 GitHub 已登录正确账号；也可在仓库里进入对应文件手动下载。</p></details>
+                <details><summary>页面一直排队、显示刷新中断，或者下载按钮没反应</summary><p>先刷新全部任务记录并选择对应的编译任务，确认是否仍在运行；也可点 GitHub 日志链接。排队取决于 GitHub 的可用环境；刷新中断可能是网络问题。不要连续提交同一分支的新任务。下载会直接打开仓库 <code>sources/Download</code> 中的真实文件：如果没有开始，查看浏览器是否拦截新标签页，并确认 GitHub 已登录正确账号；也可在仓库里进入对应文件手动下载。</p></details>
               </div>
             </section>
 
             <section class="guide-section" id="next-time">
               <span class="section-overline">NEXT TIME</span><h2>下次使用，留在这一个网页就好</h2>
-              <ol class="guide-steps"><li><strong>粘贴有效 Token，核对仓库与分支。</strong><p>令牌不保存在网页，关闭页面后需要重新填写。</p></li><li><strong>新项目选“上传本地源码”；旧项目选“使用仓库源码”。</strong><p>旧项目填上 <code>sources/你的项目名称</code>。更新同一个项目可以再次上传并确认更新同名文件；想要干净版本时换一个新目录。</p></li><li><strong>选择产物并开始编译。</strong><p>IPA 默认无证书。用“最近构建”回看状态，成品会按真实文件名直接进入 <code>sources/Download/</code>。</p></li><li><strong>下载留存，再选择清理范围。</strong><p>删产物只删一个真实文件；删构建记录只删 Actions 记录与日志；“删除这个项目”会删除所选项目全部源码，并清空共享的 <code>sources/Download</code> 成品目录。</p></li></ol>
+              <ol class="guide-steps"><li><strong>粘贴有效 Token，核对仓库与分支。</strong><p>令牌不保存在网页，关闭页面后需要重新填写。</p></li><li><strong>新项目选“上传本地源码”；旧项目选“使用仓库源码”。</strong><p>旧项目填上 <code>sources/你的项目名称</code>。更新同一个项目可以再次上传并确认更新同名文件；想要干净版本时换一个新目录。</p></li><li><strong>选择产物并开始编译。</strong><p>IPA 默认无证书。用“任务记录”回看全部 Actions 状态，成品会按真实文件名直接进入 <code>sources/Download/</code>。</p></li><li><strong>下载留存，再选择清理范围。</strong><p>删产物只删一个真实文件；删任务记录只删 Actions 记录与日志；“删除这个项目”会删除所选项目全部源码，并清空共享的 <code>sources/Download</code> 成品目录。</p></li></ol>
               <p>你也可以把完整源码交给协作助手协助整理和配置。原生工程以外的特殊依赖，仍应按照项目自己的说明准备；网页不会把缺失的工程文件凭空补齐。</p>
               <a class="guide-start-button" href="./">我准备好了，去编译工作台<svg class="icon"><use href="#i-arrow"/></svg></a>
               <p class="guide-note">第三方解压组件：fflate 0.8.2（MIT），已随网站提供，不从第三方 CDN 加载。</p>

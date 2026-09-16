@@ -603,6 +603,8 @@ function historyMatchesInputs() {
   return !!repo && !!state.repo && repoBase(repo) === repoBase() && (branchInput.value.trim() || "main") === state.branch && !!state.token && tokenInput.value.trim() === state.token;
 }
 function selectableRun(run) { return Number.isSafeInteger(run.id) && run.id > 0 && run.status === "completed"; }
+function isBuildRun(run) { return run.path === ".github/workflows/build.yml"; }
+const historyPageSize = 100;
 function updateHistoryControls() {
   const eligible = state.history.filter(selectableRun);
   const eligibleIds = new Set(eligible.map(run => run.id));
@@ -628,25 +630,30 @@ function renderHistory() {
   state.history.forEach(run => {
     const row = element("div", "history-row");
     const checkbox = element("input", "history-run-check"); checkbox.type = "checkbox"; checkbox.dataset.selectRunId = String(run.id);
-    checkbox.setAttribute("aria-label", `选择构建 #${run.run_number}，${run.status === "completed" ? "已结束" : "进行中，不能删除"}`);
+    checkbox.setAttribute("aria-label", `选择任务 ${run.name || "GitHub Actions"} #${run.run_number}，${run.status === "completed" ? "已结束" : "进行中，不能删除"}`);
     const info = element("div");
     const status = run.status === "completed" ? ({ success: "已完成", failure: "失败", cancelled: "已取消", skipped: "已跳过", timed_out: "超时" }[run.conclusion] || "已结束") : run.status === "in_progress" ? "编译中" : "排队中";
-    info.append(element("strong", "", `#${run.run_number} · ${run.display_title || run.name}`), element("span", "", `${status} · ${new Date(run.created_at).toLocaleString("zh-CN")}`));
-    const button = element("button", "download-button", "查看产物"); button.type = "button"; button.dataset.runId = String(run.id); button.disabled = state.busy;
-    row.append(checkbox, info, button); $("#history-list").append(row);
+    info.append(element("strong", "", `${run.name || "GitHub Actions"} #${run.run_number}`), element("span", "", `${run.display_title || "无标题"} · ${status} · ${new Date(run.created_at).toLocaleString("zh-CN")}`));
+    let action;
+    if (isBuildRun(run)) {
+      action = element("button", "download-button", "查看产物"); action.type = "button"; action.dataset.runId = String(run.id); action.disabled = state.busy;
+    } else {
+      action = element("a", "download-button", "打开记录"); action.href = runUrl(run.id); action.target = "_blank"; action.rel = "noreferrer";
+    }
+    row.append(checkbox, info, action); $("#history-list").append(row);
   });
   updateHistoryControls();
 }
 
 async function loadHistoryPage(page) {
-  const data = await github(`${repoBase()}/actions/workflows/build.yml/runs?branch=${encodeURIComponent(state.branch)}&per_page=30&page=${page}`);
+  const data = await github(`${repoBase()}/actions/runs?branch=${encodeURIComponent(state.branch)}&per_page=${historyPageSize}&page=${page}`);
   if (state.closed) return;
   const records = Array.isArray(data.workflow_runs) ? data.workflow_runs : [];
   const unique = new Map(state.history.map(run => [run.id, run]));
   records.filter(run => Number.isSafeInteger(run.id) && run.id > 0 && (!run.head_branch || run.head_branch === state.branch)).forEach(run => unique.set(run.id, run));
-  state.history = [...unique.values()]; historyPage = page; historyHasMore = records.length === 30;
+  state.history = [...unique.values()]; historyPage = page; historyHasMore = records.length === historyPageSize;
   renderHistory();
-  $("#history-message").textContent = state.history.length ? `${state.repo.owner}/${state.repo.name} · ${state.branch} · 已加载 ${state.history.length} 条构建记录${historyHasMore ? "，可继续加载更早记录" : ""}` : "这个分支暂无构建记录。源码和配置仍然保留，可按需开始构建。";
+  $("#history-message").textContent = state.history.length ? `${state.repo.owner}/${state.repo.name} · ${state.branch} · 已加载 ${state.history.length} 条 Actions 记录（编译、网页发布和环境检查）${historyHasMore ? "，可继续加载更早记录" : ""}` : "这个分支暂无 Actions 记录。源码和配置仍然保留，可按需开始构建。";
 }
 
 $("#refresh-history").addEventListener("click", async () => {
@@ -658,7 +665,7 @@ $("#refresh-history").addEventListener("click", async () => {
   if (changed) { state.runId = null; state.artifacts = []; artifactList.hidden = true; runMeta.hidden = true; setStatus("idle", "待命", "已切换仓库或分支", "选择一条构建记录查看产物。"); }
   if (changed) buildLogs?.close();
   setBusy(true, "正在读取记录…");
-  $("#history-message").textContent = "正在读取 GitHub 上的构建记录…";
+  $("#history-message").textContent = "正在读取 GitHub 上的全部 Actions 记录…";
   state.history = []; selectedRuns.clear(); historyPage = 0; historyHasMore = false; renderHistory();
   try {
     await verifyWorkspace();
@@ -697,7 +704,7 @@ $("#select-failed-runs").addEventListener("click", () => {
 function confirmRunDeletion(runs) {
   const successful = runs.filter(run => run.conclusion === "success").length;
   const scope = `${state.repo.owner}/${state.repo.name} · ${state.branch} · ${runs.length} 条记录（其中 ${successful} 条成功记录）`;
-  const targets = runs.map(run => `#${run.run_number} · ${run.display_title || run.name} · ID ${run.id}`);
+  const targets = runs.map(run => `${run.name || "GitHub Actions"} #${run.run_number} · ${run.display_title || "无标题"} · ID ${run.id}`);
   const dialog = $("#delete-runs-dialog");
   if (typeof dialog.showModal !== "function") return Promise.resolve(window.confirm(`永久删除 ${scope}？\n${targets.join("\n")}\n这会删除 Actions 记录与日志；sources/Download 中的真实产物和项目源码保留。`));
   $("#delete-runs-scope").textContent = scope;
@@ -722,25 +729,23 @@ $("#delete-selected-runs").addEventListener("click", async () => {
     await verifyWorkspace();
     if (!await confirmRunDeletion(targets)) return;
     confirmed = true;
-    const workflow = await github(`${base}/actions/workflows/build.yml`);
-    if (!Number.isSafeInteger(workflow.id)) throw new Error("无法核对编译工作流，已停止删除。");
     for (const target of targets) {
       if (state.closed || !historyMatchesInputs() || repoBase() !== base || state.branch !== branch) throw new Error("会话发生变化，已停止后续删除。");
       $("#history-message").textContent = `正在核对并删除 ${removed + skipped + 1} / ${targets.length}：#${target.run_number}。请保持页面打开。`;
       const current = await github(`${base}/actions/runs/${target.id}`);
       if (state.closed) break;
-      if (current.id !== target.id || current.workflow_id !== workflow.id || current.head_branch !== branch || current.head_sha !== target.head_sha || current.status !== "completed" || current.conclusion !== target.conclusion || (current.run_attempt || 1) !== (target.run_attempt || 1)) { skipped += 1; continue; }
+      if (current.id !== target.id || current.workflow_id !== target.workflow_id || current.path !== target.path || current.head_branch !== branch || current.head_sha !== target.head_sha || current.status !== "completed" || current.conclusion !== target.conclusion || (current.run_attempt || 1) !== (target.run_attempt || 1)) { skipped += 1; continue; }
       if (state.runId === target.id) buildLogs?.close();
       await github(`${base}/actions/runs/${target.id}`, { method: "DELETE" });
       removed += 1; selectedRuns.delete(target.id); state.history = state.history.filter(run => run.id !== target.id);
       if (state.runId === target.id) {
         state.runId = null; state.artifacts = []; artifacts.replaceChildren(); artifactList.hidden = true; runMeta.hidden = true; downloadMessage.hidden = true;
-        setStatus("idle", "已清理", "所选构建记录已删除", "对应 Actions 日志已删除；sources/Download 产物和源码保留。");
+        setStatus("idle", "已清理", "所选 Actions 记录已删除", "对应日志已删除；sources/Download 产物和源码保留。");
         buildLogs?.close(); updateLinks();
       }
       renderHistory();
     }
-    $("#history-message").textContent = `已永久删除 ${removed} 条构建记录及对应 Actions 日志。${skipped ? `另有 ${skipped} 条状态已变化，未删除。` : ""}sources/Download 产物和源码保留。请刷新记录查看最新列表。`;
+    $("#history-message").textContent = `已永久删除 ${removed} 条 Actions 记录及对应日志。${skipped ? `另有 ${skipped} 条状态已变化，未删除。` : ""}sources/Download 产物和源码保留。请刷新记录查看最新列表。`;
   } catch (error) {
     $("#history-message").textContent = `批量操作已停止，已确认删除 ${removed} 条。${error.message || "网络中断，最后一条结果可能未确认"} 请先刷新记录核对，不要直接重复删除。`;
   } finally {
