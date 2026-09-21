@@ -82,11 +82,20 @@ function invalidateWorkspace() {
   resetProjects("仓库信息变化后，请重新读取项目。");
 }
 
-async function verifyWorkspace({ upload = false } = {}) {
+const workspaceCacheMs = 60 * 1000;
+
+async function verifyWorkspace({ upload = false, fresh = false } = {}) {
+  const cached = state.workspace;
+  if (!fresh && cached && historyMatchesInputs() && Date.now() - cached.checkedAt < workspaceCacheMs) {
+    if (upload && !cached.repository.private && !$("#allow-public-upload").checked) throw new Error("当前是公开仓库，尚未授权公开源码。请改用自己的私有仓库，或阅读上传区的公开风险并单独勾选确认。");
+    return cached.repository;
+  }
   const base = repoBase(), previous = state.workspace;
-  const user = await github("/user");
-  if (state.closed) throw new Error("页面会话已关闭。");
-  const repository = await github(base);
+  const [user, repository, workflow] = await Promise.all([
+    github("/user"),
+    github(base),
+    github(`${base}/actions/workflows/build.yml`),
+  ]);
   if (state.closed || !historyMatchesInputs()) throw new Error("账号或仓库输入已变化，请重新检查。");
   if (!Number.isSafeInteger(user.id) || !user.login || repository.owner?.id !== user.id || repository.owner?.type !== "User" || repository.owner.login.toLowerCase() !== user.login.toLowerCase()) {
     invalidateWorkspace();
@@ -96,11 +105,10 @@ async function verifyWorkspace({ upload = false } = {}) {
     invalidateWorkspace(); throw new Error("无法确认目标仓库或可见性，已停止操作。");
   }
   if (repository.archived || repository.disabled || repository.permissions?.push === false) throw new Error("这个仓库已归档、停用或不可写，请选择可用的个人仓库。");
-  const workflow = await github(`${base}/actions/workflows/build.yml`);
   if (!Number.isSafeInteger(workflow.id) || workflow.state !== "active") throw new Error("编译工作流尚未安装或未启用。请按指南导入纯净初始化包，并在自己的仓库 Actions 中启用工作流。");
   if (state.closed || !historyMatchesInputs()) throw new Error("页面会话已变化，已停止操作。");
   if (!previous || previous.id !== repository.id || previous.private !== repository.private) $("#allow-public-upload").checked = false;
-  state.workspace = { id: repository.id, private: repository.private, login: user.login };
+  state.workspace = { id: repository.id, private: repository.private, login: user.login, repository, checkedAt: Date.now() };
   $("#workspace-status").dataset.visibility = repository.private ? "private" : "public";
   $("#workspace-status").textContent = `已核对账号 ${user.login} · ${repository.full_name} · ${repository.private ? "Private 私有仓库" : "Public 公开仓库，源码所有人可见"}。编译工作流已启用；写入权限仍以实际操作结果为准。`;
   $("#public-upload-warning").hidden = repository.private;
@@ -376,7 +384,7 @@ form.addEventListener("submit", async (event) => {
   let dispatched = false;
   let uploaded = false;
   try {
-    await verifyWorkspace({ upload: uploadMode() });
+    await verifyWorkspace({ upload: uploadMode(), fresh: true });
     if (uploadMode()) {
       setStatus("running", "上传中", "正在保存源码到 GitHub", "文件会作为一次提交保存；上传完成后自动编译。请保持网页打开。", "dispatch");
       $("#upload-progress-wrap").hidden = false;
@@ -508,7 +516,7 @@ $("#check-workspace").addEventListener("click", async () => {
   if (!repo || !token) { $("#workspace-status").textContent = "请先填写你自己的用户名/仓库名，并粘贴仅授权该仓库的 Token。"; return; }
   state.repo = repo; state.token = token; state.branch = branchInput.value.trim() || "main"; state.closed = false;
   setBusy(true, "正在核对仓库…");
-  try { await verifyWorkspace(); }
+  try { await verifyWorkspace({ fresh: true }); }
   catch (error) { $("#workspace-status").textContent = `未通过检查：${error.message}`; }
   finally { setBusy(false); }
 });
@@ -566,8 +574,10 @@ $("#refresh-projects").addEventListener("click", async () => {
   setBusy(true, "正在读取项目…");
   $("#project-message").textContent = "正在读取 sources/ 下的项目…";
   try {
-    await verifyWorkspace();
-    const data = await IOSForgeUpload.listProjects({ api: github, base: repoBase(), branch: state.branch });
+    const [, data] = await Promise.all([
+      verifyWorkspace(),
+      IOSForgeUpload.listProjects({ api: github, base: repoBase(), branch: state.branch }),
+    ]);
     if (state.closed || !historyMatchesInputs()) throw new Error("页面会话已变化，请重新读取项目。");
     state.projects = data.projects;
     renderProjects(state.projects.length ? `已找到 ${state.projects.length} 个项目。删除项目会清理该项目源码，并清空共享的 sources/Download 成品目录。` : "sources/ 下暂无源码项目；Download 成品目录不会列在这里。");
@@ -580,7 +590,7 @@ $("#delete-project").addEventListener("click", async () => {
   if (!selected) return;
   setBusy(true, "正在确认删除…");
   try {
-    await verifyWorkspace();
+    await verifyWorkspace({ fresh: true });
     if (!await confirmProjectDeletion(selected)) return;
     $("#project-message").textContent = `正在删除 ${selected.path} 和 sources/Download 中的全部构建产物…`;
     const result = await IOSForgeUpload.removeProject({ api: github, base: repoBase(), branch: state.branch, project: selected.name, expectedSha: selected.sha });
@@ -668,8 +678,7 @@ $("#refresh-history").addEventListener("click", async () => {
   $("#history-message").textContent = "正在读取 GitHub 上的全部 Actions 记录…";
   state.history = []; selectedRuns.clear(); historyPage = 0; historyHasMore = false; renderHistory();
   try {
-    await verifyWorkspace();
-    await loadHistoryPage(1);
+    await Promise.all([verifyWorkspace(), loadHistoryPage(1)]);
   } catch (error) { $("#history-message").textContent = error.message; }
   finally { setBusy(false); }
 });
@@ -726,7 +735,7 @@ $("#delete-selected-runs").addEventListener("click", async () => {
   let removed = 0, skipped = 0, confirmed = false;
   setBusy(true, "正在确认删除…");
   try {
-    await verifyWorkspace();
+    await verifyWorkspace({ fresh: true });
     if (!await confirmRunDeletion(targets)) return;
     confirmed = true;
     for (const target of targets) {
@@ -786,7 +795,7 @@ artifacts.addEventListener("click", async event => {
   if (!artifact) return;
   setBusy(true, "正在管理产物…");
   try {
-    await verifyWorkspace();
+    await verifyWorkspace({ fresh: true });
     if (!await confirmDelete(artifact)) return;
     downloadMessage.hidden = false; downloadMessage.dataset.kind = "pending"; downloadMessage.textContent = `正在删除 ${artifact.name}…`;
     await github(`${repoBase()}/contents/${encodePath(artifact.path)}`, {

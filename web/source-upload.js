@@ -189,15 +189,21 @@
     return { refPath, head, commit, root };
   }
   async function listProjects({ api, base, branch }) {
-    const snapshot = await repositorySnapshot({ api, base, branch });
-    const sources = snapshot.root.tree?.find(item => item.path === "sources" && item.type === "tree" && item.mode === "040000");
-    if (!sources) return { head: snapshot.head, projects: [] };
-    const tree = await api(`${base}/git/trees/${sources.sha}`);
-    const projects = (tree.tree || [])
-      .filter(item => item.type === "tree" && item.mode === "040000" && !/^download$/i.test(item.path) && /^[\p{L}\p{N}][\p{L}\p{N}._-]{0,63}$/u.test(item.path) && !/[.]$/.test(item.path))
-      .map(item => ({ name: item.path, path: `sources/${item.path}`, sha: item.sha }))
+    let entries;
+    try {
+      entries = await api(`${base}/contents/sources?ref=${encodeURIComponent(branch)}`);
+    } catch (error) {
+      if (error?.status !== 404) throw error;
+      const head = (await api(`${base}/git/ref/heads/${encodeURIComponent(branch)}`)).object?.sha;
+      if (!/^[0-9a-f]{40}$/i.test(head || "")) fail("无法读取分支最新版本，请刷新后重试。");
+      return { head, projects: [] };
+    }
+    if (!Array.isArray(entries)) fail("sources 不是可读取的项目目录，请检查仓库结构。");
+    const projects = entries
+      .filter(item => item.type === "dir" && item.path === `sources/${item.name}` && /^[0-9a-f]{40}$/i.test(item.sha || "") && !/^download$/i.test(item.name) && /^[\p{L}\p{N}][\p{L}\p{N}._-]{0,63}$/u.test(item.name) && !/[.]$/.test(item.name))
+      .map(item => ({ name: item.name, path: item.path, sha: item.sha }))
       .sort((a, b) => a.name.localeCompare(b.name, "zh-CN"));
-    return { head: snapshot.head, projects };
+    return { head: null, projects };
   }
   async function removeProject({ api, base, branch, project, expectedSha }) {
     const target = destination(project);
