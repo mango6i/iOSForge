@@ -7,7 +7,7 @@
   <meta name="description" content="iOSForge 编译工作台。在 GitHub 上构建面向 iOS 15+ 的动态库、插件包和应用。" />
   <title>iOSForge · 编译工作台</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=right-management-2" />
+  <link rel="stylesheet" href="./styles.css?v=adaptive-layout-2" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
   <script src="./source-upload.js?v=fast-reads-1" defer></script>
   <script src="./build-logs.js?v=1" defer></script>
@@ -59,7 +59,7 @@
     <div class="main-shell">
       <header class="topbar">
         <div class="breadcrumb"><span>工作空间</span><span class="breadcrumb-slash">/</span><strong>编译工作台</strong></div>
-        <a class="topbar-link" href="https://github.com" target="_blank" rel="noreferrer"><svg class="icon"><use href="#i-github"/></svg><span>GitHub Actions</span><svg class="icon small-icon"><use href="#i-external"/></svg></a>
+        <a id="actions-link" class="topbar-link" href="https://github.com" target="_blank" rel="noreferrer"><svg class="icon"><use href="#i-github"/></svg><span>GitHub Actions · 在 GitHub 查看日志</span><svg class="icon small-icon"><use href="#i-external"/></svg></a>
       </header>
 
       <main id="workspace" class="workspace">
@@ -112,8 +112,8 @@
                   <div id="upload-preview" class="upload-preview" hidden><div class="upload-preview-heading"><strong id="upload-file-count"></strong><button id="clear-upload" class="copy-button" type="button">清除选择</button></div><details><summary>查看待上传文件</summary><ul id="upload-file-list"></ul></details></div>
                   <label class="field"><span>项目文件夹名称</span><input id="upload-project" placeholder="例如 MyProject" autocomplete="off" spellcheck="false" maxlength="64" /></label>
                   <p id="upload-destination" class="field-hint"></p>
-                  <label class="upload-consent"><input id="upload-consent" type="checkbox" /><span>确认提交到以上我自己的仓库，已检查源码不含密钥。私有仓库可降低公开泄露风险，但不能保证绝对安全。</span></label>
-                  <div id="public-upload-warning" class="public-upload-warning" hidden><strong>当前仓库是公开的：上传后所有人可见。</strong><p>如果源码不应公开，请停止上传，换成自己的 Private 私有仓库。删除当前文件也无法自动清除提交历史。</p><label class="upload-consent"><input id="allow-public-upload" type="checkbox" /><span>我确认这些源码可以公开，仍要上传到当前公开仓库。</span></label></div>
+                  <label class="upload-consent"><input id="upload-consent" type="checkbox" /><span>确认提交到以上我自己的仓库，已检查源码不含密钥；如果仓库是 Public 公开仓库，我也确认源码上传后所有人可见。私有仓库可降低公开泄露风险，但不能保证绝对安全。</span></label>
+                  <div id="public-upload-warning" class="public-upload-warning" hidden><strong>当前仓库是公开的：上传后所有人可见。</strong><p>如果源码不应公开，请停止上传，换成自己的 Private 私有仓库。删除当前文件也无法自动清除提交历史。上方“确认提交”是唯一需要勾选的上传确认。</p></div>
                   <label class="upload-consent"><input id="upload-replace" type="checkbox" /><span>如果目录已存在，允许更新本次同名文件；未上传的旧文件不会删除。</span></label>
                   <div id="upload-progress-wrap" hidden><progress id="upload-progress" max="100" value="0" aria-label="源码上传进度"></progress><p id="upload-progress-text" class="field-hint" role="status" aria-live="polite"></p></div>
                   <p class="field-hint">支持完整 Theos / Xcode 源码，不是现成 IPA、deb 或 dylib。单个文件上限 10 MB。<a href="./guide.html#upload">查看上传说明 ↗</a></p>
@@ -151,17 +151,19 @@
           <div class="activity-column">
           <section class="panel status-panel" id="status-panel" data-phase="idle" aria-labelledby="status-heading">
             <div class="panel-heading"><div><span class="section-overline">BUILD ACTIVITY</span><h2 id="status-heading">构建动态</h2></div><span id="status-badge" class="status-badge idle">待命</span></div>
-            <div id="status-card" class="status-card idle-card" role="status" aria-live="polite" aria-atomic="true">
-              <div class="status-visual" aria-hidden="true"><div class="orbit-ring orbit-ring-outer"></div><div class="orbit-ring orbit-ring-inner"></div><span class="orbit-dot"></span><div class="status-core"><svg class="icon"><use id="status-symbol" href="#i-layers"/></svg></div></div>
-              <strong id="status-title">准备好，让代码起飞</strong>
-              <p id="status-copy">选择产物并开始构建。<br />进度与下载结果会在这里显示。</p>
-            </div>
+            <div class="status-overview">
+              <div id="status-card" class="status-card idle-card" role="status" aria-live="polite" aria-atomic="true">
+                <div class="status-visual" aria-hidden="true"><div class="orbit-ring orbit-ring-outer"></div><div class="orbit-ring orbit-ring-inner"></div><span class="orbit-dot"></span><div class="status-core"><svg class="icon"><use id="status-symbol" href="#i-layers"/></svg></div></div>
+                <strong id="status-title">准备好，让代码起飞</strong>
+                <p id="status-copy">选择产物并开始构建。<br />进度与下载结果会在这里显示。</p>
+              </div>
 
-            <ol class="pipeline" aria-label="构建流程">
-              <li data-step="submit"><span class="pipeline-marker">1</span><div><strong>提交任务</strong><span>连接 GitHub Actions</span></div><span class="pipeline-state">等待</span></li>
-              <li data-step="build"><span class="pipeline-marker">2</span><div><strong>云端编译</strong><span>在 macOS 上处理源码</span></div><span class="pipeline-state">等待</span></li>
-              <li data-step="artifacts"><span class="pipeline-marker">3</span><div><strong>保存产物</strong><span>写入 sources/Download</span></div><span class="pipeline-state">等待</span></li>
-            </ol>
+              <ol class="pipeline" aria-label="构建流程">
+                <li data-step="submit"><span class="pipeline-marker">1</span><div><strong>提交任务</strong><span>连接 GitHub Actions</span></div><span class="pipeline-state">等待</span></li>
+                <li data-step="build"><span class="pipeline-marker">2</span><div><strong>云端编译</strong><span>在 macOS 上处理源码</span></div><span class="pipeline-state">等待</span></li>
+                <li data-step="artifacts"><span class="pipeline-marker">3</span><div><strong>保存产物</strong><span>写入 sources/Download</span></div><span class="pipeline-state">等待</span></li>
+              </ol>
+            </div>
 
             <div id="run-meta" class="run-meta" hidden></div>
             <div id="artifact-list" class="artifact-list" hidden><h3 class="artifact-heading">构建产物<span>DOWNLOAD FILES</span></h3><div id="artifacts"></div></div>
@@ -177,7 +179,6 @@
               <p id="logs-action-message" class="field-hint" role="status" hidden></p>
               <textarea id="logs-copy-fallback" class="logs-copy-fallback" aria-label="无法自动复制时，请手动选择复制以下诊断内容" readonly hidden></textarea>
             </section>
-            <div class="status-actions"><a id="actions-link" class="secondary-button" href="https://github.com" target="_blank" rel="noreferrer" hidden><svg class="icon"><use href="#i-github"/></svg>在 GitHub 查看日志<svg class="icon small-icon"><use href="#i-external"/></svg></a></div>
           </section>
           <section class="panel project-manager" aria-labelledby="project-manager-title">
             <div class="project-manager-heading"><div><span class="section-overline">SOURCE PROJECTS</span><h3 id="project-manager-title">项目源码管理</h3></div><button id="refresh-projects" class="secondary-button" type="button">读取项目</button></div>

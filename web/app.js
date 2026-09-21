@@ -77,7 +77,6 @@ function invalidateWorkspace() {
   state.workspace = null;
   $("#workspace-status").textContent = "尚未核对账号和仓库。填写自己的仓库与 Token 后，点击“检查我的仓库”。";
   $("#workspace-status").dataset.visibility = "unknown";
-  $("#allow-public-upload").checked = false;
   $("#public-upload-warning").hidden = true;
   resetProjects("仓库信息变化后，请重新读取项目。");
 }
@@ -87,7 +86,7 @@ const workspaceCacheMs = 60 * 1000;
 async function verifyWorkspace({ upload = false, fresh = false } = {}) {
   const cached = state.workspace;
   if (!fresh && cached && historyMatchesInputs() && Date.now() - cached.checkedAt < workspaceCacheMs) {
-    if (upload && !cached.repository.private && !$("#allow-public-upload").checked) throw new Error("当前是公开仓库，尚未授权公开源码。请改用自己的私有仓库，或阅读上传区的公开风险并单独勾选确认。");
+    if (upload && !$("#upload-consent").checked) throw new Error("请先阅读上传说明，并勾选唯一的“确认提交”选项。");
     return cached.repository;
   }
   const base = repoBase(), previous = state.workspace;
@@ -107,13 +106,13 @@ async function verifyWorkspace({ upload = false, fresh = false } = {}) {
   if (repository.archived || repository.disabled || repository.permissions?.push === false) throw new Error("这个仓库已归档、停用或不可写，请选择可用的个人仓库。");
   if (!Number.isSafeInteger(workflow.id) || workflow.state !== "active") throw new Error("编译工作流尚未安装或未启用。请按指南导入纯净初始化包，并在自己的仓库 Actions 中启用工作流。");
   if (state.closed || !historyMatchesInputs()) throw new Error("页面会话已变化，已停止操作。");
-  if (!previous || previous.id !== repository.id || previous.private !== repository.private) $("#allow-public-upload").checked = false;
+  if (previous && (previous.id !== repository.id || previous.private !== repository.private)) $("#upload-consent").checked = false;
   state.workspace = { id: repository.id, private: repository.private, login: user.login, repository, checkedAt: Date.now() };
   $("#workspace-status").dataset.visibility = repository.private ? "private" : "public";
   $("#workspace-status").textContent = `已核对账号 ${user.login} · ${repository.full_name} · ${repository.private ? "Private 私有仓库" : "Public 公开仓库，源码所有人可见"}。编译工作流已启用；写入权限仍以实际操作结果为准。`;
   $("#public-upload-warning").hidden = repository.private;
   updateLinks();
-  if (upload && !repository.private && !$("#allow-public-upload").checked) throw new Error("当前是公开仓库，尚未授权公开源码。请改用自己的私有仓库，或阅读上传区的公开风险并单独勾选确认。");
+  if (upload && !$("#upload-consent").checked) throw new Error("仓库信息发生变化，请重新阅读风险说明并勾选唯一的“确认提交”选项。");
   return repository;
 }
 
@@ -474,7 +473,6 @@ function updateSourceMode() {
 function updateDestination() {
   $("#upload-destination").textContent = `提交位置：${repoInput.value.trim()} · ${branchInput.value.trim() || "main"} → sources/${$("#upload-project").value.trim() || "项目名称"}`;
   $("#upload-consent").checked = false;
-  $("#allow-public-upload").checked = false;
 }
 async function selectSource(files, folder) {
   if (state.busy || !files.length) return;
