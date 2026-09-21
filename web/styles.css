@@ -716,4 +716,3 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .workspace:not(.guide-workspace) { width: auto; max-width: none; zoom: .74; }
   .workspace:not(.guide-workspace):has(input[name="source_mode"][value="upload"]:checked) { zoom: .72; }
 }
-
