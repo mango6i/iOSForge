@@ -250,8 +250,8 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .workspace-connection p { margin: 0; padding: 9px 11px; font-size: .75rem; line-height: 1.55; }
 }
 @media (min-width: 1650px) {
-  .workspace { padding-top: 24px; }
-  .page-heading { margin-bottom: 18px; }
+  .workspace:not(.guide-workspace) { padding-top: 16px; }
+  .workspace:not(.guide-workspace) .page-heading { margin-bottom: 12px; }
 }
 @media (max-width: 1200px) {
   .app-shell { grid-template-columns: 184px minmax(0, 1fr); }
@@ -625,9 +625,9 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 @media (min-width: 1350px) {
   .activity-column { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .status-panel { display: grid; grid-template-columns: minmax(245px, .9fr) minmax(280px, 1.1fr); align-items: start; column-gap: 16px; grid-column: 1 / -1; }
-  .status-panel > .panel-heading, .status-panel > .run-meta, .status-panel > .artifact-list, .status-panel > .download-message { grid-column: 1 / -1; }
+  .status-panel > .panel-heading { grid-column: 1 / -1; grid-row: 1; }
   .status-panel > .panel-heading { margin-bottom: 10px; }
-  .status-overview { grid-template-columns: 92px minmax(0, 1fr); align-self: stretch; gap: 10px; }
+  .status-overview { grid-column: 1; grid-row: 2; grid-template-columns: 92px minmax(0, 1fr); align-self: stretch; gap: 10px; }
   .status-visual { width: 78px; height: 78px; margin-bottom: 7px; }
   .status-core { width: 42px; height: 42px; border-radius: 13px; }
   .status-core .icon { width: 20px; height: 20px; }
@@ -637,29 +637,83 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .pipeline li:not(:last-child)::after { top: 24px; bottom: 3px; }
   .pipeline-marker { width: 21px; height: 21px; }
   .pipeline li strong { font-size: .75rem; }
-  .build-logs { align-self: start; margin-top: 0; padding-top: 0; border-top: 0; border-left: 1px solid var(--border); padding-left: 16px; }
+  .build-logs { grid-column: 2; grid-row: 2; align-self: start; margin-top: 0; padding: 9px 10px; border: 1px solid var(--border); border-radius: 9px; background: #f8fbffbd; box-shadow: inset 0 1px #fff; }
+  .status-panel > .run-meta { grid-column: 1; grid-row: 3; align-self: start; padding: 12px 0 0; margin-top: 10px; }
+  .status-panel > .artifact-list { grid-column: 2; grid-row: 3; align-self: start; margin-top: 10px; padding: 10px 0 0 16px; border-left: 1px solid var(--border); }
+  .status-panel > .download-message { grid-column: 1 / -1; grid-row: 4; margin: 8px 0 0; }
+  .status-panel .artifact-heading { margin: 0 0 7px; }
+  .status-panel .artifact-row { padding: 10px; gap: 8px; }
   .project-manager-controls { grid-template-columns: minmax(0, 1fr); }
   .project-manager .danger-button { width: 100%; min-height: 38px; padding-block: 7px; }
-  .build-logs { margin-top: 11px; padding-top: 11px; }
+  .build-logs { margin-top: 0; }
   .logs-heading h3 { font-size: .875rem; }
   #logs-notice { margin-top: 4px; font-size: .6875rem; line-height: 1.4; }
   .logs-toolbar { margin: 6px 0; gap: 6px; }
   .logs-toolbar select { padding: 5px 7px; font-size: .75rem; }
   .logs-toolbar .secondary-button, .logs-actions .secondary-button { min-height: 29px; padding: 4px 7px; font-size: .6875rem; }
-  .logs-output { height: 86px; padding: 8px 9px; font-size: .6875rem; line-height: 1.45; }
+  .logs-output { height: 62px; padding: 7px 8px; font-size: .6875rem; line-height: 1.45; }
   .logs-output .logs-empty { font-size: .75rem; line-height: 1.55; }
   .logs-footer { margin-top: 4px; font-size: .6875rem; }
   .logs-actions { margin-top: 5px; gap: 6px; }
   .logs-privacy { margin-top: 5px; font-size: .625rem; line-height: 1.45; }
   #history-list { max-height: 150px; }
+
+  /* Upload mode uses the horizontal desktop space instead of stacking a second form below. */
+  #build-form > .source-section:has(input[name="source_mode"][value="upload"]:checked) {
+    grid-template-columns: minmax(210px, .9fr) minmax(260px, 1fr) minmax(215px, .9fr) minmax(260px, 1.1fr);
+    column-gap: 16px;
+  }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) > .ipa-fields {
+    grid-column: 2;
+    grid-row: 2 / span 8;
+  }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) > .upload-panel {
+    grid-column: 3 / -1;
+    grid-row: 2 / span 8;
+    display: grid;
+    grid-template-columns: minmax(215px, .9fr) minmax(250px, 1.1fr);
+    grid-template-areas:
+      "drop consent"
+      "drop warning"
+      "drop replace"
+      "preview project"
+      "selection destination"
+      "progress help";
+    align-items: start;
+    gap: 7px 12px;
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-dropzone { grid-area: drop; min-height: 176px; justify-content: center; padding: 14px 10px; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-dropzone > .icon { width: 26px; height: 26px; margin-bottom: 8px; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-dropzone p { margin: 4px 0 10px; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-limits { margin-top: 10px; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) #upload-selection-status { grid-area: selection; margin: 0; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-preview { grid-area: preview; margin: 0; padding: 10px 12px; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-panel > .field { grid-area: project; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) #upload-destination { grid-area: destination; margin: 0; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-panel > label:has(#upload-consent) { grid-area: consent; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .public-upload-warning { grid-area: warning; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-panel > label:has(#upload-replace) { grid-area: replace; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) #upload-progress-wrap { grid-area: progress; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-panel > .field-hint:last-child { grid-area: help; margin: 0; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-consent,
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .public-upload-warning { margin: 0; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .public-upload-warning { padding: 11px 12px; font-size: .8125rem; line-height: 1.55; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .public-upload-warning p { margin: 5px 0 0; font-size: .75rem; line-height: 1.55; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-consent { font-size: .75rem; line-height: 1.55; }
+  .workspace:not(.guide-workspace) .workspace-note { margin-top: 12px; padding: 10px 13px; }
+  .workspace:not(.guide-workspace) .footer { padding: 8px 0; }
 }
 
-/* Keep the complete dashboard visible on short desktop screens without hiding copy or controls. */
+/* Keep the complete dashboard readable on short desktop screens without hiding copy or controls. */
 @media (min-width: 1350px) and (max-height: 1000px) {
-  .workspace:not(.guide-workspace) { width: auto; max-width: none; zoom: .82; }
-  .workspace:not(.guide-workspace):has(input[name="source_mode"][value="upload"]:checked) { zoom: .62; }
+  .workspace:not(.guide-workspace) { width: auto; max-width: none; zoom: .84; }
+  .workspace:not(.guide-workspace):has(input[name="source_mode"][value="upload"]:checked) { zoom: .84; }
 }
 @media (min-width: 1350px) and (max-height: 820px) {
-  .workspace:not(.guide-workspace) { width: auto; max-width: none; zoom: .69; }
-  .workspace:not(.guide-workspace):has(input[name="source_mode"][value="upload"]:checked) { zoom: .49; }
+  .workspace:not(.guide-workspace) { width: auto; max-width: none; zoom: .74; }
+  .workspace:not(.guide-workspace):has(input[name="source_mode"][value="upload"]:checked) { zoom: .72; }
 }
+
