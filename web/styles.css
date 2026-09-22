@@ -103,6 +103,9 @@ h2 { font-size: 1.1875rem; font-weight: 570; letter-spacing: -.3px; line-height:
 .source-section { margin-top: 24px; padding-top: 21px; border-top: 1px solid var(--border-soft); }
 .source-target-card { min-width: 0; }
 .source-card-heading, .upload-panel-heading { display: none; }
+.source-upload-zone { display: none; min-width: 0; margin-top: 14px; }
+.source-section:has(input[name="source_mode"][value="upload"]:checked) .source-upload-zone { display: flex; flex-direction: column; gap: 8px; }
+.source-upload-zone .upload-primary-column { display: flex; min-width: 0; flex-direction: column; gap: 8px; }
 .source-fields { display: grid; grid-template-columns: minmax(0, 2fr) minmax(110px, 1fr); gap: 12px; }
 .field { display: block; min-width: 0; }
 .field > span:first-child { display: block; font-size: .875rem; color: var(--muted); margin-bottom: 7px; }
@@ -774,6 +777,7 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .source-target-card .field > span:first-child { white-space: nowrap; }
   .source-target-card > #repository-help { margin-top: 11px; }
   .source-target-card > .source-directory-field { margin-top: 12px; }
+  .source-target-card > .source-upload-zone { margin-top: 14px; }
 
   #build-form > .source-section:has(input[name="source_mode"][value="upload"]:checked) {
     grid-template-columns: minmax(250px, .86fr) minmax(260px, .9fr) minmax(390px, 1.3fr);
@@ -787,11 +791,11 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
     grid-column: 3;
     grid-row: 2;
     display: grid;
-    grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
-      "files-heading files-heading"
-      "files-primary files-details"
-      "files-progress files-progress";
+      "files-heading"
+      "files-details"
+      "files-progress";
     align-content: start;
     gap: 8px;
     height: 100%;
@@ -802,12 +806,12 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) > .upload-panel > * { grid-area: auto; margin-block: 0; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-panel-heading { grid-area: files-heading; }
-  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-primary-column { grid-area: files-primary; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-details-column { grid-area: files-details; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) #upload-progress-wrap { grid-area: files-progress; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .source-upload-zone,
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-primary-column,
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-details-column { display: flex; min-width: 0; flex-direction: column; gap: 8px; }
-  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-dropzone { min-height: 160px; padding: 12px 8px; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-dropzone { min-height: 142px; padding: 12px 8px; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-primary-column > *,
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-details-column > * { margin-block: 0; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-preview { padding: 9px 10px; }
@@ -819,7 +823,7 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   }
   .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="upload"]:checked) > .upload-panel {
     grid-column: 2;
-    grid-template-columns: minmax(250px, .9fr) minmax(310px, 1.1fr);
+    grid-template-columns: minmax(0, 1fr);
   }
 
   /* Repository-only plugin builds stay aligned without an empty settings card. */
