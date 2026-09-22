@@ -7,7 +7,7 @@
   <meta name="description" content="iOSForge 编译工作台。在 GitHub 上构建面向 iOS 15+ 的动态库、插件包和应用。" />
   <title>iOSForge · 编译工作台</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=adaptive-layout-3" />
+  <link rel="stylesheet" href="./styles.css?v=adaptive-layout-6" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
   <script src="./source-upload.js?v=fast-reads-1" defer></script>
   <script src="./build-logs.js?v=1" defer></script>
@@ -186,11 +186,10 @@
             <p id="project-message" class="field-hint" role="status">点击“读取项目”查看源码工程；sources/Download 不会被当成项目。删除项目会同时删除该项目全部源码，并清空 sources/Download 中的全部成品。</p>
           </section>
           <section class="panel history-panel" aria-labelledby="history-heading"><div class="history-heading"><div><span class="section-overline">ACTIONS HISTORY</span><h3 id="history-heading">任务记录</h3></div><button id="refresh-history" class="secondary-button" type="button">刷新全部记录</button></div><p id="history-message" class="field-hint" role="status">填好仓库、分支和 Token 后刷新，一次读取最多 100 条 Actions 记录，包括编译、网页发布和环境检查。</p><div id="history-toolbar" class="history-toolbar" hidden><label class="history-select-all"><input id="select-all-runs" type="checkbox" /><span>全选已加载的已结束记录</span></label><div class="history-batch-actions"><button id="select-failed-runs" class="secondary-button" type="button">只选失败 / 取消</button><button id="delete-selected-runs" class="danger-button" type="button" disabled>删除所选（0）</button></div><p>处理当前仓库和分支的全部 Actions 工作流记录。编译任务可查看产物，网页发布和环境检查可打开 GitHub 原始记录。删除记录只会删除 Actions 记录与日志，不会删除 sources/Download 中的真实产物或源码。</p></div><div id="history-list"></div><button id="load-more-runs" class="secondary-button history-load-more" type="button" hidden>再加载 100 条记录</button><p class="history-retention-note">真实产物统一保存在 sources/Download/文件名.ipa|deb|dylib；同名文件在下次成功构建时更新。删除最后一个成品后，空的 Download 文件夹会自动消失。<a href="./guide.html#history-cleanup" target="_blank" rel="noreferrer">查看清理说明 ↗</a></p></section>
+          <aside class="workspace-note"><span class="note-icon"><svg class="icon"><use href="#i-info"/></svg></span><p><strong>你的源码，你的构建。</strong> 本页面调用仓库中已有的编译流程。首次使用可参考项目配置指南。</p><a href="./guide.html">查看指南<svg class="icon small-icon"><use href="#i-external"/></svg></a></aside>
+          <footer class="footer"><span>iOSForge <span class="footer-slash">/</span> Build Studio</span><span>Powered by GitHub Actions</span></footer>
           </div>
         </div>
-
-        <aside class="workspace-note"><span class="note-icon"><svg class="icon"><use href="#i-info"/></svg></span><p><strong>你的源码，你的构建。</strong> 本页面调用仓库中已有的编译流程。首次使用可参考项目配置指南。</p><a href="./guide.html">查看指南<svg class="icon small-icon"><use href="#i-external"/></svg></a></aside>
-        <footer class="footer"><span>iOSForge <span class="footer-slash">/</span> Build Studio</span><span>Powered by GitHub Actions</span></footer>
       </main>
     </div>
   </div>

@@ -703,7 +703,8 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .public-upload-warning { padding: 11px 12px; font-size: .8125rem; line-height: 1.55; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .public-upload-warning p { margin: 5px 0 0; font-size: .75rem; line-height: 1.55; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-consent { font-size: .75rem; line-height: 1.55; }
-  .workspace:not(.guide-workspace) .workspace-note { margin-top: 12px; padding: 10px 13px; }
+  .activity-column > .workspace-note, .activity-column > .footer { grid-column: 1 / -1; }
+  .workspace:not(.guide-workspace) .workspace-note { margin-top: 0; padding: 10px 13px; }
   .workspace:not(.guide-workspace) .footer { padding: 8px 0; }
 }
 
@@ -713,6 +714,15 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .workspace:not(.guide-workspace):has(input[name="source_mode"][value="upload"]:checked) { zoom: .84; }
 }
 @media (min-width: 1350px) and (max-height: 820px) {
-  .workspace:not(.guide-workspace) { width: auto; max-width: none; zoom: .74; }
+  .workspace:not(.guide-workspace) { width: auto; max-width: none; zoom: .72; }
   .workspace:not(.guide-workspace):has(input[name="source_mode"][value="upload"]:checked) { zoom: .72; }
+  .activity-column { gap: 6px; }
+  .build-panel { padding-block: 16px 14px; }
+  .build-panel > .panel-heading { margin-bottom: 10px; }
+  #build-form { row-gap: 12px; }
+  #build-form > .source-section { padding-top: 12px; }
+  .primary-button { min-height: 43px; }
+  .form-footnote { margin-top: 5px; line-height: 1.4; }
+  .activity-column > .workspace-note { padding-block: 7px; }
+  .activity-column > .footer { padding-block: 3px; }
 }
