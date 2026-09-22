@@ -7,7 +7,7 @@
   <meta name="description" content="iOSForge 编译工作台。在 GitHub 上构建面向 iOS 15+ 的动态库、插件包和应用。" />
   <title>iOSForge · 编译工作台</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=adaptive-layout-8" />
+  <link rel="stylesheet" href="./styles.css?v=adaptive-layout-9" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
   <script src="./source-upload.js?v=fast-reads-1" defer></script>
   <script src="./build-logs.js?v=1" defer></script>
@@ -92,29 +92,37 @@
 
               <div class="source-section">
                 <h3 class="form-section-title"><span class="step-number">02</span>配置源码</h3>
-                <fieldset class="source-switch"><legend class="sr-only">源码来源</legend><label><input type="radio" name="source_mode" value="repository" checked /><span>使用仓库源码</span></label><label><input type="radio" name="source_mode" value="upload" /><span>上传本地源码</span></label></fieldset>
-                <div class="source-fields">
-                  <label class="field"><span>你自己的 GitHub 仓库</span><span class="input-wrap"><svg class="icon"><use href="#i-repo"/></svg><input id="repo" name="repo" value="mango6i/iOSForge" placeholder="mango6i/iOSForge" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="repository-help" required /></span></label>
-                  <label class="field"><span>分支</span><span class="input-wrap"><svg class="icon"><use href="#i-branch"/></svg><input id="branch" name="branch" value="main" placeholder="main" autocomplete="off" autocapitalize="none" spellcheck="false" required /></span></label>
-                </div>
-                <p id="repository-help" class="field-hint">当前为你的个人工作台，默认使用 mango6i/iOSForge；分支保持 main。需要保护源码时，请先将仓库改为 Private 私有仓库。<a href="./guide.html#own-repository" target="_blank" rel="noreferrer">首次使用：建立自己的构建仓库 ↗</a></p>
-                <label id="source-directory-field" class="field source-directory-field"><span>源码目录 · 可选</span><input id="source-directory" placeholder="留空搜索仓库，或填写 sources/MyProject" autocomplete="off" spellcheck="false" /></label>
-                <div id="upload-panel" class="upload-panel" hidden>
-                  <div id="upload-dropzone" class="upload-dropzone">
-                    <svg class="icon"><use href="#i-package"/></svg><strong>把源码 ZIP 拖到这里</strong><p>也可以选择一个完整工程文件夹</p>
-                    <div class="upload-pickers"><button id="pick-zip" type="button" class="secondary-button">选择 ZIP</button><button id="pick-folder" type="button" class="secondary-button">选择文件夹</button></div>
-                    <input id="zip-input" type="file" accept=".zip,application/zip" hidden /><input id="folder-input" type="file" webkitdirectory multiple hidden />
-                    <span class="upload-limits">ZIP ≤ 25 MB · 解压后 ≤ 50 MB · 最多 1000 个文件</span>
+                <div class="source-target-card">
+                  <div class="source-card-heading"><span>UPLOAD TARGET</span><strong>上传目标仓库</strong></div>
+                  <fieldset class="source-switch"><legend class="sr-only">源码来源</legend><label><input type="radio" name="source_mode" value="repository" checked /><span>使用仓库源码</span></label><label><input type="radio" name="source_mode" value="upload" /><span>上传本地源码</span></label></fieldset>
+                  <div class="source-fields">
+                    <label class="field"><span>你自己的 GitHub 仓库</span><span class="input-wrap"><svg class="icon"><use href="#i-repo"/></svg><input id="repo" name="repo" value="mango6i/iOSForge" placeholder="mango6i/iOSForge" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="repository-help" required /></span></label>
+                    <label class="field"><span>分支</span><span class="input-wrap"><svg class="icon"><use href="#i-branch"/></svg><input id="branch" name="branch" value="main" placeholder="main" autocomplete="off" autocapitalize="none" spellcheck="false" required /></span></label>
                   </div>
-                  <p id="upload-selection-status" class="field-hint" role="status" aria-live="polite">文件先在浏览器中检查，点击“上传并编译”后才会提交。</p>
-                  <div id="upload-preview" class="upload-preview" hidden><div class="upload-preview-heading"><strong id="upload-file-count"></strong><button id="clear-upload" class="copy-button" type="button">清除选择</button></div><details><summary>查看待上传文件</summary><ul id="upload-file-list"></ul></details></div>
-                  <label class="field"><span>项目文件夹名称</span><input id="upload-project" placeholder="例如 MyProject" autocomplete="off" spellcheck="false" maxlength="64" /></label>
-                  <p id="upload-destination" class="field-hint"></p>
-                  <label class="upload-consent"><input id="upload-consent" type="checkbox" /><span>确认提交到以上我自己的仓库，已检查源码不含密钥；如果仓库是 Public 公开仓库，我也确认源码上传后所有人可见。私有仓库可降低公开泄露风险，但不能保证绝对安全。</span></label>
-                  <div id="public-upload-warning" class="public-upload-warning" hidden><strong>当前仓库是公开的：上传后所有人可见。</strong><p>如果源码不应公开，请停止上传，换成自己的 Private 私有仓库。删除当前文件也无法自动清除提交历史。上方“确认提交”是唯一需要勾选的上传确认。</p></div>
-                  <label class="upload-consent"><input id="upload-replace" type="checkbox" /><span>如果目录已存在，允许更新本次同名文件；未上传的旧文件不会删除。</span></label>
+                  <p id="repository-help" class="field-hint">当前为你的个人工作台，默认使用 mango6i/iOSForge；分支保持 main。需要保护源码时，请先将仓库改为 Private 私有仓库。<a href="./guide.html#own-repository" target="_blank" rel="noreferrer">首次使用：建立自己的构建仓库 ↗</a></p>
+                  <label id="source-directory-field" class="field source-directory-field"><span>源码目录 · 可选</span><input id="source-directory" placeholder="留空搜索仓库，或填写 sources/MyProject" autocomplete="off" spellcheck="false" /></label>
+                </div>
+                <div id="upload-panel" class="upload-panel" hidden>
+                  <div class="upload-panel-heading"><span>SOURCE FILES</span><strong>本地源码</strong></div>
+                  <div class="upload-primary-column">
+                    <div id="upload-dropzone" class="upload-dropzone">
+                      <svg class="icon"><use href="#i-package"/></svg><strong>把源码 ZIP 拖到这里</strong><p>也可以选择一个完整工程文件夹</p>
+                      <div class="upload-pickers"><button id="pick-zip" type="button" class="secondary-button">选择 ZIP</button><button id="pick-folder" type="button" class="secondary-button">选择文件夹</button></div>
+                      <input id="zip-input" type="file" accept=".zip,application/zip" hidden /><input id="folder-input" type="file" webkitdirectory multiple hidden />
+                      <span class="upload-limits">ZIP ≤ 25 MB · 解压后 ≤ 50 MB · 最多 1000 个文件</span>
+                    </div>
+                    <p id="upload-selection-status" class="field-hint" role="status" aria-live="polite">文件先在浏览器中检查，点击“上传并编译”后才会提交。</p>
+                    <div id="upload-preview" class="upload-preview" hidden><div class="upload-preview-heading"><strong id="upload-file-count"></strong><button id="clear-upload" class="copy-button" type="button">清除选择</button></div><details><summary>查看待上传文件</summary><ul id="upload-file-list"></ul></details></div>
+                  </div>
+                  <div class="upload-details-column">
+                    <label class="field"><span>项目文件夹名称</span><input id="upload-project" placeholder="例如 MyProject" autocomplete="off" spellcheck="false" maxlength="64" /></label>
+                    <p id="upload-destination" class="field-hint"></p>
+                    <label class="upload-consent"><input id="upload-consent" type="checkbox" /><span>确认提交到以上我自己的仓库，已检查源码不含密钥；如果仓库是 Public 公开仓库，我也确认源码上传后所有人可见。私有仓库可降低公开泄露风险，但不能保证绝对安全。</span></label>
+                    <div id="public-upload-warning" class="public-upload-warning" hidden><strong>当前仓库是公开的：上传后所有人可见。</strong><p>如果源码不应公开，请停止上传，换成自己的 Private 私有仓库。删除当前文件也无法自动清除提交历史。上方“确认提交”是唯一需要勾选的上传确认。</p></div>
+                    <label class="upload-consent"><input id="upload-replace" type="checkbox" /><span>如果目录已存在，允许更新本次同名文件；未上传的旧文件不会删除。</span></label>
+                    <p class="field-hint">支持完整 Theos / Xcode 源码，不是现成 IPA、deb 或 dylib。单个文件上限 10 MB。<a href="./guide.html#upload">查看上传说明 ↗</a></p>
+                  </div>
                   <div id="upload-progress-wrap" hidden><progress id="upload-progress" max="100" value="0" aria-label="源码上传进度"></progress><p id="upload-progress-text" class="field-hint" role="status" aria-live="polite"></p></div>
-                  <p class="field-hint">支持完整 Theos / Xcode 源码，不是现成 IPA、deb 或 dylib。单个文件上限 10 MB。<a href="./guide.html#upload">查看上传说明 ↗</a></p>
                 </div>
                 <p id="upload-result" class="upload-result" role="status" hidden></p>
                 <div id="ipa-fields" class="ipa-fields">

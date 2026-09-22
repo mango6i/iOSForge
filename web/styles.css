@@ -101,6 +101,8 @@ h2 { font-size: 1.1875rem; font-weight: 570; letter-spacing: -.3px; line-height:
 .output-option input:focus-visible + .output-card { outline: 2px solid var(--accent); outline-offset: 4px; }
 .field-hint { color: var(--subtle); font-size: .8125rem; margin: 9px 0 0; line-height: 1.6; }
 .source-section { margin-top: 24px; padding-top: 21px; border-top: 1px solid var(--border-soft); }
+.source-target-card { min-width: 0; }
+.source-card-heading, .upload-panel-heading { display: none; }
 .source-fields { display: grid; grid-template-columns: minmax(0, 2fr) minmax(110px, 1fr); gap: 12px; }
 .field { display: block; min-width: 0; }
 .field > span:first-child { display: block; font-size: .875rem; color: var(--muted); margin-bottom: 7px; }
@@ -739,7 +741,7 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 }
 @media (min-width: 1350px) and (max-height: 820px) {
   .workspace:not(.guide-workspace) { width: auto; max-width: none; zoom: .74; }
-  .workspace:not(.guide-workspace):has(input[name="source_mode"][value="upload"]:checked) { zoom: .74; }
+  .workspace:not(.guide-workspace):has(input[name="source_mode"][value="upload"]:checked) { zoom: .69; }
   .activity-column { gap: 6px; }
   .build-panel { padding-block: 16px 14px; }
   .build-panel > .panel-heading { margin-bottom: 10px; }
@@ -750,4 +752,88 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .activity-column > .workspace-note { padding-block: 7px; }
   .activity-column > .footer { padding-block: 3px; }
   .logs-output { height: 92px; }
+}
+
+/* Cohesive desktop source cards: target, build settings and local files. */
+@media (min-width: 1350px) {
+  #build-form > .source-section { align-items: stretch; }
+  .source-section > .source-target-card { grid-column: 1; grid-row: 2; }
+  .source-target-card, .source-section > .ipa-fields, .source-section > .upload-panel {
+    min-width: 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: inset 0 1px #fff;
+  }
+  .source-target-card { padding: 14px; background: linear-gradient(155deg, #f8fbff, #f2f7ff); }
+  .source-section > .ipa-fields { height: 100%; padding: 14px; background: linear-gradient(155deg, #edf5ff, #f5f9ff); }
+  .source-card-heading, .upload-panel-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+  .source-card-heading span, .upload-panel-heading span { color: var(--subtle); font-family: var(--mono); font-size: .625rem; letter-spacing: 1.25px; }
+  .source-card-heading strong, .upload-panel-heading strong { color: #2f4b6c; font-size: .8125rem; font-weight: 600; }
+  .source-target-card .source-switch { margin-bottom: 12px; }
+  .source-target-card .source-fields { grid-template-columns: minmax(0, 1.7fr) minmax(94px, .8fr); align-items: end; }
+  .source-target-card .field > span:first-child { white-space: nowrap; }
+  .source-target-card > #repository-help { margin-top: 11px; }
+  .source-target-card > .source-directory-field { margin-top: 12px; }
+
+  #build-form > .source-section:has(input[name="source_mode"][value="upload"]:checked) {
+    grid-template-columns: minmax(250px, .86fr) minmax(260px, .9fr) minmax(390px, 1.3fr);
+    grid-template-areas: none;
+    gap: 14px;
+  }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) > .form-section-title { grid-column: 1 / -1; grid-row: 1; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) > .source-target-card { grid-column: 1; grid-row: 2; height: 100%; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) > .ipa-fields { grid-column: 2; grid-row: 2; height: 100%; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) > .upload-panel {
+    grid-column: 3;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+    grid-template-areas:
+      "files-heading files-heading"
+      "files-primary files-details"
+      "files-progress files-progress";
+    align-content: start;
+    gap: 8px;
+    height: 100%;
+    margin: 0;
+    padding: 14px;
+    border-top: 1px solid var(--border);
+    background: linear-gradient(155deg, #fbfdff, #f4f9ff);
+  }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) > .upload-panel > * { grid-area: auto; margin-block: 0; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-panel-heading { grid-area: files-heading; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-primary-column { grid-area: files-primary; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-details-column { grid-area: files-details; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) #upload-progress-wrap { grid-area: files-progress; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-primary-column,
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-details-column { display: flex; min-width: 0; flex-direction: column; gap: 8px; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-dropzone { min-height: 160px; padding: 12px 8px; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-primary-column > *,
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-details-column > * { margin-block: 0; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-preview { padding: 9px 10px; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .public-upload-warning { padding: 9px 10px; }
+
+  /* Non-IPA upload mode reuses the hidden IPA card width. */
+  #build-form > .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="upload"]:checked) {
+    grid-template-columns: minmax(320px, .9fr) minmax(520px, 1.55fr);
+  }
+  .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="upload"]:checked) > .upload-panel {
+    grid-column: 2;
+    grid-template-columns: minmax(250px, .9fr) minmax(310px, 1.1fr);
+  }
+
+  /* Repository-only plugin builds stay aligned without an empty settings card. */
+  #build-form > .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="repository"]:checked) { display: block; }
+  .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="repository"]:checked) > .form-section-title { margin-bottom: 13px; }
+  .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="repository"]:checked) > .source-target-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "target-title target-title" "target-switch target-directory" "target-fields target-help";
+    gap: 10px 16px;
+  }
+  .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="repository"]:checked) .source-card-heading { grid-area: target-title; }
+  .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="repository"]:checked) .source-switch { grid-area: target-switch; margin: 0; }
+  .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="repository"]:checked) .source-fields { grid-area: target-fields; }
+  .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="repository"]:checked) #repository-help { grid-area: target-help; margin: 0; }
+  .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="repository"]:checked) .source-directory-field { grid-area: target-directory; margin: 0; }
 }
