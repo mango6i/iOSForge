@@ -64,6 +64,9 @@ button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px soli
 .topbar-link:hover { color: var(--text); }
 .workspace { max-width: 1640px; padding: 12px 24px 0; margin: 0 auto; }
 .page-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 18px; }
+.heading-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-shrink: 0; }
+.page-heading .topbar-link { min-height: 31px; padding: 5px 9px; border: 1px solid var(--border); border-radius: 6px; background: #f7fbffd9; font-size: .75rem; }
+.page-heading .topbar-link .icon { width: 14px; height: 14px; }
 .eyebrow { color: #3375c9; font-family: var(--mono); font-size: .75rem; letter-spacing: 1.9px; margin: 0 0 4px; }
 h1 { font-size: clamp(1.75rem, 2.2vw, 2.25rem); font-weight: 600; letter-spacing: -1.4px; line-height: 1.22; margin: 0; }
 .heading-dot { color: var(--accent); margin-left: 4px; }
@@ -228,7 +231,7 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 
 @media (min-width: 1350px) {
   .page-heading { margin-bottom: 8px; }
-  .page-heading > div { display: flex; align-items: baseline; gap: 16px; min-width: 0; }
+  .page-heading > div:first-child { display: flex; align-items: baseline; gap: 16px; min-width: 0; }
   .page-heading .eyebrow, .page-heading .page-description { margin: 0; white-space: nowrap; }
   #build-form { display: grid; grid-template-columns: minmax(0, .9fr) minmax(330px, 1.1fr); align-items: start; gap: 17px 20px; }
   #build-form > .output-fieldset { grid-column: 1; grid-row: 1; }
@@ -243,6 +246,19 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .source-section > .upload-panel,
   .source-section > .upload-result { grid-column: 1; }
   .source-section > .ipa-fields { grid-column: 2; grid-row: 2 / span 8; margin-top: 0; }
+
+  /* Non-IPA repository builds use both columns instead of reserving an empty IPA column. */
+  #build-form > .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="repository"]:checked) {
+    grid-template-areas:
+      "source-title source-title"
+      "source-switch source-directory"
+      "source-fields source-help";
+  }
+  .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="repository"]:checked) > .form-section-title { grid-area: source-title; }
+  .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="repository"]:checked) > .source-switch { grid-area: source-switch; }
+  .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="repository"]:checked) > .source-fields { grid-area: source-fields; }
+  .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="repository"]:checked) > #repository-help { grid-area: source-help; margin-top: 0; }
+  .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="repository"]:checked) > .source-directory-field { grid-area: source-directory; }
   .output-card { padding: 11px 12px 10px; }
   .output-top { margin-bottom: 7px; }
   .output-card strong { font-size: 1.0625rem; }
@@ -637,7 +653,7 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .pipeline li:not(:last-child)::after { top: 24px; bottom: 3px; }
   .pipeline-marker { width: 21px; height: 21px; }
   .pipeline li strong { font-size: .75rem; }
-  .build-logs { grid-column: 2; grid-row: 2; align-self: start; margin-top: 0; padding: 9px 10px; border: 1px solid var(--border); border-radius: 9px; background: #f8fbffbd; box-shadow: inset 0 1px #fff; }
+  .build-logs { grid-column: 2; grid-row: 2; align-self: stretch; display: flex; flex-direction: column; min-height: 0; margin-top: 0; padding: 9px 10px; border: 1px solid var(--border); border-radius: 9px; background: #f8fbffbd; box-shadow: inset 0 1px #fff; }
   .status-panel > .run-meta { grid-column: 1; grid-row: 3; align-self: start; padding: 12px 0 0; margin-top: 10px; }
   .status-panel > .artifact-list { grid-column: 2; grid-row: 3; align-self: start; margin-top: 10px; padding: 10px 0 0 16px; border-left: 1px solid var(--border); }
   .status-panel > .download-message { grid-column: 1 / -1; grid-row: 4; margin: 8px 0 0; }
@@ -651,58 +667,66 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .logs-toolbar { margin: 6px 0; gap: 6px; }
   .logs-toolbar select { padding: 5px 7px; font-size: .75rem; }
   .logs-toolbar .secondary-button, .logs-actions .secondary-button { min-height: 29px; padding: 4px 7px; font-size: .6875rem; }
-  .logs-output { height: 62px; padding: 7px 8px; font-size: .6875rem; line-height: 1.45; }
+  .logs-output { height: clamp(140px, 22vh, 220px); padding: 7px 8px; font-size: .6875rem; line-height: 1.45; }
   .logs-output .logs-empty { font-size: .75rem; line-height: 1.55; }
   .logs-footer { margin-top: 4px; font-size: .6875rem; }
   .logs-actions { margin-top: 5px; gap: 6px; }
   .logs-privacy { margin-top: 5px; font-size: .625rem; line-height: 1.45; }
   #history-list { max-height: 150px; }
 
-  /* Upload mode uses the horizontal desktop space instead of stacking a second form below. */
+  /* Upload mode packs each visible control into the desktop grid instead of leaving dead columns. */
   #build-form > .source-section:has(input[name="source_mode"][value="upload"]:checked) {
     grid-template-columns: minmax(210px, .9fr) minmax(260px, 1fr) minmax(215px, .9fr) minmax(260px, 1.1fr);
+    grid-template-areas:
+      "upload-title upload-title upload-title upload-title"
+      "upload-switch upload-ipa upload-consent upload-project"
+      "upload-fields upload-ipa upload-warning upload-destination"
+      "upload-help upload-ipa upload-replace upload-selection"
+      "upload-drop upload-ipa upload-preview upload-extra-help"
+      "upload-drop upload-ipa upload-progress upload-progress";
     column-gap: 16px;
+    row-gap: 7px;
   }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) > .form-section-title { grid-area: upload-title; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) > .source-switch { grid-area: upload-switch; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) > .source-fields { grid-area: upload-fields; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) > #repository-help { grid-area: upload-help; margin-top: 0; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) > .ipa-fields {
-    grid-column: 2;
-    grid-row: 2 / span 8;
+    grid-area: upload-ipa;
   }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) > .upload-panel {
-    grid-column: 3 / -1;
-    grid-row: 2 / span 8;
-    display: grid;
-    grid-template-columns: minmax(215px, .9fr) minmax(250px, 1.1fr);
-    grid-template-areas:
-      "drop consent"
-      "drop warning"
-      "drop replace"
-      "preview project"
-      "selection destination"
-      "progress help";
-    align-items: start;
-    gap: 7px 12px;
-    margin-top: 0;
-    padding-top: 0;
-    border-top: 0;
+    display: contents;
   }
-  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-dropzone { grid-area: drop; min-height: 176px; justify-content: center; padding: 14px 10px; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-dropzone { grid-area: upload-drop; min-height: 154px; justify-content: center; padding: 12px 10px; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-dropzone > .icon { width: 26px; height: 26px; margin-bottom: 8px; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-dropzone p { margin: 4px 0 10px; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-limits { margin-top: 10px; }
-  .source-section:has(input[name="source_mode"][value="upload"]:checked) #upload-selection-status { grid-area: selection; margin: 0; }
-  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-preview { grid-area: preview; margin: 0; padding: 10px 12px; }
-  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-panel > .field { grid-area: project; }
-  .source-section:has(input[name="source_mode"][value="upload"]:checked) #upload-destination { grid-area: destination; margin: 0; }
-  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-panel > label:has(#upload-consent) { grid-area: consent; }
-  .source-section:has(input[name="source_mode"][value="upload"]:checked) .public-upload-warning { grid-area: warning; }
-  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-panel > label:has(#upload-replace) { grid-area: replace; }
-  .source-section:has(input[name="source_mode"][value="upload"]:checked) #upload-progress-wrap { grid-area: progress; }
-  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-panel > .field-hint:last-child { grid-area: help; margin: 0; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) #upload-selection-status { grid-area: upload-selection; margin: 0; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-preview { grid-area: upload-preview; margin: 0; padding: 10px 12px; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-panel > .field { grid-area: upload-project; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) #upload-destination { grid-area: upload-destination; margin: 0; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-panel > label:has(#upload-consent) { grid-area: upload-consent; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .public-upload-warning { grid-area: upload-warning; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-panel > label:has(#upload-replace) { grid-area: upload-replace; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) #upload-progress-wrap { grid-area: upload-progress; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-panel > .field-hint:last-child { grid-area: upload-extra-help; margin: 0; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-consent,
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .public-upload-warning { margin: 0; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .public-upload-warning { padding: 11px 12px; font-size: .8125rem; line-height: 1.55; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .public-upload-warning p { margin: 5px 0 0; font-size: .75rem; line-height: 1.55; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-consent { font-size: .75rem; line-height: 1.55; }
+
+  /* When IPA options are hidden, collapse the four-column upload grid to three real columns. */
+  #build-form > .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="upload"]:checked) {
+    grid-template-columns: minmax(235px, .9fr) minmax(260px, 1fr) minmax(300px, 1.15fr);
+    grid-template-areas:
+      "upload-title upload-title upload-title"
+      "upload-switch upload-consent upload-project"
+      "upload-fields upload-warning upload-destination"
+      "upload-help upload-replace upload-selection"
+      "upload-drop upload-preview upload-extra-help"
+      "upload-drop upload-progress upload-progress";
+  }
   .activity-column > .workspace-note, .activity-column > .footer { grid-column: 1 / -1; }
   .workspace:not(.guide-workspace) .workspace-note { margin-top: 0; padding: 10px 13px; }
   .workspace:not(.guide-workspace) .footer { padding: 8px 0; }
@@ -725,4 +749,5 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .form-footnote { margin-top: 5px; line-height: 1.4; }
   .activity-column > .workspace-note { padding-block: 7px; }
   .activity-column > .footer { padding-block: 3px; }
+  .logs-output { height: 92px; }
 }

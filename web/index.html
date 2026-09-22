@@ -7,7 +7,7 @@
   <meta name="description" content="iOSForge 编译工作台。在 GitHub 上构建面向 iOS 15+ 的动态库、插件包和应用。" />
   <title>iOSForge · 编译工作台</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=adaptive-layout-7" />
+  <link rel="stylesheet" href="./styles.css?v=adaptive-layout-8" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
   <script src="./source-upload.js?v=fast-reads-1" defer></script>
   <script src="./build-logs.js?v=1" defer></script>
@@ -57,15 +57,13 @@
     </aside>
 
     <div class="main-shell">
-      <header class="topbar">
-        <div class="breadcrumb"><span>工作空间</span><span class="breadcrumb-slash">/</span><strong>编译工作台</strong></div>
-        <a id="actions-link" class="topbar-link" href="https://github.com" target="_blank" rel="noreferrer"><svg class="icon"><use href="#i-github"/></svg><span>GitHub Actions · 在 GitHub 查看日志</span><svg class="icon small-icon"><use href="#i-external"/></svg></a>
-      </header>
-
       <main id="workspace" class="workspace">
         <section class="page-heading" aria-labelledby="page-title">
-          <div><p class="eyebrow">YOUR NEXT BUILD STARTS HERE</p><h1 id="page-title">从代码，到作品<span class="heading-dot">.</span></h1><p class="page-description">连接源码仓库，在云端完成你的下一次 iOS 构建。</p></div>
-          <span class="platform-badge"><svg class="icon"><use href="#i-phone"/></svg>iOS 15+</span>
+          <div class="heading-copy"><p class="eyebrow">YOUR NEXT BUILD STARTS HERE</p><h1 id="page-title">从代码，到作品<span class="heading-dot">.</span></h1><p class="page-description">连接源码仓库，在云端完成你的下一次 iOS 构建。</p></div>
+          <div class="heading-actions">
+            <a id="actions-link" class="topbar-link" href="https://github.com" target="_blank" rel="noreferrer"><svg class="icon"><use href="#i-github"/></svg><span>GitHub 日志</span><svg class="icon small-icon"><use href="#i-external"/></svg></a>
+            <span class="platform-badge"><svg class="icon"><use href="#i-phone"/></svg>iOS 15+</span>
+          </div>
         </section>
 
         <div class="workspace-grid">
