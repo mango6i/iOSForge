@@ -514,10 +514,13 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 .upload-preview details { margin-top: 9px; color: var(--muted); }
 .upload-preview summary { cursor: pointer; }
 .upload-preview ul { max-height: 200px; overflow: auto; padding-left: 18px; font-family: var(--mono); font-size: .75rem; overflow-wrap: anywhere; }
-.upload-consent { display: grid; grid-template-columns: 16px minmax(0, 1fr); align-items: start; gap: 10px; margin: 14px 0; color: var(--muted); font-size: .875rem; line-height: 1.75; cursor: pointer; }
+.upload-consent { display: grid; grid-template-columns: 16px minmax(0, 1fr); align-items: start; gap: 10px; margin: 14px 0; color: var(--muted); font-size: .875rem; line-height: 1.75; cursor: pointer; border-radius: 7px; transition: color 160ms, background-color 160ms, box-shadow 160ms; }
 .upload-consent input[type="checkbox"] { appearance: auto; width: 16px; height: 16px; min-width: 16px; padding: 0; margin: 4px 0 0; accent-color: var(--accent); }
 .upload-consent > span { min-width: 0; overflow-wrap: anywhere; }
 .upload-consent input:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.upload-consent.is-invalid { color: var(--error); background: #fff2f3; box-shadow: 0 0 0 1px #e8aab0, 0 0 0 4px #c4424e12; }
+.upload-consent.is-invalid > span { color: var(--error); }
+.upload-consent.is-invalid input[type="checkbox"] { accent-color: var(--error); }
 .build-logs { min-width: 0; margin-top: 23px; padding-top: 22px; border-top: 1px solid var(--border); }
 .logs-heading, .logs-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .logs-heading h3 { margin: 3px 0 0; font-size: 1rem; }
@@ -575,6 +578,9 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 .delete-dialog h2 { font-size: 1.25rem; margin: 12px 0; }
 .delete-dialog p { color: var(--muted); font-size: .875rem; line-height: 1.9; }
 .delete-dialog .delete-target { padding: 13px; border: 1px solid var(--border); border-radius: 8px; background: var(--input); overflow-wrap: anywhere; font-family: var(--mono); font-size: .8125rem; }
+.consent-dialog { max-width: min(430px, calc(100% - 32px)); border-color: #e5a7ad; }
+.consent-dialog .section-overline, .consent-dialog h2 { color: var(--error); }
+.consent-dialog .primary-button { width: auto; min-height: 42px; padding-inline: 18px; }
 .dialog-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
 .danger-button { border: 1px solid #b13747; border-radius: 7px; background: #b13747; color: white; padding: 10px 15px; font-size: .875rem; }
 .danger-button:hover { background: #962b3a; }

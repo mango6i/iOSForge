@@ -20,6 +20,10 @@ const runMeta = $("#run-meta");
 const artifactList = $("#artifact-list");
 const artifacts = $("#artifacts");
 const downloadMessage = $("#download-message");
+const uploadConsentInput = $("#upload-consent");
+const uploadConsentRow = uploadConsentInput.closest(".upload-consent");
+const uploadConsentDialog = $("#upload-consent-dialog");
+const uploadConsentDialogDescription = $("#upload-consent-dialog-description");
 const buildLogs = globalThis.IOSForgeLogs?.create();
 
 const state = { token: "", repo: null, branch: "main", runId: null, busy: false, knownRuns: new Set(), phase: "idle", artifacts: [], history: [], projects: [] };
@@ -32,6 +36,40 @@ const hints = {
   deb: "使用 Theos 编译，并打包为可安装的 Debian 插件包。",
   ipa: "使用 Xcode 编译应用，默认输出无需 Apple 证书的未签名 IPA。",
 };
+
+function clearUploadConsentError() {
+  uploadConsentRow.classList.remove("is-invalid");
+  uploadConsentInput.removeAttribute("aria-invalid");
+}
+
+function resetUploadConsent() {
+  uploadConsentInput.checked = false;
+  clearUploadConsentError();
+}
+
+function showUploadConsentDialog(message) {
+  uploadConsentDialogDescription.textContent = message;
+  if (typeof uploadConsentDialog.showModal === "function") {
+    if (!uploadConsentDialog.open) uploadConsentDialog.showModal();
+    $("#close-upload-consent-dialog").focus();
+  } else {
+    window.alert?.(message);
+  }
+}
+
+function requireUploadConsent(message = "请先勾选“确认提交”后再上传。未确认前不会上传任何源码。") {
+  if (uploadConsentInput.checked) {
+    clearUploadConsentError();
+    return true;
+  }
+  uploadConsentRow.classList.add("is-invalid");
+  uploadConsentInput.setAttribute("aria-invalid", "true");
+  uploadConsentInput.focus?.();
+  showUploadConsentDialog(message);
+  return false;
+}
+
+$("#close-upload-consent-dialog").addEventListener("click", () => uploadConsentDialog.close());
 
 function parseRepo(value) {
   const clean = value.trim().replace(/^https?:\/\/github\.com\//i, "").replace(/\/$/, "").replace(/\.git$/, "");
@@ -86,7 +124,7 @@ const workspaceCacheMs = 60 * 1000;
 async function verifyWorkspace({ upload = false, fresh = false } = {}) {
   const cached = state.workspace;
   if (!fresh && cached && historyMatchesInputs() && Date.now() - cached.checkedAt < workspaceCacheMs) {
-    if (upload && !$("#upload-consent").checked) throw new Error("请先阅读上传说明，并勾选唯一的“确认提交”选项。");
+    if (upload && !requireUploadConsent()) throw new Error("请先阅读上传说明，并勾选唯一的“确认提交”选项。");
     return cached.repository;
   }
   const base = repoBase(), previous = state.workspace;
@@ -106,13 +144,13 @@ async function verifyWorkspace({ upload = false, fresh = false } = {}) {
   if (repository.archived || repository.disabled || repository.permissions?.push === false) throw new Error("这个仓库已归档、停用或不可写，请选择可用的个人仓库。");
   if (!Number.isSafeInteger(workflow.id) || workflow.state !== "active") throw new Error("编译工作流尚未安装或未启用。请按指南导入纯净初始化包，并在自己的仓库 Actions 中启用工作流。");
   if (state.closed || !historyMatchesInputs()) throw new Error("页面会话已变化，已停止操作。");
-  if (previous && (previous.id !== repository.id || previous.private !== repository.private)) $("#upload-consent").checked = false;
+  if (previous && (previous.id !== repository.id || previous.private !== repository.private)) resetUploadConsent();
   state.workspace = { id: repository.id, private: repository.private, login: user.login, repository, checkedAt: Date.now() };
   $("#workspace-status").dataset.visibility = repository.private ? "private" : "public";
   $("#workspace-status").textContent = `已核对账号 ${user.login} · ${repository.full_name} · ${repository.private ? "Private 私有仓库" : "Public 公开仓库，源码所有人可见"}。编译工作流已启用；写入权限仍以实际操作结果为准。`;
   $("#public-upload-warning").hidden = repository.private;
   updateLinks();
-  if (upload && !$("#upload-consent").checked) throw new Error("仓库信息发生变化，请重新阅读风险说明并勾选唯一的“确认提交”选项。");
+  if (upload && !requireUploadConsent("仓库信息发生变化，请重新阅读风险说明并勾选“确认提交”后再上传。")) throw new Error("仓库信息发生变化，请重新阅读风险说明并勾选唯一的“确认提交”选项。");
   return repository;
 }
 
@@ -338,6 +376,13 @@ async function waitForRun() {
   setStatus("idle", "查看日志", "自动刷新已暂停", "网页已等待约 60 分钟，任务可能仍在运行，请在 GitHub 查看最新状态。", "stopped");
 }
 
+submitButton.addEventListener("click", (event) => {
+  if (state.busy || !uploadMode() || uploadConsentInput.checked) return;
+  event.preventDefault();
+  requireUploadConsent();
+  setStatus("error", "需要确认", "请确认源码提交位置", "请先勾选红色的上传确认项；确认前不会上传任何源码。");
+});
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (state.busy) return;
@@ -345,11 +390,11 @@ form.addEventListener("submit", async (event) => {
   const branch = branchInput.value.trim() || "main";
   const token = tokenInput.value.trim();
   if (!repo) return setStatus("error", "检查输入", "请填写你自己的仓库", "格式是你的用户名/仓库名。私密源码请先建立自己的 Private 私有仓库，参见使用指南。");
+  if (uploadMode() && !requireUploadConsent()) return setStatus("error", "需要确认", "请确认源码提交位置", "公开仓库中的源码所有人可见。请先阅读并勾选上传确认。");
   if (!token) return setStatus("error", "需要令牌", "请填写 GitHub Token", "令牌需要拥有目标仓库的 Actions 写入权限。");
   let sourceDirectory = $("#source-directory").value.trim();
   if (uploadMode()) {
     if (!selectedSource) return setStatus("error", "选择源码", "请先选择 ZIP 或文件夹", "选择完整工程，检查文件清单后再上传。");
-    if (!$("#upload-consent").checked) return setStatus("error", "需要确认", "请确认源码提交位置", "公开仓库中的源码所有人可见。请先阅读并勾选上传确认。");
     try { sourceDirectory = IOSForgeUpload.destination($("#upload-project").value.trim()); } catch (error) { return setStatus("error", "检查名称", "项目名称不正确", error.message); }
   }
   if (buildTypeInput.value === "ipa" && ipaSigningInput.value === "signed" && !exportOptionsInput.value.trim()) {
@@ -472,13 +517,13 @@ function updateSourceMode() {
 }
 function updateDestination() {
   $("#upload-destination").textContent = `提交位置：${repoInput.value.trim()} · ${branchInput.value.trim() || "main"} → sources/${$("#upload-project").value.trim() || "项目名称"}`;
-  $("#upload-consent").checked = false;
+  resetUploadConsent();
 }
 async function selectSource(files, folder) {
   if (state.busy || !files.length) return;
   selectedSource = null;
   $("#upload-preview").hidden = true;
-  $("#upload-consent").checked = false;
+  resetUploadConsent();
   setBusy(true, "正在检查源码…");
   $("#upload-selection-status").textContent = "正在本地检查文件结构和常见敏感内容，尚未上传…";
   try {
@@ -501,7 +546,8 @@ $("#pick-zip").addEventListener("click", () => $("#zip-input").click());
 $("#pick-folder").addEventListener("click", () => $("#folder-input").click());
 $("#zip-input").addEventListener("change", event => selectSource(event.target.files, false));
 $("#folder-input").addEventListener("change", event => selectSource(event.target.files, true));
-$("#clear-upload").addEventListener("click", () => { selectedSource = null; $("#upload-preview").hidden = true; $("#upload-consent").checked = false; $("#upload-selection-status").textContent = "选择已清除，未删除仓库中的任何文件。"; });
+$("#clear-upload").addEventListener("click", () => { selectedSource = null; $("#upload-preview").hidden = true; resetUploadConsent(); $("#upload-selection-status").textContent = "选择已清除，未删除仓库中的任何文件。"; });
+uploadConsentInput.addEventListener("change", () => { if (uploadConsentInput.checked) clearUploadConsentError(); });
 const dropzone = $("#upload-dropzone");
 dropzone.addEventListener("dragover", event => { event.preventDefault(); if (!state.busy) dropzone.classList.add("is-dragging"); });
 dropzone.addEventListener("dragleave", () => dropzone.classList.remove("is-dragging"));
