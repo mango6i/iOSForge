@@ -1,0 +1,90 @@
+name: Hailuo
+options:
+  bundleIdPrefix: com.hailuo
+  deploymentTarget:
+    iOS: "14.0"
+  xcodeVersion: "26.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "14.0"
+    TARGETED_DEVICE_FAMILY: "1"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: ""
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    SWIFT_STRICT_CONCURRENCY: complete
+    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+targets:
+  Hailuo:
+    type: application
+    platform: iOS
+    sources:
+      - path: Hailuo
+        excludes:
+          - Resources/Info.plist
+          - Resources/Hailuo.entitlements
+          - Resources/Assets.xcassets
+          - Resources/PrivacyInfo.xcprivacy
+      - path: Hailuo/Resources/Assets.xcassets
+        buildPhase: resources
+      - path: Hailuo/Resources/PrivacyInfo.xcprivacy
+        buildPhase: resources
+    info:
+      path: Hailuo/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: 海螺
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+          UIImageName: conch
+        UIRequiresFullScreen: true
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: false
+        NSCameraUsageDescription: 用于拍摄并发送聊天图片。
+        NSPhotoLibraryUsageDescription: 用于选择头像、聊天图片和自定义背景。
+        NSMicrophoneUsageDescription: 用于录制和发送语音消息。
+        NSLocationWhenInUseUsageDescription: 用于选择并发送当前位置。
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: com.hailuo.app.oauth
+            CFBundleURLSchemes:
+              - hailuo
+    entitlements:
+      path: Hailuo/Resources/Hailuo.entitlements
+      properties:
+        aps-environment: $(HAILUO_APS_ENVIRONMENT)
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.hailuo.app
+        PRODUCT_NAME: 海螺
+        PRODUCT_MODULE_NAME: Hailuo
+      configs:
+        Debug:
+          HAILUO_APS_ENVIRONMENT: development
+        Release:
+          HAILUO_APS_ENVIRONMENT: production
+  HailuoTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - HailuoTests
+    dependencies:
+      - target: Hailuo
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.hailuo.app.tests
+schemes:
+  Hailuo:
+    build:
+      targets:
+        Hailuo: all
+        HailuoTests: [test]
+    test:
+      gatherCoverageData: true
+      targets:
+        - HailuoTests
