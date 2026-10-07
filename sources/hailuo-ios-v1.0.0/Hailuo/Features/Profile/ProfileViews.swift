@@ -251,7 +251,15 @@ struct LiquidGlassSettingsView: View {
                     Text("海螺使用系统 NavigationView、TabView、工具栏和弹窗，由 iOS 自动提供原生 Liquid Glass、动态折射、动画与无障碍适配。")
                         .font(.footnote).foregroundColor(.secondary)
                 } else {
-                    Toggle("启用系统磨砂玻璃兼容效果", isOn: Binding(get: { session.liquidGlassEnabled }, set: session.setLiquidGlass))
+                    Toggle(
+                        "启用系统磨砂玻璃兼容效果",
+                        isOn: Binding(
+                            get: { session.liquidGlassEnabled },
+                            set: { enabled in
+                                session.setLiquidGlass(enabled)
+                            }
+                        )
+                    )
                     Text("iOS 15 至 iOS 25 没有原生 Liquid Glass。此处使用系统材质作为兼容效果；升级到支持 Liquid Glass 的系统后会自动切换为原生外观。")
                         .font(.footnote).foregroundColor(.secondary)
                 }
