@@ -7,7 +7,7 @@
   <meta name="description" content="iOSForge 新手使用指南：一步步上传源码、配置 iOS 15+ 工程、获取 Token、编译和下载 dylib、deb 或 IPA。" />
   <title>使用指南 · iOSForge</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=adaptive-layout-11" />
+  <link rel="stylesheet" href="./styles.css?v=auto-cleanup-1" />
   <script src="./guide.js?v=beginner-token-1" defer></script>
 </head>
 <body>
@@ -230,10 +230,11 @@ package_scheme = "rootless"</code></pre></div>
               <h3 id="history-cleanup">Actions 记录太多？批量删除怎么用</h3>
               <p>“任务记录”包含编译、网页发布和环境检查等 Actions 任务；“产物”是仓库 <code>sources/Download</code> 中的真实文件。任务可能没有产物，但仍有一条记录；二者需要按目的分别清理。</p>
               <ol class="guide-steps"><li><strong>确认仓库、分支和 Token，点击“刷新全部记录”。</strong><p>一次读取最多 100 条当前分支的 Actions 记录，包括 IPA / 插件编译、GitHub Pages 网页发布和环境检查。想处理更早的记录，点“再加载 100 条记录”。</p></li><li><strong>勾选要清理的任务。</strong><p>可以逐条勾选；点“只选失败 / 取消”会选中已加载的失败、取消、超时等未成功记录。想连成功记录一起清理，可勾选“全选已加载的已结束记录”。“全选”不包含尚未加载的记录，也不跨仓库或分支。排队和运行中的记录不能勾选。</p></li><li><strong>点击“删除所选（数量）”，先核对清单。</strong><p>确认框会显示仓库、分支、数量、成功记录数量，以及每条任务所属工作流、编号和名称。删除后对应 Actions 日志无法恢复，请先复制要排查的报错。<strong>这一步不会删除 sources/Download 真实产物、项目源码或已经发布的网页。</strong></p></li><li><strong>确认永久删除，保持网页打开。</strong><p>系统逐条核对工作流、分支、提交、状态和运行次数，再删除。任务被重新运行或状态发生变化时会跳过；网络或权限出错会停止后续删除，并告诉你已经确认删除多少条。</p></li><li><strong>看结果，再点“刷新全部记录”。</strong><p>要删除产物，请点产物旁的“删除”；要连源码和全部集中成品一起删，请用“项目源码管理”。网络中断时最后一条记录可能已经删除，先刷新核对，不要直接重复操作。</p></li></ol>
-              <h3>能不能过几天自动清理？</h3>
-              <p>真实产物是仓库文件，<strong>不会按 14 天自动过期</strong>。它会一直存在，直到你删除单个产物或删除整个项目。同名成品在下一次成功构建时更新。GitHub 不保存空目录，所以删完最后一个产物后，空的 <code>sources/Download</code> 会自动消失。</p>
-              <p>本版本没有启用定时删除 Actions 记录。如果以后需要自动清理，应先确定“保留几天”“仅失败还是包含成功”“保留多少个成功版本”，再配置云端执行；不能依赖一个关闭网页就停止的倒计时。未明确规则前，不会自动删除你的成功记录。</p>
-              <p class="guide-note">注意仓库容量：每个产物限制在 95 MiB 以内。长期保留大量 IPA 会增大仓库和克隆体积；建议下载留存后及时从 <code>sources/Download</code> 删除不再需要的文件。</p>
+              <h3>自动清理和邮件通知怎么用？</h3>
+              <p>工作台右侧的“自动清理”默认每 10 分钟检查一次：失败或取消的编译任务在通知后立即清理，成功任务保留 1 小时。成功保留时间可以改为立即，或填写分钟、小时、天；也可以关闭失败清理或完全停用后台清理。</p>
+              <p>自动清理只处理 iOSForge 编译任务。到期后会删除对应的 Actions 记录与日志、该次上传且之后未被修改的源码，以及仍与该次构建版本一致的 <code>sources/Download</code> 成品；文件被后续任务更新或仍被未到期任务使用时不会误删。删完最后一个成品后，空的 Download 文件夹会自动消失。</p>
+              <p>“通过 GitHub 通知”是全局开关；上传设置中的“构建完成后发送邮件通知”控制本次任务。两处都开启时，成功或失败会写入仓库的 <code>iOSForge 构建通知</code> Issue，并 @提及仓库所有者，内容包含项目名、构建类型、结果、产物和任务链接。还需在 GitHub <strong>Settings → Notifications</strong> 中启用 Email，邮件由 GitHub 官方通知系统发送。</p>
+              <p class="guide-note">定时任务由 GitHub 调度，“每 10 分钟”是检查计划，不保证精确到秒。注意仓库容量：每个产物限制在 95 MiB 以内；需要长期保留的成品请先下载。</p>
             </section>
 
             <section class="guide-section" id="ipa-config">

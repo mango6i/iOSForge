@@ -1,0 +1,38 @@
+name: iOSForge Cleanup
+
+on:
+  workflow_run:
+    workflows: [GitHub Actions]
+    types: [completed]
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: write
+  issues: write
+
+concurrency:
+  group: iosforge-cleanup-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    name: Clean expired builds
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Remove expired records, sources and outputs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          IOSFORGE_REPOSITORY: ${{ github.repository }}
+          IOSFORGE_BRANCH: ${{ github.event.repository.default_branch }}
+          IOSFORGE_RUN_ID: ${{ github.run_id }}
+        run: python .github/scripts/cleanup.py clean

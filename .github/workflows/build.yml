@@ -9,6 +9,8 @@ on:
       - 'LICENSE'
       - '.github/workflows/pages.yml'
       - '.github/workflows/environment.yml'
+      - '.github/iosforge-cleanup.json'
+      - '.github/iosforge-runs/**'
       - '**/*.ipa'
       - '**/*.deb'
       - '**/*.dylib'
@@ -32,6 +34,11 @@ on:
         description: 网页请求编号（自动填写，手动运行可留空）
         type: string
         default: ''
+      notify_email:
+        description: 构建完成后通过 GitHub 发送成功或失败邮件通知
+        required: false
+        type: boolean
+        default: true
       xcode_scheme:
         description: Scheme（唯一共享应用方案可留空）
         type: string
@@ -66,6 +73,18 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Register cleanup metadata
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          IOSFORGE_REPOSITORY: ${{ github.repository }}
+          IOSFORGE_BRANCH: ${{ github.ref_name }}
+          IOSFORGE_RUN_ID: ${{ github.run_id }}
+          IOSFORGE_REQUEST_ID: ${{ inputs.request_id }}
+          IOSFORGE_BUILD_TYPE: ${{ inputs.build_type || 'auto' }}
+          IOSFORGE_SOURCE_DIRECTORY: ${{ inputs.source_directory }}
+          IOSFORGE_NOTIFY_VIA_GITHUB: ${{ inputs.notify_email }}
+        run: python .github/scripts/cleanup.py record
       - name: Find projects
         id: plan
         env:
@@ -108,6 +127,9 @@ jobs:
           IOSFORGE_REPOSITORY: ${{ github.repository }}
           IOSFORGE_BRANCH: ${{ github.ref_name }}
           IOSFORGE_RUN_ID: ${{ github.run_id }}
+          IOSFORGE_REQUEST_ID: ${{ inputs.request_id }}
+          IOSFORGE_BUILD_TYPE: ${{ inputs.build_type || 'auto' }}
+          IOSFORGE_SOURCE_DIRECTORY: ${{ inputs.source_directory }}
         run: python3 .github/scripts/publish_outputs.py --output-dir dist
   build-ipa:
     name: Build iOS 15+ IPA
@@ -149,4 +171,7 @@ jobs:
           IOSFORGE_REPOSITORY: ${{ github.repository }}
           IOSFORGE_BRANCH: ${{ github.ref_name }}
           IOSFORGE_RUN_ID: ${{ github.run_id }}
+          IOSFORGE_REQUEST_ID: ${{ inputs.request_id }}
+          IOSFORGE_BUILD_TYPE: ${{ inputs.build_type || 'auto' }}
+          IOSFORGE_SOURCE_DIRECTORY: ${{ inputs.source_directory }}
         run: python3 .github/scripts/publish_outputs.py --output-dir dist

@@ -6,9 +6,10 @@ ROOT = Path(__file__).resolve().parent.parent
 OUTPUT = ROOT / 'web/downloads/iosforge-starter.zip'
 FILES = [
     '.gitignore', 'LICENSE', 'pyproject.toml', 'iosforge.toml',
-    '.github/workflows/build.yml', '.github/workflows/environment.yml',
+    '.github/workflows/build.yml', '.github/workflows/environment.yml', '.github/workflows/cleanup.yml',
     '.github/actions/setup-ios/action.yml',
-    '.github/scripts/publish_outputs.py',
+    '.github/scripts/publish_outputs.py', '.github/scripts/cleanup.py',
+    '.github/iosforge-cleanup.json',
 ]
 README = '''# My iOSForge build workspace
 
@@ -24,7 +25,7 @@ Guide: https://mango6i.github.io/iOSForge/guide.html#own-repository
 
 The web UI uses the GitHub API directly; no personal repository is selected by default. Private repositories reduce public exposure, but do not remove risks from untrusted source, dependencies, workflow code, credentials, collaborators, or browser extensions. GitHub Actions uses your own account's quota.
 
-iOS target: 15.0 or later. IPA defaults to unsigned; Theos outputs dylib/deb. Successful binaries are committed as real files directly under sources/Download/, with no outer ZIP or nested run folder. Native Xcode projects and Theos projects are supported. Generated projects such as XcodeGen specs require their generation step before normal project discovery; merely including project.yml is not sufficient in this version.
+iOS target: 15.0 or later. IPA defaults to unsigned; Theos outputs dylib/deb. Successful binaries are committed as real files directly under sources/Download/, with no outer ZIP or nested run folder. Failed builds are cleaned after notification; successful builds are retained for one hour by default and checked every ten minutes. Native Xcode projects and Theos projects are supported. Generated projects such as XcodeGen specs require their generation step before normal project discovery; merely including project.yml is not sufficient in this version.
 '''
 
 def build():

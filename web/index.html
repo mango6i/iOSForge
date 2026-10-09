@@ -7,11 +7,11 @@
   <meta name="description" content="iOSForge 编译工作台。在 GitHub 上构建面向 iOS 15+ 的动态库、插件包和应用。" />
   <title>iOSForge · 编译工作台</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=adaptive-layout-11" />
+  <link rel="stylesheet" href="./styles.css?v=auto-cleanup-1" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
   <script src="./source-upload.js?v=fast-reads-1" defer></script>
   <script src="./build-logs.js?v=1" defer></script>
-  <script src="./app.js?v=consent-alert-1" defer></script>
+  <script src="./app.js?v=auto-cleanup-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">跳到编译工作台</a>
@@ -123,6 +123,7 @@
                     <label class="upload-consent"><input id="upload-consent" type="checkbox" /><span>确认提交到以上我自己的仓库，已检查源码不含密钥；如果仓库是 Public 公开仓库，我也确认源码上传后所有人可见。私有仓库可降低公开泄露风险，但不能保证绝对安全。</span></label>
                     <div id="public-upload-warning" class="public-upload-warning" hidden><strong>当前仓库是公开的：上传后所有人可见。</strong><p>如果源码不应公开，请停止上传，换成自己的 Private 私有仓库。删除当前文件也无法自动清除提交历史。上方“确认提交”是唯一需要勾选的上传确认。</p></div>
                     <label class="upload-consent"><input id="upload-replace" type="checkbox" /><span>如果目录已存在，允许更新本次同名文件；未上传的旧文件不会删除。</span></label>
+                    <label class="upload-consent build-notify-option"><input id="build-notify" type="checkbox" checked /><span><strong>构建完成后发送邮件通知</strong><small>成功或失败都会通过 GitHub 通知；需在 GitHub 账户中启用 Email 通知。</small></span></label>
                     <p class="field-hint">支持完整 Theos / Xcode 源码，不是现成 IPA、deb 或 dylib。单个文件上限 10 MB。<a href="./guide.html#upload">查看上传说明 ↗</a></p>
                   </div>
                   <div id="upload-progress-wrap" hidden><progress id="upload-progress" max="100" value="0" aria-label="源码上传进度"></progress><p id="upload-progress-text" class="field-hint" role="status" aria-live="polite"></p></div>
@@ -172,6 +173,18 @@
                 <li data-step="build"><span class="pipeline-marker">2</span><div><strong>云端编译</strong><span>在 macOS 上处理源码</span></div><span class="pipeline-state">等待</span></li>
                 <li data-step="artifacts"><span class="pipeline-marker">3</span><div><strong>保存产物</strong><span>写入 sources/Download</span></div><span class="pipeline-state">等待</span></li>
               </ol>
+
+              <section id="cleanup-settings" class="cleanup-settings" aria-labelledby="cleanup-heading">
+                <div class="cleanup-heading"><div><span class="section-overline">AUTO CLEANUP</span><h3 id="cleanup-heading">自动清理</h3></div><span id="cleanup-state" class="cleanup-state">未读取</span></div>
+                <div class="cleanup-controls">
+                  <label class="cleanup-switch"><input id="cleanup-enabled" type="checkbox" checked /><span>启用后台定时清理</span></label>
+                  <label class="cleanup-switch"><input id="cleanup-failed" type="checkbox" checked /><span>失败／取消任务完成后清理</span></label>
+                  <label class="cleanup-switch"><input id="cleanup-notify" type="checkbox" checked /><span>通过 GitHub 通知成功／失败结果</span></label>
+                  <div class="cleanup-retention"><label for="cleanup-value">成功任务保留</label><input id="cleanup-value" type="number" min="1" max="525600" step="1" value="1" inputmode="numeric" aria-label="成功任务保留数值" /><select id="cleanup-unit" aria-label="成功任务保留单位"><option value="immediate">立即</option><option value="minute">分钟</option><option value="hour" selected>小时</option><option value="day">天</option></select></div>
+                </div>
+                <button id="save-cleanup" class="secondary-button cleanup-save" type="button">保存并立即检查</button>
+                <p id="cleanup-message" class="field-hint" role="status">检查仓库后可保存。后台每 10 分钟检查；到期时删除 Actions 记录、该次上传源码和仍属于该次构建的成品。</p>
+              </section>
             </div>
 
             <div id="run-meta" class="run-meta" hidden></div>

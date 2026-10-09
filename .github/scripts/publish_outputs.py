@@ -9,6 +9,7 @@ import json
 import os
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
@@ -18,6 +19,7 @@ from urllib.request import Request, urlopen
 ALLOWED_SUFFIXES = {".ipa", ".deb", ".dylib"}
 MAX_FILE_SIZE = 95 * 1024 * 1024
 MAX_ATTEMPTS = 8
+MANIFEST_DIRECTORY = ".github/iosforge-runs"
 
 
 class ApiError(RuntimeError):
@@ -87,6 +89,28 @@ class GitHubApi:
         return json.loads(data) if data else {}
 
 
+def encoded_path(path: str) -> str:
+    return "/".join(quote(part, safe="") for part in path.split("/"))
+
+
+def load_manifest(api: GitHubApi, branch: str, run_id: str) -> tuple[str, dict] | None:
+    path = f"{MANIFEST_DIRECTORY}/{run_id}.json"
+    try:
+        item = api.request("GET", f"/contents/{encoded_path(path)}?ref={quote(branch, safe='')}")
+    except ApiError as error:
+        if error.status == 404:
+            return None
+        raise
+    try:
+        raw = base64.b64decode(str(item["content"]).replace("\n", ""), validate=True)
+        manifest = json.loads(raw.decode("utf-8"))
+    except (KeyError, ValueError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise RuntimeError(f"Cleanup metadata for run {run_id} is invalid.") from error
+    if not isinstance(manifest, dict) or manifest.get("run_id") != int(run_id) or manifest.get("branch") != branch:
+        raise RuntimeError(f"Cleanup metadata for run {run_id} does not match this build.")
+    return path, manifest
+
+
 def publish(api: GitHubApi, branch: str, run_id: str, files: list[Path]) -> list[str]:
     destination = "sources/Download"
     blobs = []
@@ -98,20 +122,43 @@ def publish(api: GitHubApi, branch: str, run_id: str, files: list[Path]) -> list
         )
         blobs.append((path.name, blob["sha"]))
 
+    manifest_entry = None
+    loaded_manifest = load_manifest(api, branch, run_id)
+    if loaded_manifest:
+        manifest_path, manifest = loaded_manifest
+        manifest["status"] = "success"
+        manifest["completed_at"] = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        manifest["outputs"] = [
+            {"path": f"{destination}/{name}", "sha": sha}
+            for name, sha in blobs
+        ]
+        manifest_blob = api.request(
+            "POST",
+            "/git/blobs",
+            {
+                "content": json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+                "encoding": "utf-8",
+            },
+        )
+        manifest_entry = {"path": manifest_path, "mode": "100644", "type": "blob", "sha": manifest_blob["sha"]}
+
     encoded_branch = quote(branch, safe="")
     for attempt in range(1, MAX_ATTEMPTS + 1):
         ref = api.request("GET", f"/git/ref/heads/{encoded_branch}")
         head = ref.get("object", {}).get("sha", "")
         commit = api.request("GET", f"/git/commits/{head}")
+        entries = [
+            {"path": f"{destination}/{name}", "mode": "100644", "type": "blob", "sha": sha}
+            for name, sha in blobs
+        ]
+        if manifest_entry:
+            entries.append(manifest_entry)
         tree = api.request(
             "POST",
             "/git/trees",
             {
                 "base_tree": commit["tree"]["sha"],
-                "tree": [
-                    {"path": f"{destination}/{name}", "mode": "100644", "type": "blob", "sha": sha}
-                    for name, sha in blobs
-                ],
+                "tree": entries,
             },
         )
         created = api.request(
