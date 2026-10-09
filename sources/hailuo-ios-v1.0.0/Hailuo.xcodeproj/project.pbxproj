@@ -1,0 +1,845 @@
+// !$*UTF8*$!
+{
+archiveVersion = 1;
+classes = {};
+objectVersion = 56;
+objects = {
+
+/* Begin PBXBuildFile section */
+D00000000000000000000001 /* LiquidGlassRenderer.swift in Sources */ = { isa = PBXBuildFile; fileRef = D00000000000000000000002; };
+D00000000000000000000003 /* LiquidGlass-NOTICE.txt in Resources */ = { isa = PBXBuildFile; fileRef = D00000000000000000000004; };
+C00000000000000000000001 /* CheckoutView.swift in Sources */ = { isa = PBXBuildFile; fileRef = C00000000000000000000002; };
+C00000000000000000000003 /* HailuoPaymentBridge.m in Sources */ = { isa = PBXBuildFile; fileRef = C00000000000000000000004; };
+B00000000000000000000004 /* MaterialIcons-LICENSE.txt in Resources */ = {
+isa = PBXBuildFile;
+fileRef = B00000000000000000000003;
+};
+B00000000000000000000002 /* LaunchScreen.storyboard in Resources */ = {
+isa = PBXBuildFile;
+fileRef = B00000000000000000000001;
+};
+A00000000000000000000020 /* App/AppRootView.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A00000000000000000000001;
+};
+A00000000000000000000021 /* App/HailuoApp.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A00000000000000000000002;
+};
+A00000000000000000000022 /* App/SessionStore.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A00000000000000000000003;
+};
+A00000000000000000000023 /* Core/APIClient.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A00000000000000000000004;
+};
+A00000000000000000000024 /* Core/Constants.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A00000000000000000000005;
+};
+A00000000000000000000025 /* Core/DiskStore.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A00000000000000000000006;
+};
+A00000000000000000000026 /* Core/JSONValue.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A00000000000000000000007;
+};
+A00000000000000000000027 /* Core/KeychainStore.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A00000000000000000000008;
+};
+A00000000000000000000028 /* Core/KickSocket.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A00000000000000000000009;
+};
+A00000000000000000000029 /* Data/Models/Models.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A0000000000000000000000A;
+};
+A0000000000000000000002A /* Data/Repositories/Services.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A0000000000000000000000B;
+};
+A0000000000000000000002B /* DesignSystem/Compatibility.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A0000000000000000000000C;
+};
+A0000000000000000000002C /* DesignSystem/Theme.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A0000000000000000000000D;
+};
+A0000000000000000000002D /* Features/Admin/AdminViews.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A0000000000000000000000E;
+};
+A0000000000000000000002E /* Features/Auth/AuthViews.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A0000000000000000000000F;
+};
+A0000000000000000000002F /* Features/Chat/ChatViews.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A00000000000000000000010;
+};
+A00000000000000000000030 /* Features/Chat/ConversationViews.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A00000000000000000000011;
+};
+A00000000000000000000031 /* Features/Friends/FriendViews.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A00000000000000000000012;
+};
+A00000000000000000000032 /* Features/Profile/AvatarEditView.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A00000000000000000000013;
+};
+A00000000000000000000033 /* Features/Profile/InformationViews.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A00000000000000000000014;
+};
+A00000000000000000000034 /* Features/Profile/ProfileViews.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A00000000000000000000015;
+};
+A00000000000000000000035 /* Features/Whisper/WhisperViews.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A00000000000000000000016;
+};
+A00000000000000000000036 /* ModelDecodingTests.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A00000000000000000000017;
+};
+A00000000000000000000037 /* EndpointContractTests.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A00000000000000000000018;
+};
+A00000000000000000000038 /* Assets.xcassets in Resources */ = {
+isa = PBXBuildFile;
+fileRef = A00000000000000000000019;
+};
+A00000000000000000000039 /* PrivacyInfo.xcprivacy in Resources */ = {
+isa = PBXBuildFile;
+fileRef = A0000000000000000000001A;
+};
+A0000000000000000000003A /* XCTest.framework in Frameworks */ = {
+isa = PBXBuildFile;
+fileRef = A0000000000000000000001F;
+};
+A00000000000000000000061 /* ClientIntegrationReadiness.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A00000000000000000000063;
+};
+A00000000000000000000062 /* IPRegionService.swift in Sources */ = {
+isa = PBXBuildFile;
+fileRef = A00000000000000000000064;
+};
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+A00000000000000000000054 /* Container Item Proxy */ = {
+isa = PBXContainerItemProxy;
+containerPortal = A00000000000000000000053;
+proxyType = 1;
+remoteGlobalIDString = A00000000000000000000051;
+remoteInfo = Hailuo;
+};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+D00000000000000000000002 /* LiquidGlassRenderer.swift */ = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassRenderer.swift; sourceTree = "<group>"; };
+D00000000000000000000004 /* LiquidGlass-NOTICE.txt */ = { isa = PBXFileReference; lastKnownFileType = text; path = "LiquidGlass-NOTICE.txt"; sourceTree = "<group>"; };
+C00000000000000000000002 /* CheckoutView.swift */ = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckoutView.swift; sourceTree = "<group>"; };
+C00000000000000000000004 /* HailuoPaymentBridge.m */ = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "Hailuo/Payments/HailuoPaymentBridge.m"; sourceTree = SOURCE_ROOT; };
+C00000000000000000000005 /* HailuoPaymentBridge.h */ = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Hailuo/Payments/HailuoPaymentBridge.h"; sourceTree = SOURCE_ROOT; };
+C00000000000000000000006 /* Hailuo-Bridging-Header.h */ = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Hailuo/Hailuo-Bridging-Header.h"; sourceTree = SOURCE_ROOT; };
+B00000000000000000000003 /* MaterialIcons-LICENSE.txt */ = {
+isa = PBXFileReference;
+lastKnownFileType = text;
+path = "MaterialIcons-LICENSE.txt";
+sourceTree = "<group>";
+};
+B00000000000000000000001 /* LaunchScreen.storyboard */ = {
+isa = PBXFileReference;
+lastKnownFileType = file.storyboard;
+path = "LaunchScreen.storyboard";
+sourceTree = "<group>";
+};
+A00000000000000000000001 /* AppRootView.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "AppRootView.swift";
+sourceTree = "<group>";
+};
+A00000000000000000000002 /* HailuoApp.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "HailuoApp.swift";
+sourceTree = "<group>";
+};
+A00000000000000000000003 /* SessionStore.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "SessionStore.swift";
+sourceTree = "<group>";
+};
+A00000000000000000000004 /* APIClient.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "APIClient.swift";
+sourceTree = "<group>";
+};
+A00000000000000000000005 /* Constants.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "Constants.swift";
+sourceTree = "<group>";
+};
+A00000000000000000000006 /* DiskStore.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "DiskStore.swift";
+sourceTree = "<group>";
+};
+A00000000000000000000007 /* JSONValue.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "JSONValue.swift";
+sourceTree = "<group>";
+};
+A00000000000000000000008 /* KeychainStore.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "KeychainStore.swift";
+sourceTree = "<group>";
+};
+A00000000000000000000009 /* KickSocket.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "KickSocket.swift";
+sourceTree = "<group>";
+};
+A0000000000000000000000A /* Models.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "Models.swift";
+sourceTree = "<group>";
+};
+A0000000000000000000000B /* Services.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "Services.swift";
+sourceTree = "<group>";
+};
+A0000000000000000000000C /* Compatibility.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "Compatibility.swift";
+sourceTree = "<group>";
+};
+A0000000000000000000000D /* Theme.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "Theme.swift";
+sourceTree = "<group>";
+};
+A0000000000000000000000E /* AdminViews.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "AdminViews.swift";
+sourceTree = "<group>";
+};
+A0000000000000000000000F /* AuthViews.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "AuthViews.swift";
+sourceTree = "<group>";
+};
+A00000000000000000000010 /* ChatViews.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "ChatViews.swift";
+sourceTree = "<group>";
+};
+A00000000000000000000011 /* ConversationViews.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "ConversationViews.swift";
+sourceTree = "<group>";
+};
+A00000000000000000000012 /* FriendViews.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "FriendViews.swift";
+sourceTree = "<group>";
+};
+A00000000000000000000013 /* AvatarEditView.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "AvatarEditView.swift";
+sourceTree = "<group>";
+};
+A00000000000000000000014 /* InformationViews.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "InformationViews.swift";
+sourceTree = "<group>";
+};
+A00000000000000000000015 /* ProfileViews.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "ProfileViews.swift";
+sourceTree = "<group>";
+};
+A00000000000000000000016 /* WhisperViews.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "WhisperViews.swift";
+sourceTree = "<group>";
+};
+A00000000000000000000017 /* ModelDecodingTests.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "ModelDecodingTests.swift";
+sourceTree = "<group>";
+};
+A00000000000000000000018 /* EndpointContractTests.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "EndpointContractTests.swift";
+sourceTree = "<group>";
+};
+A00000000000000000000019 /* Assets.xcassets */ = {
+isa = PBXFileReference;
+lastKnownFileType = folder.assetcatalog;
+path = "Assets.xcassets";
+sourceTree = "<group>";
+};
+A0000000000000000000001A /* PrivacyInfo.xcprivacy */ = {
+isa = PBXFileReference;
+lastKnownFileType = text.xml;
+path = "PrivacyInfo.xcprivacy";
+sourceTree = "<group>";
+};
+A0000000000000000000001B /* Info.plist */ = {
+isa = PBXFileReference;
+lastKnownFileType = text.plist.xml;
+path = "Info.plist";
+sourceTree = "<group>";
+};
+A0000000000000000000001C /* Hailuo.entitlements */ = {
+isa = PBXFileReference;
+lastKnownFileType = text.plist.entitlements;
+path = "Hailuo.entitlements";
+sourceTree = "<group>";
+};
+A0000000000000000000001D /* 海螺.app */ = {
+isa = PBXFileReference;
+explicitFileType = wrapper.application;
+includeInIndex = 0;
+path = "海螺.app";
+sourceTree = BUILT_PRODUCTS_DIR;
+};
+A0000000000000000000001E /* HailuoTests.xctest */ = {
+isa = PBXFileReference;
+explicitFileType = wrapper.cfbundle;
+includeInIndex = 0;
+path = HailuoTests.xctest;
+sourceTree = BUILT_PRODUCTS_DIR;
+};
+A0000000000000000000001F /* XCTest.framework */ = {
+isa = PBXFileReference;
+lastKnownFileType = wrapper.framework;
+name = XCTest.framework;
+path = Developer/Library/Frameworks/XCTest.framework;
+sourceTree = DEVELOPER_DIR;
+};
+A00000000000000000000063 /* ClientIntegrationReadiness.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = ClientIntegrationReadiness.swift;
+sourceTree = "<group>";
+};
+A00000000000000000000064 /* IPRegionService.swift */ = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = IPRegionService.swift;
+sourceTree = "<group>";
+};
+/* End PBXFileReference section */
+
+/* Begin PBXBuildPhase section */
+A0000000000000000000004B /* Sources */ = {
+isa = PBXSourcesBuildPhase;
+buildActionMask = 2147483647;
+files = (
+C00000000000000000000001 /* CheckoutView.swift in Sources */,
+C00000000000000000000003 /* HailuoPaymentBridge.m in Sources */,
+A00000000000000000000020 /* App/AppRootView.swift in Sources */,
+A00000000000000000000021 /* App/HailuoApp.swift in Sources */,
+A00000000000000000000022 /* App/SessionStore.swift in Sources */,
+A00000000000000000000023 /* Core/APIClient.swift in Sources */,
+A00000000000000000000024 /* Core/Constants.swift in Sources */,
+A00000000000000000000061 /* Core/ClientIntegrationReadiness.swift in Sources */,
+A00000000000000000000062 /* Core/IPRegionService.swift in Sources */,
+A00000000000000000000025 /* Core/DiskStore.swift in Sources */,
+A00000000000000000000026 /* Core/JSONValue.swift in Sources */,
+A00000000000000000000027 /* Core/KeychainStore.swift in Sources */,
+A00000000000000000000028 /* Core/KickSocket.swift in Sources */,
+A00000000000000000000029 /* Data/Models/Models.swift in Sources */,
+A0000000000000000000002A /* Data/Repositories/Services.swift in Sources */,
+A0000000000000000000002B /* DesignSystem/Compatibility.swift in Sources */,
+A0000000000000000000002C /* DesignSystem/Theme.swift in Sources */,
+D00000000000000000000001 /* LiquidGlassRenderer.swift in Sources */,
+A0000000000000000000002D /* Features/Admin/AdminViews.swift in Sources */,
+A0000000000000000000002E /* Features/Auth/AuthViews.swift in Sources */,
+A0000000000000000000002F /* Features/Chat/ChatViews.swift in Sources */,
+A00000000000000000000030 /* Features/Chat/ConversationViews.swift in Sources */,
+A00000000000000000000031 /* Features/Friends/FriendViews.swift in Sources */,
+A00000000000000000000032 /* Features/Profile/AvatarEditView.swift in Sources */,
+A00000000000000000000033 /* Features/Profile/InformationViews.swift in Sources */,
+A00000000000000000000034 /* Features/Profile/ProfileViews.swift in Sources */,
+A00000000000000000000035 /* Features/Whisper/WhisperViews.swift in Sources */,
+);
+runOnlyForDeploymentPostprocessing = 0;
+};
+A0000000000000000000004C /* Frameworks */ = {
+isa = PBXFrameworksBuildPhase;
+buildActionMask = 2147483647;
+files = (
+
+);
+runOnlyForDeploymentPostprocessing = 0;
+};
+A0000000000000000000004D /* Resources */ = {
+isa = PBXResourcesBuildPhase;
+buildActionMask = 2147483647;
+files = (
+A00000000000000000000038 /* Assets.xcassets in Resources */,
+A00000000000000000000039 /* PrivacyInfo.xcprivacy in Resources */,
+B00000000000000000000002 /* LaunchScreen.storyboard in Resources */,
+B00000000000000000000004 /* MaterialIcons-LICENSE.txt in Resources */,
+D00000000000000000000003 /* LiquidGlass-NOTICE.txt in Resources */,
+);
+runOnlyForDeploymentPostprocessing = 0;
+};
+A0000000000000000000004E /* Test Sources */ = {
+isa = PBXSourcesBuildPhase;
+buildActionMask = 2147483647;
+files = (
+A00000000000000000000036 /* ModelDecodingTests.swift in Sources */,
+A00000000000000000000037 /* EndpointContractTests.swift in Sources */,
+);
+runOnlyForDeploymentPostprocessing = 0;
+};
+A0000000000000000000004F /* Test Frameworks */ = {
+isa = PBXFrameworksBuildPhase;
+buildActionMask = 2147483647;
+files = (
+A0000000000000000000003A /* XCTest.framework in Frameworks */,
+);
+runOnlyForDeploymentPostprocessing = 0;
+};
+A00000000000000000000050 /* Test Resources */ = {
+isa = PBXResourcesBuildPhase;
+buildActionMask = 2147483647;
+files = (
+
+);
+runOnlyForDeploymentPostprocessing = 0;
+};
+/* End PBXBuildPhase section */
+
+/* Begin PBXGroup section */
+A0000000000000000000003B /* App */ = {
+isa = PBXGroup;
+children = (
+A00000000000000000000001 /* AppRootView.swift */,
+A00000000000000000000002 /* HailuoApp.swift */,
+A00000000000000000000003 /* SessionStore.swift */,
+);
+path = "Hailuo/App";
+sourceTree = "<group>";
+};
+A0000000000000000000003C /* Core */ = {
+isa = PBXGroup;
+children = (
+A00000000000000000000004 /* APIClient.swift */,
+A00000000000000000000005 /* Constants.swift */,
+A00000000000000000000063 /* ClientIntegrationReadiness.swift */,
+A00000000000000000000064 /* IPRegionService.swift */,
+A00000000000000000000006 /* DiskStore.swift */,
+A00000000000000000000007 /* JSONValue.swift */,
+A00000000000000000000008 /* KeychainStore.swift */,
+A00000000000000000000009 /* KickSocket.swift */,
+);
+path = "Hailuo/Core";
+sourceTree = "<group>";
+};
+A0000000000000000000003D /* Models */ = {
+isa = PBXGroup;
+children = (
+A0000000000000000000000A /* Models.swift */,
+);
+path = "Hailuo/Data/Models";
+sourceTree = "<group>";
+};
+A0000000000000000000003E /* Repositories */ = {
+isa = PBXGroup;
+children = (
+A0000000000000000000000B /* Services.swift */,
+);
+path = "Hailuo/Data/Repositories";
+sourceTree = "<group>";
+};
+A0000000000000000000003F /* DesignSystem */ = {
+isa = PBXGroup;
+children = (
+A0000000000000000000000C /* Compatibility.swift */,
+A0000000000000000000000D /* Theme.swift */,
+D00000000000000000000002 /* LiquidGlassRenderer.swift */,
+);
+path = "Hailuo/DesignSystem";
+sourceTree = "<group>";
+};
+A00000000000000000000040 /* Admin */ = {
+isa = PBXGroup;
+children = (
+A0000000000000000000000E /* AdminViews.swift */,
+);
+path = "Hailuo/Features/Admin";
+sourceTree = "<group>";
+};
+A00000000000000000000041 /* Auth */ = {
+isa = PBXGroup;
+children = (
+A0000000000000000000000F /* AuthViews.swift */,
+);
+path = "Hailuo/Features/Auth";
+sourceTree = "<group>";
+};
+A00000000000000000000042 /* Chat */ = {
+isa = PBXGroup;
+children = (
+A00000000000000000000010 /* ChatViews.swift */,
+A00000000000000000000011 /* ConversationViews.swift */,
+);
+path = "Hailuo/Features/Chat";
+sourceTree = "<group>";
+};
+A00000000000000000000043 /* Friends */ = {
+isa = PBXGroup;
+children = (
+A00000000000000000000012 /* FriendViews.swift */,
+);
+path = "Hailuo/Features/Friends";
+sourceTree = "<group>";
+};
+A00000000000000000000044 /* Profile */ = {
+isa = PBXGroup;
+children = (
+A00000000000000000000013 /* AvatarEditView.swift */,
+A00000000000000000000014 /* InformationViews.swift */,
+A00000000000000000000015 /* ProfileViews.swift */,
+C00000000000000000000002 /* CheckoutView.swift */,
+C00000000000000000000004 /* HailuoPaymentBridge.m */,
+C00000000000000000000005 /* HailuoPaymentBridge.h */,
+C00000000000000000000006 /* Hailuo-Bridging-Header.h */,
+);
+path = "Hailuo/Features/Profile";
+sourceTree = "<group>";
+};
+A00000000000000000000045 /* Whisper */ = {
+isa = PBXGroup;
+children = (
+A00000000000000000000016 /* WhisperViews.swift */,
+);
+path = "Hailuo/Features/Whisper";
+sourceTree = "<group>";
+};
+A00000000000000000000046 /* Resources */ = {
+isa = PBXGroup;
+children = (
+A0000000000000000000001B /* Info.plist */,
+A0000000000000000000001C /* Hailuo.entitlements */,
+A00000000000000000000019 /* Assets.xcassets */,
+A0000000000000000000001A /* PrivacyInfo.xcprivacy */,
+B00000000000000000000001 /* LaunchScreen.storyboard */,
+B00000000000000000000003 /* MaterialIcons-LICENSE.txt */,
+D00000000000000000000004 /* LiquidGlass-NOTICE.txt */,
+);
+path = "Hailuo/Resources";
+sourceTree = "<group>";
+};
+A00000000000000000000047 /* HailuoTests */ = {
+isa = PBXGroup;
+children = (
+A00000000000000000000017 /* ModelDecodingTests.swift */,
+A00000000000000000000018 /* EndpointContractTests.swift */,
+);
+path = "HailuoTests";
+sourceTree = "<group>";
+};
+A00000000000000000000048 /* Products */ = {
+isa = PBXGroup;
+children = (
+A0000000000000000000001D /* 海螺.app */,
+A0000000000000000000001E /* HailuoTests.xctest */,
+);
+sourceTree = "<group>";
+};
+A00000000000000000000049 /* Frameworks */ = {
+isa = PBXGroup;
+children = (
+A0000000000000000000001F /* XCTest.framework */,
+);
+sourceTree = "<group>";
+};
+A0000000000000000000004A /* Main Group */ = {
+isa = PBXGroup;
+children = (
+A0000000000000000000003B /* App */,
+A0000000000000000000003C /* Core */,
+A0000000000000000000003D /* Models */,
+A0000000000000000000003E /* Repositories */,
+A0000000000000000000003F /* DesignSystem */,
+A00000000000000000000040 /* Admin */,
+A00000000000000000000041 /* Auth */,
+A00000000000000000000042 /* Chat */,
+A00000000000000000000043 /* Friends */,
+A00000000000000000000044 /* Profile */,
+A00000000000000000000045 /* Whisper */,
+A00000000000000000000046 /* Resources */,
+A00000000000000000000047 /* HailuoTests */,
+A00000000000000000000049 /* Frameworks */,
+A00000000000000000000048 /* Products */,
+);
+sourceTree = "<group>";
+};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+A00000000000000000000051 /* Hailuo */ = {
+isa = PBXNativeTarget;
+buildConfigurationList = A0000000000000000000005D;
+buildPhases = (
+A0000000000000000000004B /* Sources */,
+A0000000000000000000004C /* Frameworks */,
+A0000000000000000000004D /* Resources */,
+);
+buildRules = ();
+dependencies = ();
+name = Hailuo;
+productName = "海螺";
+productReference = A0000000000000000000001D;
+productType = "com.apple.product-type.application";
+};
+A00000000000000000000052 /* HailuoTests */ = {
+isa = PBXNativeTarget;
+buildConfigurationList = A0000000000000000000005E;
+buildPhases = (
+A0000000000000000000004E /* Sources */,
+A0000000000000000000004F /* Frameworks */,
+A00000000000000000000050 /* Resources */,
+);
+buildRules = ();
+dependencies = (
+A00000000000000000000055 /* PBXTargetDependency */,
+);
+name = HailuoTests;
+productName = HailuoTests;
+productReference = A0000000000000000000001E;
+productType = "com.apple.product-type.bundle.unit-test";
+};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+A00000000000000000000053 /* Project object */ = {
+isa = PBXProject;
+attributes = {
+BuildIndependentTargetsInParallel = YES;
+LastUpgradeCheck = 2600;
+TargetAttributes = {
+A00000000000000000000051 = { CreatedOnToolsVersion = 26.0; };
+A00000000000000000000052 = { CreatedOnToolsVersion = 26.0; TestTargetID = A00000000000000000000051; };
+};
+};
+buildConfigurationList = A0000000000000000000005C;
+compatibilityVersion = "Xcode 14.0";
+developmentRegion = en;
+hasScannedForEncodings = 0;
+knownRegions = (en, Base, "zh-Hans");
+mainGroup = A0000000000000000000004A;
+productRefGroup = A00000000000000000000048;
+projectDirPath = "";
+projectRoot = "";
+targets = (
+A00000000000000000000051 /* Hailuo */,
+A00000000000000000000052 /* HailuoTests */,
+);
+};
+/* End PBXProject section */
+
+/* Begin PBXTargetDependency section */
+A00000000000000000000055 /* Target Dependency */ = {
+isa = PBXTargetDependency;
+target = A00000000000000000000051;
+targetProxy = A00000000000000000000054;
+};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+A00000000000000000000056 /* Debug */ = {
+isa = XCBuildConfiguration;
+buildSettings = {
+ALWAYS_SEARCH_USER_PATHS = NO;
+CLANG_ENABLE_MODULES = YES;
+CLANG_ENABLE_OBJC_ARC = YES;
+DEBUG_INFORMATION_FORMAT = "dwarf";
+ENABLE_TESTABILITY = YES;
+IPHONEOS_DEPLOYMENT_TARGET = "15.0";
+SDKROOT = iphoneos;
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+SWIFT_STRICT_CONCURRENCY = "complete";
+SWIFT_VERSION = "6.0";
+TARGETED_DEVICE_FAMILY = "1";
+};
+name = Debug;
+};
+A00000000000000000000057 /* Release */ = {
+isa = XCBuildConfiguration;
+buildSettings = {
+ALWAYS_SEARCH_USER_PATHS = NO;
+CLANG_ENABLE_MODULES = YES;
+CLANG_ENABLE_OBJC_ARC = YES;
+DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+IPHONEOS_DEPLOYMENT_TARGET = "15.0";
+SDKROOT = iphoneos;
+SWIFT_OPTIMIZATION_LEVEL = "-O";
+SWIFT_STRICT_CONCURRENCY = "complete";
+SWIFT_VERSION = "6.0";
+TARGETED_DEVICE_FAMILY = "1";
+};
+name = Release;
+};
+A00000000000000000000058 /* Debug */ = {
+isa = XCBuildConfiguration;
+buildSettings = {
+ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon";
+ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "AccentColor";
+CODE_SIGN_ENTITLEMENTS = "Hailuo/Resources/Hailuo.entitlements";
+CODE_SIGN_STYLE = "Automatic";
+CURRENT_PROJECT_VERSION = "1";
+DEVELOPMENT_TEAM = "";
+ENABLE_USER_SCRIPT_SANDBOXING = NO;
+GENERATE_INFOPLIST_FILE = NO;
+HAILUO_APS_ENVIRONMENT = "development";
+HAILUO_WECHAT_APP_ID = "hailuo-wechat-unconfigured";
+HAILUO_WECHAT_UNIVERSAL_LINK = "";
+SWIFT_OBJC_BRIDGING_HEADER = "Hailuo/Hailuo-Bridging-Header.h";
+INFOPLIST_FILE = "Hailuo/Resources/Info.plist";
+IPHONEOS_DEPLOYMENT_TARGET = "15.0";
+MARKETING_VERSION = "1.0.0";
+PRODUCT_BUNDLE_IDENTIFIER = "com.hailuo.app";
+PRODUCT_MODULE_NAME = "Hailuo";
+PRODUCT_NAME = "海螺";
+SWIFT_EMIT_LOC_STRINGS = YES;
+SWIFT_STRICT_CONCURRENCY = "complete";
+SWIFT_VERSION = "6.0";
+TARGETED_DEVICE_FAMILY = "1";
+};
+name = Debug;
+};
+A00000000000000000000059 /* Release */ = {
+isa = XCBuildConfiguration;
+buildSettings = {
+ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon";
+ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "AccentColor";
+CODE_SIGN_ENTITLEMENTS = "Hailuo/Resources/Hailuo.entitlements";
+CODE_SIGN_STYLE = "Automatic";
+CURRENT_PROJECT_VERSION = "1";
+DEVELOPMENT_TEAM = "";
+ENABLE_USER_SCRIPT_SANDBOXING = NO;
+GENERATE_INFOPLIST_FILE = NO;
+HAILUO_APS_ENVIRONMENT = "production";
+HAILUO_WECHAT_APP_ID = "hailuo-wechat-unconfigured";
+HAILUO_WECHAT_UNIVERSAL_LINK = "";
+SWIFT_OBJC_BRIDGING_HEADER = "Hailuo/Hailuo-Bridging-Header.h";
+INFOPLIST_FILE = "Hailuo/Resources/Info.plist";
+IPHONEOS_DEPLOYMENT_TARGET = "15.0";
+MARKETING_VERSION = "1.0.0";
+PRODUCT_BUNDLE_IDENTIFIER = "com.hailuo.app";
+PRODUCT_MODULE_NAME = "Hailuo";
+PRODUCT_NAME = "海螺";
+SWIFT_EMIT_LOC_STRINGS = YES;
+SWIFT_STRICT_CONCURRENCY = "complete";
+SWIFT_VERSION = "6.0";
+TARGETED_DEVICE_FAMILY = "1";
+};
+name = Release;
+};
+A0000000000000000000005A /* Debug */ = {
+isa = XCBuildConfiguration;
+buildSettings = {
+BUNDLE_LOADER = "$(TEST_HOST)";
+GENERATE_INFOPLIST_FILE = YES;
+IPHONEOS_DEPLOYMENT_TARGET = "15.0";
+PRODUCT_BUNDLE_IDENTIFIER = "com.hailuo.app.tests";
+PRODUCT_NAME = "$(TARGET_NAME)";
+SWIFT_STRICT_CONCURRENCY = "complete";
+SWIFT_VERSION = "6.0";
+TARGETED_DEVICE_FAMILY = "1";
+TEST_HOST = "$(BUILT_PRODUCTS_DIR)/海螺.app/海螺";
+};
+name = Debug;
+};
+A0000000000000000000005B /* Release */ = {
+isa = XCBuildConfiguration;
+buildSettings = {
+BUNDLE_LOADER = "$(TEST_HOST)";
+GENERATE_INFOPLIST_FILE = YES;
+IPHONEOS_DEPLOYMENT_TARGET = "15.0";
+PRODUCT_BUNDLE_IDENTIFIER = "com.hailuo.app.tests";
+PRODUCT_NAME = "$(TARGET_NAME)";
+SWIFT_STRICT_CONCURRENCY = "complete";
+SWIFT_VERSION = "6.0";
+TARGETED_DEVICE_FAMILY = "1";
+TEST_HOST = "$(BUILT_PRODUCTS_DIR)/海螺.app/海螺";
+};
+name = Release;
+};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+A0000000000000000000005C /* Project Configurations */ = {
+isa = XCConfigurationList;
+buildConfigurations = (
+A00000000000000000000056 /* Debug */,
+A00000000000000000000057 /* Release */,
+);
+defaultConfigurationIsVisible = 0;
+defaultConfigurationName = Release;
+};
+A0000000000000000000005D /* Hailuo Configurations */ = {
+isa = XCConfigurationList;
+buildConfigurations = (
+A00000000000000000000058 /* Debug */,
+A00000000000000000000059 /* Release */,
+);
+defaultConfigurationIsVisible = 0;
+defaultConfigurationName = Release;
+};
+A0000000000000000000005E /* HailuoTests Configurations */ = {
+isa = XCConfigurationList;
+buildConfigurations = (
+A0000000000000000000005A /* Debug */,
+A0000000000000000000005B /* Release */,
+);
+defaultConfigurationIsVisible = 0;
+defaultConfigurationName = Release;
+};
+/* End XCConfigurationList section */
+};
+rootObject = A00000000000000000000053 /* Project object */;
+}
