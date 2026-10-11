@@ -7,11 +7,11 @@
   <meta name="description" content="iOSForge 编译工作台。在 GitHub 上构建面向 iOS 15+ 的动态库、插件包和应用。" />
   <title>iOSForge · 编译工作台</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=cleanup-controls-1" />
+  <link rel="stylesheet" href="./styles.css?v=remembered-settings-1" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
   <script src="./source-upload.js?v=fast-reads-1" defer></script>
   <script src="./build-logs.js?v=1" defer></script>
-  <script src="./app.js?v=cleanup-controls-1" defer></script>
+  <script src="./app.js?v=remembered-settings-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">跳到编译工作台</a>
@@ -120,7 +120,7 @@
                   <div class="upload-details-column">
                     <label class="field"><span>项目文件夹名称</span><input id="upload-project" placeholder="例如 MyProject" autocomplete="off" spellcheck="false" maxlength="64" /></label>
                     <p id="upload-destination" class="field-hint"></p>
-                    <label class="upload-consent"><input id="upload-consent" type="checkbox" /><span>确认提交到以上我自己的仓库，已检查源码不含密钥；如果仓库是 Public 公开仓库，我也确认源码上传后所有人可见。私有仓库可降低公开泄露风险，但不能保证绝对安全。</span></label>
+                    <div class="upload-consent-block"><label class="upload-consent"><input id="upload-consent" type="checkbox" /><span>确认提交到以上我自己的仓库，已检查源码不含密钥；如果仓库是 Public 公开仓库，我也确认源码上传后所有人可见。私有仓库可降低公开泄露风险，但不能保证绝对安全。</span></label><div id="upload-consent-memory" class="upload-consent-memory" hidden><span>已为当前仓库记住，下次自动确认</span><button id="forget-upload-consent" type="button">取消记住</button></div></div>
                     <div id="public-upload-warning" class="public-upload-warning" hidden><strong>当前仓库是公开的：上传后所有人可见。</strong><p>如果源码不应公开，请停止上传，换成自己的 Private 私有仓库。删除当前文件也无法自动清除提交历史。上方“确认提交”是唯一需要勾选的上传确认。</p></div>
                     <label class="upload-consent"><input id="upload-replace" type="checkbox" /><span>如果目录已存在，允许更新本次同名文件；未上传的旧文件不会删除。</span></label>
                     <label class="upload-consent build-notify-option"><input id="build-notify" type="checkbox" checked /><span><strong>构建完成后发送邮件通知</strong><small>成功或失败都会通过 GitHub 通知；需在 GitHub 账户中启用 Email 通知。</small></span></label>
@@ -180,10 +180,10 @@
                   <label class="cleanup-switch"><input id="cleanup-enabled" type="checkbox" checked /><span>启用后台定时清理</span></label>
                   <label class="cleanup-switch"><input id="cleanup-failed" type="checkbox" checked /><span>失败／取消任务完成后清理</span></label>
                   <label class="cleanup-switch"><input id="cleanup-notify" type="checkbox" checked /><span>通过 GitHub 通知成功／失败结果</span></label>
-                  <div class="cleanup-retention"><label for="cleanup-value">成功任务保留</label><input id="cleanup-value" type="number" min="1" max="525600" step="1" value="1" inputmode="numeric" aria-label="成功任务保留数值" /><select id="cleanup-unit" aria-label="成功任务保留单位"><option value="immediate">立即</option><option value="minute">分钟</option><option value="hour" selected>小时</option><option value="day">天</option></select></div>
+                  <div class="cleanup-retention"><label for="cleanup-value">成功任务保留</label><input id="cleanup-value" type="number" min="1" max="525600" step="1" value="1" inputmode="numeric" aria-label="成功任务保留数值" /><div class="cleanup-unit-options" role="radiogroup" aria-label="成功任务保留单位"><label><input type="radio" name="cleanup-unit" value="immediate" /><span>立即</span></label><label><input type="radio" name="cleanup-unit" value="minute" /><span>分钟</span></label><label><input type="radio" name="cleanup-unit" value="hour" checked /><span>小时</span></label><label><input type="radio" name="cleanup-unit" value="day" /><span>天</span></label></div></div>
                 </div>
-                <button id="save-cleanup" class="secondary-button cleanup-save" type="button">保存并立即检查</button>
-                <p id="cleanup-message" class="field-hint" role="status">可先调整规则；保存时验证仓库和 Token。后台每 10 分钟检查，到期后清理对应记录、源码和成品。</p>
+                <button id="save-cleanup" class="secondary-button cleanup-save" type="button">保存后台规则</button>
+                <p id="cleanup-message" class="field-hint" role="status">独立于上传和编译，可随时设置。没有任务时后台保持空闲；检测到新构建后自动执行。</p>
               </section>
             </div>
 

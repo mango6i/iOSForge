@@ -524,8 +524,11 @@ def clean(api: GitHubApi, repository: str, branch: str, current_run_id: str) -> 
     if not config["enabled"]:
         print("Automatic cleanup is disabled.")
         return
-    runs = list_runs(api, branch)
     manifests = list_manifests(api, branch)
+    if not manifests:
+        print("No uploaded iOSForge build is registered. Cleanup is idle until a new upload/build is detected.")
+        return
+    runs = list_runs(api, branch)
     notifications = notify_builds(api, repository, config, runs, manifests)
     expired_ids = expired_run_ids(runs, config, int(current_run_id), utc_now())
     # Remove orphaned manifests after the success retention window. This also

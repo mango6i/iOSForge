@@ -23,11 +23,13 @@ const downloadMessage = $("#download-message");
 const uploadConsentInput = $("#upload-consent");
 const buildNotifyInput = $("#build-notify");
 const uploadConsentRow = uploadConsentInput.closest(".upload-consent");
+const uploadConsentMemory = $("#upload-consent-memory");
 const uploadConsentDialog = $("#upload-consent-dialog");
 const uploadConsentDialogDescription = $("#upload-consent-dialog-description");
 const buildLogs = globalThis.IOSForgeLogs?.create();
 const cleanupConfigPath = ".github/iosforge-cleanup.json";
 const cleanupDefaults = Object.freeze({ version: 1, enabled: true, delete_failed_runs: true, success_retention_minutes: 60, notify_via_github: true });
+const preferencesKey = "iosforge.preferences.v1";
 
 const state = { token: "", repo: null, branch: "main", runId: null, busy: false, knownRuns: new Set(), phase: "idle", artifacts: [], history: [], projects: [], cleanupSha: "" };
 const selectedRuns = new Set();
@@ -45,8 +47,68 @@ function clearUploadConsentError() {
   uploadConsentInput.removeAttribute("aria-invalid");
 }
 
-function resetUploadConsent() {
+function readPreferences() {
+  try {
+    const value = JSON.parse(globalThis.localStorage?.getItem(preferencesKey) || "null");
+    return value?.version === 1 && value.uploadConsent && value.cleanup ? value : { version: 1, uploadConsent: {}, cleanup: {} };
+  } catch { return { version: 1, uploadConsent: {}, cleanup: {} }; }
+}
+
+function writePreferences(value) {
+  try {
+    if (!globalThis.localStorage) return false;
+    globalThis.localStorage.setItem(preferencesKey, JSON.stringify(value));
+    return true;
+  } catch { return false; }
+}
+
+function currentRepoKey() {
+  const repo = parseRepo(repoInput.value);
+  return repo ? `${repo.owner}/${repo.name}`.toLowerCase() : "";
+}
+
+function currentCleanupKey() {
+  const repo = currentRepoKey();
+  return repo ? `${repo}@${(branchInput.value.trim() || "main").toLowerCase()}` : "";
+}
+
+function rememberedUploadConsent() {
+  const key = currentRepoKey();
+  return key ? readPreferences().uploadConsent[key] || null : null;
+}
+
+function updateUploadConsentMemory() {
+  const record = rememberedUploadConsent();
+  uploadConsentInput.checked = !!record;
+  uploadConsentMemory.hidden = !record;
+  if (record) uploadConsentMemory.querySelector("span").textContent = `已为 ${currentRepoKey()} 记住，下次自动确认`;
+  clearUploadConsentError();
+}
+
+function rememberUploadConsent(visibility, repositoryId) {
+  const key = currentRepoKey();
+  if (!key) return;
+  const preferences = readPreferences();
+  const previous = preferences.uploadConsent[key] || {};
+  preferences.uploadConsent[key] = { rememberedAt: Date.now(), visibility: visibility || previous.visibility || "unknown", repositoryId: Number.isSafeInteger(repositoryId) ? repositoryId : previous.repositoryId || null };
+  if (writePreferences(preferences)) updateUploadConsentMemory();
+  else { uploadConsentInput.checked = true; uploadConsentMemory.hidden = true; clearUploadConsentError(); }
+}
+
+function forgetUploadConsent() {
+  const key = currentRepoKey();
+  if (key) {
+    const preferences = readPreferences();
+    delete preferences.uploadConsent[key];
+    writePreferences(preferences);
+  }
   uploadConsentInput.checked = false;
+  uploadConsentMemory.hidden = true;
+  clearUploadConsentError();
+}
+
+function resetUploadConsent() {
+  updateUploadConsentMemory();
   clearUploadConsentError();
 }
 
@@ -134,7 +196,7 @@ function setCleanupState(kind, label, message) {
 }
 
 function cleanupMinutesFromControls() {
-  const unit = $("#cleanup-unit").value;
+  const unit = cleanupUnitValue();
   if (unit === "immediate") return 0;
   const value = Number.parseInt($("#cleanup-value").value, 10);
   if (!Number.isSafeInteger(value) || value < 1) throw new Error("成功任务保留时间必须是大于 0 的整数。");
@@ -142,6 +204,19 @@ function cleanupMinutesFromControls() {
   const minutes = value * multiplier;
   if (!Number.isSafeInteger(minutes) || minutes > 525600) throw new Error("成功任务最长可保留 365 天。");
   return minutes;
+}
+
+function cleanupUnitValue() {
+  return $('input[name="cleanup-unit"]:checked')?.value || "hour";
+}
+
+function setCleanupUnit(value) {
+  const input = $(`input[name="cleanup-unit"][value="${value}"]`) || $('input[name="cleanup-unit"][value="hour"]');
+  document.querySelectorAll('input[name="cleanup-unit"]').forEach(option => {
+    const selected = option === input;
+    option.checked = selected;
+    option.toggleAttribute("checked", selected);
+  });
 }
 
 function cleanupRetentionLabel(minutes) {
@@ -164,30 +239,58 @@ function cleanupConfig(value) {
   return config;
 }
 
+function cachedCleanupConfig() {
+  const key = currentCleanupKey();
+  const record = key ? readPreferences().cleanup[key] : null;
+  return record?.config ? cleanupConfig(record.config) : null;
+}
+
+function rememberCleanupConfig(config, sha = "") {
+  const key = currentCleanupKey();
+  if (!key) return;
+  const preferences = readPreferences();
+  preferences.cleanup[key] = { config: cleanupConfig(config), sha: sha || "", savedAt: Date.now() };
+  writePreferences(preferences);
+}
+
+function forgetCleanupConfig() {
+  const key = currentCleanupKey();
+  if (!key) return;
+  const preferences = readPreferences();
+  delete preferences.cleanup[key];
+  writePreferences(preferences);
+}
+
 function showCleanupConfig(value) {
   const config = cleanupConfig(value);
   $("#cleanup-enabled").checked = config.enabled;
   $("#cleanup-failed").checked = config.delete_failed_runs;
   $("#cleanup-notify").checked = config.notify_via_github;
   const minutes = config.success_retention_minutes;
-  if (minutes === 0) { $("#cleanup-unit").value = "immediate"; $("#cleanup-value").value = "1"; }
-  else if (minutes % 1440 === 0) { $("#cleanup-unit").value = "day"; $("#cleanup-value").value = String(minutes / 1440); }
-  else if (minutes % 60 === 0) { $("#cleanup-unit").value = "hour"; $("#cleanup-value").value = String(minutes / 60); }
-  else { $("#cleanup-unit").value = "minute"; $("#cleanup-value").value = String(minutes); }
+  if (minutes === 0) { setCleanupUnit("immediate"); $("#cleanup-value").value = "1"; }
+  else if (minutes % 1440 === 0) { setCleanupUnit("day"); $("#cleanup-value").value = String(minutes / 1440); }
+  else if (minutes % 60 === 0) { setCleanupUnit("hour"); $("#cleanup-value").value = String(minutes / 60); }
+  else { setCleanupUnit("minute"); $("#cleanup-value").value = String(minutes); }
   updateCleanupControls();
   return config;
 }
 
-function resetCleanupSettings(message = "可先调整清理规则；保存时会验证仓库和 Token。") {
+function resetCleanupSettings(message = "独立于上传和编译，可随时设置。填写仓库与有效 Token 后保存一次即可后台运行。") {
   state.cleanupSha = "";
+  const cached = cachedCleanupConfig();
+  if (cached) {
+    showCleanupConfig(cached);
+    setCleanupState(cached.enabled ? "success" : "", cached.enabled ? "已启用" : "已停用", `已恢复此仓库上次成功保存的设置。后台规则保存在 GitHub 仓库中，刷新页面不会停用；检查仓库后可核对最新配置。成功任务保留 ${cleanupRetentionLabel(cached.success_retention_minutes)}。`);
+    return;
+  }
   showCleanupConfig(cleanupDefaults);
   setCleanupState("", "未读取", message);
 }
 
 function updateCleanupControls() {
   const locked = state.busy;
-  $("#cleanup-settings").querySelectorAll("input, select, button").forEach(control => { control.disabled = locked; });
-  if (!locked && $("#cleanup-unit").value === "immediate") $("#cleanup-value").disabled = true;
+  $("#cleanup-settings").querySelectorAll("input, button").forEach(control => { control.disabled = locked; });
+  if (!locked && cleanupUnitValue() === "immediate") $("#cleanup-value").disabled = true;
 }
 
 async function loadCleanupSettings() {
@@ -196,10 +299,12 @@ async function loadCleanupSettings() {
     const item = await github(`${repoBase()}/contents/${encodePath(cleanupConfigPath)}?ref=${encodeURIComponent(state.branch)}`);
     const config = showCleanupConfig(JSON.parse(decodeGitHubText(item.content)));
     state.cleanupSha = item.sha || "";
-    setCleanupState(config.enabled ? "success" : "", config.enabled ? "已启用" : "已停用", `失败任务${config.delete_failed_runs ? "完成后立即清理" : "保留"}；成功任务保留 ${cleanupRetentionLabel(config.success_retention_minutes)}；后台每 10 分钟检查。${config.notify_via_github ? "结果通过 GitHub Issue 通知。" : "GitHub 结果通知已关闭。"}`);
+    rememberCleanupConfig(config, state.cleanupSha);
+    setCleanupState(config.enabled ? "success" : "", config.enabled ? "已启用" : "已停用", `独立后台规则已读取。没有任务时保持空闲；检测到新构建后自动执行。失败任务${config.delete_failed_runs ? "完成后立即清理" : "保留"}；成功任务保留 ${cleanupRetentionLabel(config.success_retention_minutes)}。${config.notify_via_github ? "结果通过 GitHub Issue 通知。" : "GitHub 结果通知已关闭。"}`);
   } catch (error) {
     if (error?.status !== 404) throw error;
     state.cleanupSha = "";
+    forgetCleanupConfig();
     const config = showCleanupConfig(cleanupDefaults);
     setCleanupState("", "未保存", `仓库还没有清理设置；当前表单默认成功任务保留 ${cleanupRetentionLabel(config.success_retention_minutes)}。点击保存后启用。`);
   }
@@ -211,7 +316,7 @@ function invalidateWorkspace() {
   $("#workspace-status").dataset.visibility = "unknown";
   $("#public-upload-warning").hidden = true;
   resetProjects("仓库信息变化后，请重新读取项目。");
-  resetCleanupSettings("仓库信息已变化；可继续调整规则，保存时会重新验证并写入当前仓库。");
+  resetCleanupSettings("仓库信息已变化；规则仍可独立调整，保存时只同步到当前仓库，不检查是否已上传源码。");
 }
 
 const workspaceCacheMs = 60 * 1000;
@@ -239,7 +344,11 @@ async function verifyWorkspace({ upload = false, fresh = false } = {}) {
   if (repository.archived || repository.disabled || repository.permissions?.push === false) throw new Error("这个仓库已归档、停用或不可写，请选择可用的个人仓库。");
   if (!Number.isSafeInteger(workflow.id) || workflow.state !== "active") throw new Error("编译工作流尚未安装或未启用。请按指南导入纯净初始化包，并在自己的仓库 Actions 中启用工作流。");
   if (state.closed || !historyMatchesInputs()) throw new Error("页面会话已变化，已停止操作。");
-  if (previous && (previous.id !== repository.id || previous.private !== repository.private)) resetUploadConsent();
+  const remembered = rememberedUploadConsent();
+  const visibility = repository.private ? "private" : "public";
+  const rememberedChanged = remembered && ((remembered.visibility !== "unknown" && remembered.visibility !== visibility) || (remembered.repositoryId && remembered.repositoryId !== repository.id));
+  if (rememberedChanged || (previous && (previous.id !== repository.id || previous.private !== repository.private))) forgetUploadConsent();
+  else if (uploadConsentInput.checked) rememberUploadConsent(visibility, repository.id);
   state.workspace = { id: repository.id, private: repository.private, login: user.login, repository, checkedAt: Date.now() };
   $("#workspace-status").dataset.visibility = repository.private ? "private" : "public";
   $("#workspace-status").textContent = `已核对账号 ${user.login} · ${repository.full_name} · ${repository.private ? "Private 私有仓库" : "Public 公开仓库，源码所有人可见"}。编译工作流已启用；写入权限仍以实际操作结果为准。`;
@@ -643,7 +752,11 @@ $("#pick-folder").addEventListener("click", () => $("#folder-input").click());
 $("#zip-input").addEventListener("change", event => selectSource(event.target.files, false));
 $("#folder-input").addEventListener("change", event => selectSource(event.target.files, true));
 $("#clear-upload").addEventListener("click", () => { selectedSource = null; $("#upload-preview").hidden = true; resetUploadConsent(); $("#upload-selection-status").textContent = "选择已清除，未删除仓库中的任何文件。"; });
-uploadConsentInput.addEventListener("change", () => { if (uploadConsentInput.checked) clearUploadConsentError(); });
+uploadConsentInput.addEventListener("change", () => {
+  if (uploadConsentInput.checked) rememberUploadConsent(state.workspace?.private === true ? "private" : state.workspace?.private === false ? "public" : "unknown", state.workspace?.id);
+  else forgetUploadConsent();
+});
+$("#forget-upload-consent").addEventListener("click", forgetUploadConsent);
 const dropzone = $("#upload-dropzone");
 dropzone.addEventListener("dragover", event => { event.preventDefault(); if (!state.busy) dropzone.classList.add("is-dragging"); });
 dropzone.addEventListener("dragleave", () => dropzone.classList.remove("is-dragging"));
@@ -661,18 +774,18 @@ $("#check-workspace").addEventListener("click", async () => {
   finally { setBusy(false); }
 });
 
-$("#cleanup-unit").addEventListener("change", updateCleanupControls);
+document.querySelectorAll('input[name="cleanup-unit"]').forEach(input => input.addEventListener("change", updateCleanupControls));
 $("#save-cleanup").addEventListener("click", async () => {
   if (state.busy) return;
   const repo = parseRepo(repoInput.value), token = tokenInput.value.trim();
-  if (!repo || !token) { setCleanupState("error", "缺少信息", "请先填写自己的仓库和 GitHub Token，并检查仓库。"); return; }
+  if (!repo || !token) { setCleanupState("error", "缺少授权", "自动清理不需要先上传源码，但必须填写目标仓库和有效 GitHub Token，才能把规则写入仓库并在网页关闭后继续运行。"); return; }
   let minutes;
   try { minutes = cleanupMinutesFromControls(); }
   catch (error) { setCleanupState("error", "检查时间", error.message); return; }
   state.repo = repo; state.token = token; state.branch = branchInput.value.trim() || "main"; state.closed = false;
-  setBusy(true, "正在保存清理设置…");
+  setBusy(true, "正在同步独立清理规则…");
+  let configSaved = false;
   try {
-    await verifyWorkspace({ fresh: true });
     let current = null;
     try { current = await github(`${repoBase()}/contents/${encodePath(cleanupConfigPath)}?ref=${encodeURIComponent(state.branch)}`); }
     catch (error) { if (error?.status !== 404) throw error; }
@@ -694,8 +807,10 @@ $("#save-cleanup").addEventListener("click", async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
+    configSaved = true;
     state.cleanupSha = saved?.content?.sha || "";
     showCleanupConfig(config);
+    rememberCleanupConfig(config, state.cleanupSha);
     let dispatched = false;
     if (config.enabled) {
       try {
@@ -711,9 +826,15 @@ $("#save-cleanup").addEventListener("click", async () => {
     }
     const notification = config.notify_via_github ? "成功和失败会写入 GitHub 通知 Issue；账户启用 Email 后由 GitHub 发信。" : "GitHub 结果通知已关闭。";
     const schedule = config.enabled ? `后台每 10 分钟检查${dispatched ? "，并已立即启动一次检查" : ""}` : "后台自动清理已停用";
-    setCleanupState(config.enabled ? "success" : "", config.enabled ? "已启用" : "已停用", `${schedule}；失败任务${config.delete_failed_runs ? "完成后立即清理" : "保留"}；成功任务保留 ${cleanupRetentionLabel(minutes)}。${notification}`);
+    const idle = config.enabled ? "没有上传构建时自动空闲退出，检测到新构建后自动处理。" : "";
+    setCleanupState(config.enabled ? "success" : "", config.enabled ? "已启用" : "已停用", `${schedule}；${idle}失败任务${config.delete_failed_runs ? "完成后立即清理" : "保留"}；成功任务保留 ${cleanupRetentionLabel(minutes)}。${notification}`);
   } catch (error) {
-    setCleanupState("error", "保存失败", `${error.message || "无法保存设置"}。仓库中的原设置未确认改变，请重新检查。`);
+    if (configSaved) {
+      setCleanupState("error", "已保存", `规则已经写入仓库，但未能立即启动检查：${error.message || "GitHub 暂时拒绝请求"}。定时任务仍会按仓库中的规则运行。`);
+    } else {
+      const reason = error?.status === 401 ? "当前 GitHub Token 无效或已过期，请更新 Token 后重试" : (error.message || "无法写入仓库");
+      setCleanupState("error", "同步失败", `自动清理与源码上传无关；这次失败仅因为${reason}。仓库中的原设置没有改变。`);
+    }
   } finally { setBusy(false); }
 });
 

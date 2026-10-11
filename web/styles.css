@@ -199,23 +199,32 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 .pipeline li.done .pipeline-marker { color: var(--success); border-color: #14845d55; background: #14845d0b; }
 .pipeline li.done .pipeline-state { color: var(--success); }
 .pipeline li.failed .pipeline-marker, .pipeline li.failed .pipeline-state { color: var(--error); border-color: #c4424e55; }
-.cleanup-settings { grid-column: 1 / -1; min-width: 0; padding: 11px 12px; border: 1px solid #cadcf1; border-radius: 9px; background: #f8fbffcf; box-shadow: inset 0 1px #fff; }
+.cleanup-settings { grid-column: 1 / -1; min-width: 0; padding: 11px 12px; border: 1px solid #c8dbf2; border-radius: 10px; background: linear-gradient(145deg, #fbfdff 0%, #f3f8ff 100%); box-shadow: inset 0 1px #fff, 0 6px 18px #436b9f0a; }
 .cleanup-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .cleanup-heading .section-overline { margin-bottom: 3px; font-size: .625rem; }
 .cleanup-heading h3 { margin: 0; color: #294866; font-size: .875rem; font-weight: 600; }
 .cleanup-state { flex-shrink: 0; padding: 2px 7px; border: 1px solid #cbdcf1; border-radius: 999px; color: var(--subtle); background: #fff; font-size: .6875rem; }
 .cleanup-state[data-kind="success"] { color: var(--success); border-color: #9fd4bc; background: #f3fbf7; }
 .cleanup-state[data-kind="error"] { color: var(--error); border-color: #e4b9bf; background: #fff7f8; }
-.cleanup-controls { display: grid; gap: 6px; margin-top: 9px; }
+.cleanup-controls { display: grid; gap: 5px; margin-top: 9px; }
 .cleanup-switch, .cleanup-retention { display: flex; align-items: center; gap: 7px; color: #46617d; font-size: .75rem; line-height: 1.45; }
-.cleanup-switch input { flex: 0 0 auto; margin: 0; accent-color: var(--accent); }
-.cleanup-retention { display: grid; grid-template-columns: minmax(60px, 1fr) minmax(54px, 70px) minmax(72px, 82px); gap: 6px; }
-.cleanup-retention > label { margin-right: 0; }
-.cleanup-retention input, .cleanup-retention select { height: 30px; border: 1px solid #cbdcf1; border-radius: 6px; background: #fff; color: #31516d; font: .75rem var(--font); }
-.cleanup-retention input { box-sizing: border-box; width: 100%; min-width: 0; padding: 5px 7px; text-align: right; }
-.cleanup-retention select { width: 100%; min-width: 0; padding: 5px 22px 5px 7px; }
+.cleanup-switch { min-height: 24px; padding: 2px 5px; border-radius: 6px; transition: background .16s ease; }
+.cleanup-switch:hover { background: #eaf3ff; }
+.cleanup-switch input { flex: 0 0 auto; width: 14px; height: 14px; margin: 0; accent-color: var(--accent); }
+.cleanup-retention { display: grid; grid-template-columns: minmax(78px, 1fr) minmax(54px, 68px); gap: 6px; margin-top: 2px; }
+.cleanup-retention > label { margin-right: 0; font-weight: 550; }
+.cleanup-retention > input { box-sizing: border-box; width: 100%; min-width: 0; height: 30px; padding: 5px 7px; border: 1px solid #c4d8ef; border-radius: 7px; background: #fff; color: #274966; font: .75rem var(--font); text-align: center; }
+.cleanup-unit-options { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; padding: 3px; border: 1px solid #c7dbf1; border-radius: 8px; background: #eaf2fc; }
+.cleanup-unit-options label { position: relative; min-width: 0; cursor: pointer; }
+.cleanup-unit-options input { position: absolute; inline-size: 1px; block-size: 1px; opacity: 0; pointer-events: none; }
+.cleanup-unit-options span { display: flex; min-height: 25px; align-items: center; justify-content: center; border: 1px solid transparent; border-radius: 6px; color: #58718d; background: transparent; font-size: .6875rem; line-height: 1; transition: color .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease; }
+.cleanup-unit-options label:hover span { color: #1f5fbf; background: #f8fbff; }
+.cleanup-unit-options input:checked + span { color: #125bcc; border-color: #9fc1f3; background: #fff; box-shadow: 0 2px 7px #316db51a; font-weight: 650; }
+.cleanup-unit-options input:focus-visible + span { outline: 2px solid #78a8ef; outline-offset: 1px; }
+.cleanup-unit-options input:disabled + span { cursor: not-allowed; opacity: .55; }
 .cleanup-retention input:disabled { color: var(--subtle); background: #eef4fb; }
-.cleanup-save { width: 100%; min-height: 32px; margin-top: 9px; padding: 5px 9px; font-size: .75rem; }
+.cleanup-save { width: 100%; min-height: 33px; margin-top: 9px; padding: 5px 9px; border-color: #a8c6ee; color: #175ebd; background: #fff; font-size: .75rem; font-weight: 600; }
+.cleanup-save:hover:not(:disabled) { border-color: #6e9ee1; background: #edf5ff; }
 .cleanup-settings .field-hint { margin-top: 7px; font-size: .6875rem; line-height: 1.5; }
 .run-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; padding: 15px 0; border-top: 1px solid var(--border); }
 .meta-item { min-width: 0; }
@@ -532,6 +541,7 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 .upload-preview details { margin-top: 9px; color: var(--muted); }
 .upload-preview summary { cursor: pointer; }
 .upload-preview ul { max-height: 200px; overflow: auto; padding-left: 18px; font-family: var(--mono); font-size: .75rem; overflow-wrap: anywhere; }
+.upload-consent-block { min-width: 0; }
 .upload-consent { display: grid; grid-template-columns: 16px minmax(0, 1fr); align-items: start; gap: 10px; margin: 14px 0; color: var(--muted); font-size: .875rem; line-height: 1.75; cursor: pointer; border-radius: 7px; transition: color 160ms, background-color 160ms, box-shadow 160ms; }
 .upload-consent input[type="checkbox"] { appearance: auto; width: 16px; height: 16px; min-width: 16px; padding: 0; margin: 4px 0 0; accent-color: var(--accent); }
 .upload-consent > span { min-width: 0; overflow-wrap: anywhere; }
@@ -543,6 +553,9 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 .upload-consent.is-invalid { color: var(--error); background: #fff2f3; box-shadow: 0 0 0 1px #e8aab0, 0 0 0 4px #c4424e12; }
 .upload-consent.is-invalid > span { color: var(--error); }
 .upload-consent.is-invalid input[type="checkbox"] { accent-color: var(--error); }
+.upload-consent-memory { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: -5px 0 11px 26px; padding: 6px 9px; border: 1px solid #b9dfca; border-radius: 6px; background: #f1fbf5; color: #23764b; font-size: .72rem; line-height: 1.4; }
+.upload-consent-memory button { flex: 0 0 auto; padding: 3px 7px; border: 0; border-radius: 4px; background: transparent; color: #2a69b5; font: inherit; cursor: pointer; }
+.upload-consent-memory button:hover, .upload-consent-memory button:focus-visible { background: #e2f0ff; outline: none; }
 .build-logs { min-width: 0; margin-top: 23px; padding-top: 22px; border-top: 1px solid var(--border); }
 .logs-heading, .logs-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .logs-heading h3 { margin: 3px 0 0; font-size: 1rem; }
@@ -741,7 +754,7 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-preview { grid-area: upload-preview; margin: 0; padding: 10px 12px; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-panel > .field { grid-area: upload-project; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) #upload-destination { grid-area: upload-destination; margin: 0; }
-  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-panel > label:has(#upload-consent) { grid-area: upload-consent; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-consent-block { grid-area: upload-consent; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .public-upload-warning { grid-area: upload-warning; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-panel > label:has(#upload-replace) { grid-area: upload-replace; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) #upload-progress-wrap { grid-area: upload-progress; }
@@ -751,6 +764,7 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .public-upload-warning { padding: 11px 12px; font-size: .8125rem; line-height: 1.55; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .public-upload-warning p { margin: 5px 0 0; font-size: .75rem; line-height: 1.55; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-consent { font-size: .75rem; line-height: 1.55; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-consent-memory { margin-top: 5px; margin-bottom: 0; }
 
   /* When IPA options are hidden, collapse the four-column upload grid to three real columns. */
   #build-form > .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="upload"]:checked) {
