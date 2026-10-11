@@ -178,14 +178,14 @@ function showCleanupConfig(value) {
   return config;
 }
 
-function resetCleanupSettings(message = "检查仓库后可读取和保存自动清理设置。") {
+function resetCleanupSettings(message = "可先调整清理规则；保存时会验证仓库和 Token。") {
   state.cleanupSha = "";
   showCleanupConfig(cleanupDefaults);
   setCleanupState("", "未读取", message);
 }
 
 function updateCleanupControls() {
-  const locked = state.busy || !historyMatchesInputs();
+  const locked = state.busy;
   $("#cleanup-settings").querySelectorAll("input, select, button").forEach(control => { control.disabled = locked; });
   if (!locked && $("#cleanup-unit").value === "immediate") $("#cleanup-value").disabled = true;
 }
@@ -211,7 +211,7 @@ function invalidateWorkspace() {
   $("#workspace-status").dataset.visibility = "unknown";
   $("#public-upload-warning").hidden = true;
   resetProjects("仓库信息变化后，请重新读取项目。");
-  resetCleanupSettings("仓库信息变化后，请重新检查并读取自动清理设置。");
+  resetCleanupSettings("仓库信息已变化；可继续调整规则，保存时会重新验证并写入当前仓库。");
 }
 
 const workspaceCacheMs = 60 * 1000;

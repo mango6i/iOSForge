@@ -7,11 +7,11 @@
   <meta name="description" content="iOSForge 编译工作台。在 GitHub 上构建面向 iOS 15+ 的动态库、插件包和应用。" />
   <title>iOSForge · 编译工作台</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=auto-cleanup-2" />
+  <link rel="stylesheet" href="./styles.css?v=cleanup-controls-1" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
   <script src="./source-upload.js?v=fast-reads-1" defer></script>
   <script src="./build-logs.js?v=1" defer></script>
-  <script src="./app.js?v=auto-cleanup-1" defer></script>
+  <script src="./app.js?v=cleanup-controls-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">跳到编译工作台</a>
@@ -183,7 +183,7 @@
                   <div class="cleanup-retention"><label for="cleanup-value">成功任务保留</label><input id="cleanup-value" type="number" min="1" max="525600" step="1" value="1" inputmode="numeric" aria-label="成功任务保留数值" /><select id="cleanup-unit" aria-label="成功任务保留单位"><option value="immediate">立即</option><option value="minute">分钟</option><option value="hour" selected>小时</option><option value="day">天</option></select></div>
                 </div>
                 <button id="save-cleanup" class="secondary-button cleanup-save" type="button">保存并立即检查</button>
-                <p id="cleanup-message" class="field-hint" role="status">检查仓库后可保存。后台每 10 分钟检查；到期时删除 Actions 记录、该次上传源码和仍属于该次构建的成品。</p>
+                <p id="cleanup-message" class="field-hint" role="status">可先调整规则；保存时验证仓库和 Token。后台每 10 分钟检查，到期后清理对应记录、源码和成品。</p>
               </section>
             </div>
 
