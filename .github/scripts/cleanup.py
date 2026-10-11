@@ -17,6 +17,7 @@ from urllib.request import Request, urlopen
 
 
 CONFIG_PATH = ".github/iosforge-cleanup.json"
+LOG_PATH = ".github/iosforge-cleanup-log.json"
 MANIFEST_DIRECTORY = ".github/iosforge-runs"
 MAX_REF_ATTEMPTS = 8
 FAILED_CONCLUSIONS = {
@@ -56,6 +57,49 @@ def utc_now() -> datetime:
 
 def iso_time(value: datetime | None = None) -> str:
     return (value or utc_now()).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def cleanup_local_time(value: datetime | None = None) -> datetime:
+    return (value or utc_now()).astimezone(timezone(timedelta(hours=8))).replace(microsecond=0)
+
+
+def daily_cleanup_log(api: GitHubApi, branch: str, now: datetime) -> tuple[dict, bool]:
+    day = cleanup_local_time(now).date().isoformat()
+    value, _ = load_json(api, branch, LOG_PATH)
+    if (
+        isinstance(value, dict)
+        and value.get("version") == 1
+        and value.get("date") == day
+        and isinstance(value.get("entries"), list)
+    ):
+        return value, False
+    return {"version": 1, "date": day, "timezone": "Asia/Shanghai", "entries": []}, True
+
+
+def save_cleanup_log(api: GitHubApi, branch: str, value: dict) -> None:
+    save_json(api, branch, LOG_PATH, value, "Update iOSForge daily cleanup log [skip ci]")
+
+
+def append_cleanup_log(
+    value: dict,
+    now: datetime,
+    cleanup_run_id: int,
+    deleted_run_ids: list[int],
+    repository_deletions: int,
+    removed_paths: list[str],
+) -> None:
+    entries = value.setdefault("entries", [])
+    entries.append(
+        {
+            "timestamp": cleanup_local_time(now).isoformat(),
+            "cleanup_run_id": cleanup_run_id,
+            "deleted_run_ids": sorted(set(deleted_run_ids)),
+            "actions_runs_deleted": len(deleted_run_ids),
+            "repository_items_deleted": repository_deletions,
+            "removed_paths": sorted(set(removed_paths)),
+        }
+    )
+    value["entries"] = entries[-200:]
 
 
 def parse_time(value: object) -> datetime | None:
@@ -519,36 +563,49 @@ def cleanup_tree(
 def clean(api: GitHubApi, repository: str, branch: str, current_run_id: str) -> None:
     if not current_run_id.isdecimal():
         raise RuntimeError("IOSFORGE_RUN_ID must be numeric.")
+    now = utc_now()
+    cleanup_log, cleanup_log_changed = daily_cleanup_log(api, branch, now)
     config_value, _ = load_json(api, branch, CONFIG_PATH)
     config = validated_config(config_value)
     if not config["enabled"]:
+        if cleanup_log_changed:
+            save_cleanup_log(api, branch, cleanup_log)
         print("Automatic cleanup is disabled.")
         return
     manifests = list_manifests(api, branch)
     if not manifests:
+        if cleanup_log_changed:
+            save_cleanup_log(api, branch, cleanup_log)
         print("No uploaded iOSForge build is registered. Cleanup is idle until a new upload/build is detected.")
         return
     runs = list_runs(api, branch)
     notifications = notify_builds(api, repository, config, runs, manifests)
-    expired_ids = expired_run_ids(runs, config, int(current_run_id), utc_now())
+    expired_ids = expired_run_ids(runs, config, int(current_run_id), now)
     # Remove orphaned manifests after the success retention window. This also
     # recovers from a run record that was manually deleted before its files.
     known_ids = {run.get("id") for run in runs if isinstance(run.get("id"), int)}
-    orphan_cutoff = utc_now() - timedelta(minutes=max(config["success_retention_minutes"], 60))
+    orphan_cutoff = now - timedelta(minutes=max(config["success_retention_minutes"], 60))
     for run_id, manifest in manifests.items():
         if run_id not in known_ids and (created := parse_time(manifest.get("created_at"))) and created <= orphan_cutoff:
             expired_ids.add(run_id)
     changes, removed_data = cleanup_tree(api, branch, expired_ids, manifests)
     removed_runs = 0
+    deleted_run_ids: list[int] = []
     for run_id in sorted(expired_ids):
         if run_id not in known_ids:
             continue
         try:
             api.request("DELETE", f"/actions/runs/{run_id}")
             removed_runs += 1
+            deleted_run_ids.append(run_id)
         except ApiError as error:
             if error.status != 404:
                 raise
+    if changes or removed_runs:
+        append_cleanup_log(cleanup_log, now, int(current_run_id), deleted_run_ids, changes, removed_data)
+        cleanup_log_changed = True
+    if cleanup_log_changed:
+        save_cleanup_log(api, branch, cleanup_log)
     print(f"Sent {notifications} GitHub build notification(s).")
     print(f"Deleted {removed_runs} Actions run record(s).")
     print(f"Applied {changes} repository deletion(s).")

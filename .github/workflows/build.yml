@@ -10,6 +10,7 @@ on:
       - '.github/workflows/pages.yml'
       - '.github/workflows/environment.yml'
       - '.github/iosforge-cleanup.json'
+      - '.github/iosforge-cleanup-log.json'
       - '.github/iosforge-runs/**'
       - '**/*.ipa'
       - '**/*.deb'

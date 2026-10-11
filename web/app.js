@@ -317,6 +317,7 @@ async function loadCleanupSettings() {
 async function loadPublicCleanupSettings() {
   const repo = parseRepo(repoInput.value), branch = branchInput.value.trim() || "main";
   if (!repo) return;
+  if (!tokenInput.value.trim()) buildLogs?.connect?.({ base: repoBase(repo), repoName: `${repo.owner}/${repo.name}`, branch, token: "" });
   const key = currentCleanupKey(), sequence = ++cleanupPreviewSequence;
   if (!cachedCleanupConfig()) setCleanupState("", "读取中", "正在自动读取公开仓库中的后台清理设置…");
   try {
@@ -387,6 +388,7 @@ async function verifyWorkspace({ upload = false, fresh = false } = {}) {
   $("#workspace-status").textContent = `已核对账号 ${user.login} · ${repository.full_name} · ${repository.private ? "Private 私有仓库" : "Public 公开仓库，源码所有人可见"}。编译工作流已启用；写入权限仍以实际操作结果为准。`;
   $("#public-upload-warning").hidden = repository.private;
   updateLinks();
+  buildLogs?.connect?.({ base, repoName: repository.full_name, branch: state.branch, token: state.token });
   if (upload && !requireUploadConsent("仓库信息发生变化，请重新阅读风险说明并勾选“确认提交”后再上传。")) throw new Error("仓库信息发生变化，请重新阅读风险说明并勾选唯一的“确认提交”选项。");
   return repository;
 }

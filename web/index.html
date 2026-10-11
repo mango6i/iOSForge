@@ -10,8 +10,8 @@
   <link rel="stylesheet" href="./styles.css?v=remembered-settings-2" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
   <script src="./source-upload.js?v=fast-reads-1" defer></script>
-  <script src="./build-logs.js?v=1" defer></script>
-  <script src="./app.js?v=remembered-settings-3" defer></script>
+  <script src="./build-logs.js?v=cleanup-records-1" defer></script>
+  <script src="./app.js?v=cleanup-records-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">跳到编译工作台</a>
@@ -192,12 +192,12 @@
             <p id="download-message" class="download-message" role="status" hidden></p>
             <section id="build-logs" class="build-logs" aria-labelledby="logs-heading">
               <div class="logs-heading"><div><span class="section-overline">SESSION CONSOLE</span><h3 id="logs-heading">运行日志</h3></div><span id="logs-badge" class="logs-badge">仅当前页面</span></div>
-              <p id="logs-notice" class="field-hint" role="status" aria-live="polite">开始构建后显示动态。成功后自动清空；失败暂留报错，刷新或关闭网页即清空。</p>
-              <div class="logs-toolbar"><label class="logs-job-label" for="logs-job">任务</label><select id="logs-job" aria-label="选择日志任务"><option value="all">全部任务</option></select><button id="logs-errors" type="button" class="secondary-button" aria-pressed="false">只看错误</button><button id="logs-refresh" type="button" class="secondary-button" disabled>刷新日志</button></div>
-              <div id="logs-output" class="logs-output" tabindex="0" aria-label="临时构建日志"><p class="logs-empty">这里显示步骤变化与 GitHub 已提供的编译输出。</p></div>
+              <p id="logs-notice" class="field-hint" role="status" aria-live="polite">构建日志仅在当前页面暂留；选择“清理记录”可查看今天的后台检查和实际删除时间。</p>
+              <div class="logs-toolbar"><label class="logs-job-label" for="logs-job">查看</label><select id="logs-job" aria-label="选择日志类型"><option value="all">构建日志（全部任务）</option><option value="cleanup">清理记录（今天）</option></select><button id="logs-errors" type="button" class="secondary-button" aria-pressed="false">只看错误</button><button id="logs-refresh" type="button" class="secondary-button" disabled>刷新日志</button></div>
+              <div id="logs-output" class="logs-output" tabindex="0" aria-label="构建日志与自动清理记录"><p class="logs-empty">这里显示步骤变化、GitHub 已提供的编译输出和当天清理记录。</p></div>
               <div class="logs-footer"><span id="logs-count">尚无日志</span><label class="logs-follow"><input id="logs-follow" type="checkbox" checked />跟随最新</label></div>
               <div class="logs-actions"><button id="logs-copy" type="button" class="secondary-button" disabled>复制给 AI</button><button id="logs-clear" type="button" class="secondary-button" disabled>清空并暂停</button></div>
-              <p class="logs-privacy">步骤约每 15 秒更新。编译原文由 GitHub 按可用情况提供，可能要等任务结束。网页不落盘、不另存日志副本；GitHub 原始运行日志仍按平台规则保留。</p>
+              <p class="logs-privacy">构建步骤约每 15 秒更新，临时日志不落盘；“清理记录”来自 GitHub，只显示当天检查与删除明细，隔天自动清除前一天的页面记录。</p>
               <p id="logs-action-message" class="field-hint" role="status" hidden></p>
               <textarea id="logs-copy-fallback" class="logs-copy-fallback" aria-label="无法自动复制时，请手动选择复制以下诊断内容" readonly hidden></textarea>
             </section>

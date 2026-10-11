@@ -1,4 +1,4 @@
-/* Ephemeral viewer for GitHub's existing logs. No storage or log-upload endpoint. */
+/* Viewer for GitHub build logs and the repository's current-day cleanup record. */
 (() => {
   "use strict";
   const errorPattern = /\berror\b|fatal|exception|traceback|undefined symbols|ld:|\bfailed\b|失败|错误/i;
@@ -45,15 +45,33 @@
   function create() {
     const q = selector => document.querySelector(selector);
     const output = q("#logs-output"), jobSelect = q("#logs-job"), notice = q("#logs-notice");
-    let context = null, run = null, jobs = [], entries = [], documents = new Map(), epoch = 0, paused = false, busy = false, lastSync = 0, lastState = "", controllers = new Set();
+    let context = null, run = null, jobs = [], entries = [], documents = new Map(), cleanupRuns = [], cleanupRecord = null, cleanupError = "", epoch = 0, paused = false, busy = false, lastSync = 0, lastState = "", controllers = new Set();
     const el = (tag, text, className) => { const node = document.createElement(tag); node.textContent = text; if (className) node.className = className; return node; };
     const failure = current => current?.status === "completed" && ["failure", "timed_out", "action_required", "startup_failure"].includes(current.conclusion);
     function empty(message) { output.replaceChildren(el("p", message, "logs-empty")); }
+    function resetJobOptions(selected = "all") {
+      jobSelect.replaceChildren(el("option", "构建日志（全部任务）"), el("option", "清理记录（今天）"));
+      jobSelect.children[0].value = "all";
+      jobSelect.children[1].value = "cleanup";
+      jobSelect.value = selected === "cleanup" ? "cleanup" : "all";
+    }
+    function exactTime(value) {
+      const date = new Date(value);
+      if (!Number.isFinite(date.getTime())) return String(value || "时间未知");
+      return new Intl.DateTimeFormat("zh-CN", { timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" }).format(date).replaceAll("/", "-");
+    }
+    function dayKey(value = new Date()) {
+      return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(value));
+    }
+    function decodeContent(value) {
+      const raw = atob(String(value || "").replace(/\s/g, ""));
+      return new TextDecoder().decode(Uint8Array.from(raw, character => character.charCodeAt(0)));
+    }
     function purge(message, retainContext = false) {
       epoch++; controllers.forEach(controller => controller.abort()); controllers.clear();
-      jobs = []; entries = []; documents.clear(); lastState = ""; lastSync = 0; busy = false;
+      jobs = []; entries = []; documents.clear(); cleanupRuns = []; cleanupRecord = null; cleanupError = ""; lastState = ""; lastSync = 0; busy = false;
       if (!retainContext) { context = null; run = null; }
-      jobSelect.replaceChildren(el("option", "全部任务")); jobSelect.firstChild.value = "all";
+      resetJobOptions();
       q("#logs-copy-fallback").value = ""; q("#logs-copy-fallback").hidden = true;
       q("#logs-action-message").textContent = ""; q("#logs-action-message").hidden = true;
       q("#logs-count").textContent = "暂无日志";
@@ -65,6 +83,15 @@
       context = { ...nextContext }; paused = false;
       q("#logs-badge").textContent = "仅当前页面";
     }
+    function connect(nextContext) {
+      const same = context && context.base === nextContext.base && context.branch === nextContext.branch && context.token === nextContext.token;
+      if (same) return;
+      purge("已连接仓库。选择“清理记录”可查看今天的自动清理检查和实际删除明细。");
+      context = { ...nextContext }; paused = false;
+      q("#logs-badge").textContent = "今日记录";
+      resetJobOptions("cleanup");
+      loadCleanup();
+    }
     function event(title, copy, kind = "info") {
       if (!context || paused) return;
       const text = clean(`${title}：${copy}`, context.token);
@@ -73,7 +100,24 @@
       entries = entries.slice(-80); render();
     }
     function selectedJobs() { return jobs.filter(job => jobSelect.value === "all" || String(job.id) === jobSelect.value); }
+    function cleanupSections(errorsOnly = false) {
+      const result = [], actual = Array.isArray(cleanupRecord?.entries) ? cleanupRecord.entries : [];
+      const actualLines = actual.slice().reverse().map(item => {
+        const paths = Array.isArray(item.removed_paths) && item.removed_paths.length ? `\n  删除内容：${item.removed_paths.join("、")}` : "";
+        const runIds = Array.isArray(item.deleted_run_ids) && item.deleted_run_ids.length ? `\n  删除构建记录：${item.deleted_run_ids.join("、")}` : "";
+        return `[${exactTime(item.timestamp)}] 已执行清理 · Actions 记录 ${Number(item.actions_runs_deleted) || 0} 条 · 仓库项目 ${Number(item.repository_items_deleted) || 0} 项${runIds}${paths}`;
+      });
+      if (actualLines.length && !errorsOnly) result.push(["今日实际清理", actualLines.join("\n")]);
+      const checkLines = cleanupRuns.filter(item => !errorsOnly || ["failure", "cancelled", "timed_out", "action_required", "startup_failure"].includes(item.conclusion)).map(item => {
+        const resultLabel = labels[item.conclusion || item.status] || item.conclusion || item.status || "未知";
+        return `[${exactTime(item.created_at)}] 后台检查 #${item.run_number || item.id} · ${resultLabel}${item.updated_at ? ` · 结束 ${exactTime(item.updated_at)}` : ""}`;
+      });
+      if (checkLines.length) result.push([errorsOnly ? "今日异常检查" : "今日后台检查", checkLines.join("\n")]);
+      if (cleanupError) result.push(["读取提示", cleanupError]);
+      return result;
+    }
     function sections(errorsOnly = false) {
+      if (jobSelect.value === "cleanup") return cleanupSections(errorsOnly);
       const result = [];
       const activity = entries.filter(item => !errorsOnly || item.kind === "error").map(item => `[${item.time}] ${item.text}`).join("\n");
       if (activity) result.push(["页面动态", activity]);
@@ -100,19 +144,55 @@
       });
       if (!parts.length) empty(errorsOnly ? "当前没有识别到错误，或 GitHub 尚未提供报错正文。" : "等待 GitHub 返回步骤或日志。");
       const lineCount = parts.reduce((n, part) => n + part[1].split("\n").length, 0);
-      q("#logs-count").textContent = `${lineCount} 行显示内容 · 仅内存`;
+      q("#logs-count").textContent = `${lineCount} 行显示内容 · ${jobSelect.value === "cleanup" ? "仅保留今天" : "仅内存"}`;
       q("#logs-copy").disabled = !parts.length; q("#logs-clear").disabled = !parts.length;
-      q("#logs-refresh").disabled = !run || busy;
+      q("#logs-refresh").disabled = !context || busy || (jobSelect.value !== "cleanup" && !run);
       output.scrollTop = q("#logs-follow").checked ? output.scrollHeight : previousScroll;
     }
     async function request(path, current, asText = false) {
       const controller = new AbortController(); controllers.add(controller);
       const timeout = setTimeout(() => controller.abort(), 15000);
       try {
-        const response = await fetch(`https://api.github.com${current.base}${path}`, { method: "GET", cache: "no-store", signal: controller.signal, headers: { Accept: "application/vnd.github+json", Authorization: `Bearer ${current.token}`, "X-GitHub-Api-Version": "2022-11-28" } });
+        const headers = { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
+        if (current.token) headers.Authorization = `Bearer ${current.token}`;
+        const response = await fetch(`https://api.github.com${current.base}${path}`, { method: "GET", cache: "no-store", signal: controller.signal, headers });
         if (!response.ok) { const error = new Error(response.status === 403 || response.status === 401 ? "请检查 Token 的 Actions 读取权限或请求额度。" : `GitHub 暂未提供日志（${response.status}）。`); error.status = response.status; throw error; }
         return asText ? await readTail(response) : await response.json();
       } finally { clearTimeout(timeout); controllers.delete(controller); }
+    }
+    async function loadCleanup(force = false) {
+      if (!context || busy && !force) { if (!context) { notice.textContent = "请先填写仓库；私有仓库还需填写 Token 并检查仓库。"; render(); } return; }
+      const generation = epoch, current = { ...context };
+      busy = true; cleanupError = ""; q("#logs-refresh").disabled = true;
+      notice.textContent = "正在读取今天的自动清理检查和删除明细…";
+      try {
+        const first = await request(`/actions/workflows/cleanup.yml/runs?branch=${encodeURIComponent(current.branch)}&per_page=100&page=1`, current);
+        let records = Array.isArray(first.workflow_runs) ? first.workflow_runs : [];
+        if (records.length === 100) {
+          const second = await request(`/actions/workflows/cleanup.yml/runs?branch=${encodeURIComponent(current.branch)}&per_page=100&page=2`, current);
+          if (Array.isArray(second.workflow_runs)) records = records.concat(second.workflow_runs);
+        }
+        if (generation !== epoch) return;
+        const today = dayKey();
+        cleanupRuns = records.filter(item => dayKey(item.created_at || item.updated_at) === today).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        try {
+          const item = await request(`/contents/.github/iosforge-cleanup-log.json?ref=${encodeURIComponent(current.branch)}`, current);
+          const parsed = JSON.parse(decodeContent(item.content));
+          cleanupRecord = parsed?.version === 1 && parsed.date === today && Array.isArray(parsed.entries) ? parsed : { version: 1, date: today, entries: [] };
+        } catch (error) {
+          cleanupRecord = { version: 1, date: today, entries: [] };
+          if (error?.status !== 404) cleanupError = error.message || "实际删除明细暂时无法读取。";
+        }
+        if (generation !== epoch) return;
+        const actual = cleanupRecord.entries.length;
+        notice.textContent = `今天已记录 ${cleanupRuns.length} 次后台检查、${actual} 次实际清理；时间精确到秒。到明天后，今天的页面记录会自动清除。`;
+        q("#logs-badge").textContent = "今日清理";
+      } catch (error) {
+        if (generation !== epoch) return;
+        cleanupRuns = []; cleanupRecord = null; cleanupError = error.message || "暂时无法读取清理记录。";
+        notice.textContent = `清理记录读取失败：${cleanupError}`;
+        q("#logs-badge").textContent = "读取失败";
+      } finally { if (generation === epoch) { busy = false; render(); } }
     }
     async function update(nextRun, force = false) {
       if (!context || paused) return;
@@ -120,7 +200,7 @@
       run = { ...nextRun };
       if (run.status === "completed" && !failure(run)) {
         paused = true;
-        purge(run.conclusion === "success" ? "构建成功，本页临时日志已自动清空。GitHub 原始日志未受影响。" : "任务已结束，本页临时日志已清空。");
+        purge(run.conclusion === "success" ? "构建成功，本页临时日志已自动清空。仍可选择“清理记录”查看后台清理。" : "任务已结束，本页临时日志已清空。仍可选择“清理记录”查看后台清理。", true);
         q("#logs-badge").textContent = "已清空";
         return;
       }
@@ -135,9 +215,9 @@
         if (generation !== epoch) return;
         jobs = (data.jobs || []).slice(0, 20);
         const selected = jobSelect.value;
-        jobSelect.replaceChildren(el("option", "全部任务")); jobSelect.firstChild.value = "all";
+        resetJobOptions(selected);
         jobs.forEach(job => { const option = el("option", clean(job.name, current.token)); option.value = String(job.id); jobSelect.append(option); });
-        jobSelect.value = jobs.some(job => String(job.id) === selected) ? selected : "all";
+        jobSelect.value = selected === "cleanup" || jobs.some(job => String(job.id) === selected) ? selected : "all";
         render();
         let waiting = 0, unavailable = 0;
         // Native job logs may not exist until the job completes. Never manufacture output.
@@ -167,6 +247,10 @@
     }
     function report() {
       if (!context) return "";
+      if (jobSelect.value === "cleanup") {
+        const details = cleanupSections(false).map(([title, text]) => `--- ${title} ---\n${text}`).join("\n\n");
+        return clean(`iOSForge 自动清理记录\n仓库：${context.repoName}\n分支：${context.branch}\n\n${details}`, context.token);
+      }
       const errors = sections(true);
       const parts = errors.length ? errors : sections(false).map(([title, text]) => [title, text.slice(-12000)]);
       const details = parts.map(([title, text]) => `--- ${title} ---\n${text}`).join("\n\n");
@@ -181,10 +265,15 @@
       ].filter(Boolean).join("\n\n"), context.token);
     }
     q("#logs-errors").addEventListener("click", () => { q("#logs-errors").setAttribute("aria-pressed", String(q("#logs-errors").getAttribute("aria-pressed") !== "true")); render(); });
-    jobSelect.addEventListener("change", render);
+    jobSelect.addEventListener("change", () => {
+      if (jobSelect.value === "cleanup") { q("#logs-errors").setAttribute("aria-pressed", "false"); loadCleanup(); }
+      else render();
+    });
     q("#logs-clear").addEventListener("click", () => { paused = true; purge("本页日志已清空并暂停读取，点击刷新日志可重新读取 GitHub 当前内容。", true); q("#logs-badge").textContent = "已暂停"; });
     q("#logs-refresh").addEventListener("click", async () => {
-      if (!context || !run || busy) return;
+      if (!context || busy) return;
+      if (jobSelect.value === "cleanup") { await loadCleanup(true); return; }
+      if (!run) return;
       paused = false;
       const generation = epoch, current = { ...context };
       try { const latest = await request(`/actions/runs/${run.id}`, current); if (generation === epoch) await update(latest, true); }
@@ -201,7 +290,8 @@
     const close = () => { paused = true; purge("页面会话已清空。请选择任务重新读取，旧日志不会自动恢复。"); };
     window.addEventListener("pagehide", close);
     window.addEventListener("pageshow", event => { if (event.persisted) close(); });
-    return Object.freeze({ start, event, update, close });
+    resetJobOptions();
+    return Object.freeze({ start, connect, event, update, loadCleanup, close });
   }
   globalThis.IOSForgeLogs = Object.freeze({ create, clean, errorContext, readTail });
 })();
