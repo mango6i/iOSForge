@@ -27,6 +27,14 @@ The web UI uses the GitHub API directly; no personal repository is selected by d
 
 iOS target: 15.0 or later. IPA defaults to unsigned; Theos outputs dylib/deb. Successful binaries are committed as real files directly under sources/Download/, with no outer ZIP or nested run folder. Failed builds are cleaned after notification; successful builds are retained for one hour by default and checked every ten minutes. Native Xcode projects and Theos projects are supported. Generated projects such as XcodeGen specs require their generation step before normal project discovery; merely including project.yml is not sufficient in this version.
 '''
+DEFAULT_CLEANUP = b'''{
+  "version": 1,
+  "enabled": true,
+  "delete_failed_runs": true,
+  "success_retention_minutes": 60,
+  "notify_via_github": true
+}
+'''
 
 def build():
     files = list(FILES)
@@ -43,7 +51,9 @@ def build():
                 raise ValueError('User source or fixture cannot enter the starter')
             # All allowlisted files are text. Normalize repository checkout line
             # endings so Windows previews and the Pages runner create the same ZIP.
-            content = path.read_bytes().replace(b'\r\n', b'\n').rstrip(b'\n') + b'\n'
+            # The repository file is live user configuration and may change at
+            # any time. A downloaded starter must always retain product defaults.
+            content = DEFAULT_CLEANUP if name == '.github/iosforge-cleanup.json' else path.read_bytes().replace(b'\r\n', b'\n').rstrip(b'\n') + b'\n'
             entries.append((name, content))
         for name, content in entries:
             info = zipfile.ZipInfo(name, date_time=(2026, 1, 1, 0, 0, 0))

@@ -35,6 +35,7 @@ const state = { token: "", repo: null, branch: "main", runId: null, busy: false,
 const selectedRuns = new Set();
 let historyPage = 0, historyHasMore = false;
 let selectedSource = null;
+let pageLoaded = false, cleanupPreviewTimer = 0, cleanupPreviewSequence = 0;
 const uploadMode = () => !!$('input[name="source_mode"][value="upload"]').checked;
 const hints = {
   dylib: "使用 Theos 编译，输出独立动态库文件。",
@@ -294,6 +295,7 @@ function updateCleanupControls() {
 }
 
 async function loadCleanupSettings() {
+  cleanupPreviewSequence += 1;
   setCleanupState("", "读取中", "正在读取仓库中的后台清理设置…");
   try {
     const item = await github(`${repoBase()}/contents/${encodePath(cleanupConfigPath)}?ref=${encodeURIComponent(state.branch)}`);
@@ -308,6 +310,35 @@ async function loadCleanupSettings() {
     const config = showCleanupConfig(cleanupDefaults);
     setCleanupState("", "未保存", `仓库还没有清理设置；当前表单默认成功任务保留 ${cleanupRetentionLabel(config.success_retention_minutes)}。点击保存后启用。`);
   }
+}
+
+async function loadPublicCleanupSettings() {
+  const repo = parseRepo(repoInput.value), branch = branchInput.value.trim() || "main";
+  if (!repo) return;
+  const key = currentCleanupKey(), sequence = ++cleanupPreviewSequence;
+  if (!cachedCleanupConfig()) setCleanupState("", "读取中", "正在自动读取公开仓库中的后台清理设置…");
+  try {
+    const url = `https://api.github.com/repos/${encodeURIComponent(repo.owner)}/${encodeURIComponent(repo.name)}/contents/${encodePath(cleanupConfigPath)}?ref=${encodeURIComponent(branch)}`;
+    const response = await fetch(url, { cache: "no-store", headers: { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" } });
+    if (!response.ok) {
+      if (sequence === cleanupPreviewSequence && key === currentCleanupKey() && !cachedCleanupConfig()) resetCleanupSettings("公开配置暂时无法自动读取；规则仍在 GitHub 后台运行。私有仓库请填写 Token 后点“检查我的仓库”核对。");
+      return;
+    }
+    const item = await response.json();
+    if (sequence !== cleanupPreviewSequence || key !== currentCleanupKey()) return;
+    const config = showCleanupConfig(JSON.parse(decodeGitHubText(item.content)));
+    state.cleanupSha = item.sha || "";
+    rememberCleanupConfig(config, state.cleanupSha);
+    setCleanupState(config.enabled ? "success" : "", config.enabled ? "已启用" : "已停用", `已自动读取仓库中的真实设置。没有任务时保持空闲；检测到新构建后自动执行。失败任务${config.delete_failed_runs ? "完成后立即清理" : "保留"}；成功任务保留 ${cleanupRetentionLabel(config.success_retention_minutes)}。${config.notify_via_github ? "结果通过 GitHub Issue 通知。" : "GitHub 结果通知已关闭。"}`);
+  } catch {
+    if (sequence === cleanupPreviewSequence && key === currentCleanupKey() && !cachedCleanupConfig()) resetCleanupSettings("网络暂时无法读取公开配置；规则仍在 GitHub 后台运行。可稍后刷新，或填写 Token 后点“检查我的仓库”核对。");
+  }
+}
+
+function schedulePublicCleanupSettings() {
+  if (!pageLoaded) return;
+  clearTimeout(cleanupPreviewTimer);
+  cleanupPreviewTimer = setTimeout(loadPublicCleanupSettings, 350);
 }
 
 function invalidateWorkspace() {
@@ -761,7 +792,7 @@ const dropzone = $("#upload-dropzone");
 dropzone.addEventListener("dragover", event => { event.preventDefault(); if (!state.busy) dropzone.classList.add("is-dragging"); });
 dropzone.addEventListener("dragleave", () => dropzone.classList.remove("is-dragging"));
 dropzone.addEventListener("drop", event => { event.preventDefault(); dropzone.classList.remove("is-dragging"); selectSource(event.dataTransfer.files, false); });
-[repoInput, branchInput].forEach(input => input.addEventListener("input", () => { buildLogs?.close(); invalidateWorkspace(); updateDestination(); state.history = []; selectedRuns.clear(); historyPage = 0; historyHasMore = false; renderHistory(); $("#history-message").textContent = "仓库或分支已修改，请刷新记录。"; }));
+[repoInput, branchInput].forEach(input => input.addEventListener("input", () => { buildLogs?.close(); invalidateWorkspace(); updateDestination(); state.history = []; selectedRuns.clear(); historyPage = 0; historyHasMore = false; renderHistory(); $("#history-message").textContent = "仓库或分支已修改，请刷新记录。"; schedulePublicCleanupSettings(); }));
 tokenInput.addEventListener("input", () => { invalidateWorkspace(); buildLogs?.close(); selectedRuns.clear(); updateHistoryControls(); });
 $("#check-workspace").addEventListener("click", async () => {
   if (state.busy) return;
@@ -777,6 +808,7 @@ $("#check-workspace").addEventListener("click", async () => {
 document.querySelectorAll('input[name="cleanup-unit"]').forEach(input => input.addEventListener("change", updateCleanupControls));
 $("#save-cleanup").addEventListener("click", async () => {
   if (state.busy) return;
+  cleanupPreviewSequence += 1;
   const repo = parseRepo(repoInput.value), token = tokenInput.value.trim();
   if (!repo || !token) { setCleanupState("error", "缺少授权", "自动清理不需要先上传源码，但必须填写目标仓库和有效 GitHub Token，才能把规则写入仓库并在网页关闭后继续运行。"); return; }
   let minutes;
@@ -1135,4 +1167,5 @@ updateIpaFields();
 updateLinks();
 updateSourceMode();
 resetCleanupSettings();
+globalThis.window?.addEventListener?.("load", () => { pageLoaded = true; loadPublicCleanupSettings(); });
 globalThis.window?.addEventListener?.("pagehide", () => { state.closed = true; state.token = ""; tokenInput.value = ""; selectedSource = null; selectedRuns.clear(); invalidateWorkspace(); });
