@@ -11,7 +11,7 @@
   <script src="./vendor/fflate-0.8.2.js" defer></script>
   <script src="./source-upload.js?v=fast-reads-1" defer></script>
   <script src="./build-logs.js?v=1" defer></script>
-  <script src="./app.js?v=remembered-settings-2" defer></script>
+  <script src="./app.js?v=remembered-settings-3" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">跳到编译工作台</a>
@@ -180,7 +180,7 @@
                   <label class="cleanup-switch"><input id="cleanup-enabled" type="checkbox" checked /><span>启用后台定时清理</span></label>
                   <label class="cleanup-switch"><input id="cleanup-failed" type="checkbox" checked /><span>失败／取消任务完成后清理</span></label>
                   <label class="cleanup-switch"><input id="cleanup-notify" type="checkbox" checked /><span>通过 GitHub 通知成功／失败结果</span></label>
-                  <div class="cleanup-retention"><label for="cleanup-value">成功任务保留</label><input id="cleanup-value" type="number" min="1" max="525600" step="1" value="1" inputmode="numeric" aria-label="成功任务保留数值" /><div class="cleanup-unit-options" role="radiogroup" aria-label="成功任务保留单位"><label><input type="radio" name="cleanup-unit" value="immediate" /><span>立即</span></label><label><input type="radio" name="cleanup-unit" value="minute" /><span>分钟</span></label><label><input type="radio" name="cleanup-unit" value="hour" checked /><span>小时</span></label><label><input type="radio" name="cleanup-unit" value="day" /><span>天</span></label></div></div>
+                  <div class="cleanup-retention"><label id="cleanup-retention-label" for="cleanup-value">成功任务保留：1 小时</label><input id="cleanup-value" type="number" min="1" max="525600" step="1" value="1" inputmode="numeric" aria-label="成功任务保留数值" /><div class="cleanup-unit-options" role="radiogroup" aria-label="成功任务保留单位"><label><input type="radio" name="cleanup-unit" value="immediate" /><span>立即</span></label><label><input type="radio" name="cleanup-unit" value="minute" /><span>分钟</span></label><label><input type="radio" name="cleanup-unit" value="hour" checked /><span>小时</span></label><label><input type="radio" name="cleanup-unit" value="day" /><span>天</span></label></div></div>
                 </div>
                 <button id="save-cleanup" class="secondary-button cleanup-save" type="button">保存后台规则</button>
                 <p id="cleanup-message" class="field-hint" role="status">独立于上传和编译，可随时设置。没有任务时后台保持空闲；检测到新构建后自动执行。</p>

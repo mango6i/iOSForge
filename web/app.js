@@ -292,6 +292,8 @@ function updateCleanupControls() {
   const locked = state.busy;
   $("#cleanup-settings").querySelectorAll("input, button").forEach(control => { control.disabled = locked; });
   if (!locked && cleanupUnitValue() === "immediate") $("#cleanup-value").disabled = true;
+  try { $("#cleanup-retention-label").textContent = `成功任务保留：${cleanupRetentionLabel(cleanupMinutesFromControls())}`; }
+  catch { $("#cleanup-retention-label").textContent = "成功任务保留"; }
 }
 
 async function loadCleanupSettings() {
@@ -806,6 +808,7 @@ $("#check-workspace").addEventListener("click", async () => {
 });
 
 document.querySelectorAll('input[name="cleanup-unit"]').forEach(input => input.addEventListener("change", updateCleanupControls));
+$("#cleanup-value").addEventListener("input", updateCleanupControls);
 $("#save-cleanup").addEventListener("click", async () => {
   if (state.busy) return;
   cleanupPreviewSequence += 1;
