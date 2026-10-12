@@ -102,17 +102,24 @@
     function selectedJobs() { return jobs.filter(job => jobSelect.value === "all" || String(job.id) === jobSelect.value); }
     function cleanupSections(errorsOnly = false) {
       const result = [], actual = Array.isArray(cleanupRecord?.entries) ? cleanupRecord.entries : [];
-      const actualLines = actual.slice().reverse().map(item => {
+      const actualLines = actual.map(item => {
         const paths = Array.isArray(item.removed_paths) && item.removed_paths.length ? `\n  删除内容：${item.removed_paths.join("、")}` : "";
         const runIds = Array.isArray(item.deleted_run_ids) && item.deleted_run_ids.length ? `\n  删除构建记录：${item.deleted_run_ids.join("、")}` : "";
         return `[${exactTime(item.timestamp)}] 已执行清理 · Actions 记录 ${Number(item.actions_runs_deleted) || 0} 条 · 仓库项目 ${Number(item.repository_items_deleted) || 0} 项${runIds}${paths}`;
       });
       if (actualLines.length && !errorsOnly) result.push(["今日实际清理", actualLines.join("\n")]);
       const checkLines = cleanupRuns.filter(item => !errorsOnly || ["failure", "cancelled", "timed_out", "action_required", "startup_failure"].includes(item.conclusion)).map(item => {
-        const resultLabel = labels[item.conclusion || item.status] || item.conclusion || item.status || "未知";
+        const deletion = actual.find(record => Number(record.cleanup_run_id) === Number(item.id));
+        const resultLabel = item.conclusion === "success"
+          ? deletion
+            ? `清理完成（删除 Actions 记录 ${Number(deletion.actions_runs_deleted) || 0} 条、仓库项目 ${Number(deletion.repository_items_deleted) || 0} 项）`
+            : "检查完成（没有到期任务，无需删除）"
+          : item.status !== "completed"
+            ? labels[item.status] || item.status || "检查中"
+            : labels[item.conclusion] || item.conclusion || "结果未知";
         return `[${exactTime(item.created_at)}] 后台检查 #${item.run_number || item.id} · ${resultLabel}${item.updated_at ? ` · 结束 ${exactTime(item.updated_at)}` : ""}`;
       });
-      if (checkLines.length) result.push([errorsOnly ? "今日异常检查" : "今日后台检查", checkLines.join("\n")]);
+      if (checkLines.length) result.push([errorsOnly ? "今日异常检查" : "今日后台检查（从早到晚）", checkLines.join("\n")]);
       if (cleanupError) result.push(["读取提示", cleanupError]);
       return result;
     }
@@ -174,7 +181,7 @@
         }
         if (generation !== epoch) return;
         const today = dayKey();
-        cleanupRuns = records.filter(item => dayKey(item.created_at || item.updated_at) === today).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        cleanupRuns = records.filter(item => dayKey(item.created_at || item.updated_at) === today).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
         try {
           const item = await request(`/contents/.github/iosforge-cleanup-log.json?ref=${encodeURIComponent(current.branch)}`, current);
           const parsed = JSON.parse(decodeContent(item.content));
