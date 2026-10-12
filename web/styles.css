@@ -568,6 +568,8 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 .logs-output { height: 285px; overflow: auto; background: #f7faff; border: 1px solid #ccddf2; border-radius: 9px; padding: 13px; font: .8125rem/1.75 var(--mono), var(--font); overscroll-behavior: contain; scrollbar-color: #b7cce6 transparent; }
 .logs-output:focus-visible, .logs-toolbar select:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .logs-output pre { white-space: pre-wrap; overflow-wrap: anywhere; word-break: normal; font: inherit; margin: 0 0 12px; color: #3b587c; }
+.cleanup-check-list { display: grid; gap: 8px; margin: 0 0 12px; }
+.logs-output pre.cleanup-check { margin: 0; }
 .logs-output .log-error { color: #a12f40; background: #fff0f2; border-left: 2px solid #d2828e; padding-left: 8px; }
 .logs-output .logs-empty { color: var(--subtle); font: .875rem/1.8 var(--font); margin: 3px; }
 .logs-output h4 { margin: 0 0 8px; color: #285c9a; font: 600 .8125rem/1.8 var(--font); overflow-wrap: anywhere; }

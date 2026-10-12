@@ -150,8 +150,15 @@
       output.replaceChildren();
       parts.forEach(([title, body]) => {
         output.append(el("h4", title));
-        // One node per block keeps long compiler output cheap to render; all content is text.
-        output.append(el("pre", body, errorsOnly || errorPattern.test(body) ? "log-error" : ""));
+        const splitChecks = jobSelect.value === "cleanup" && (title === "今日异常检查" || title === "今日已结束的后台检查（从早到晚）");
+        if (splitChecks) {
+          const list = el("div", "", "cleanup-check-list");
+          body.split("\n\n").forEach(record => list.append(el("pre", record, `cleanup-check${errorPattern.test(record) ? " log-error" : ""}`)));
+          output.append(list);
+        } else {
+          // One node per block keeps long compiler output cheap to render; all content is text.
+          output.append(el("pre", body, errorsOnly || errorPattern.test(body) ? "log-error" : ""));
+        }
       });
       if (!parts.length) empty(errorsOnly ? "当前没有识别到错误，或 GitHub 尚未提供报错正文。" : "等待 GitHub 返回步骤或日志。");
       const lineCount = parts.reduce((n, part) => n + part[1].split("\n").length, 0);

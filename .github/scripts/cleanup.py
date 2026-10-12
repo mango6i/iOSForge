@@ -81,8 +81,25 @@ def save_cleanup_log(api: GitHubApi, branch: str, value: dict) -> None:
 
 
 def set_cleanup_workflow_enabled(api: GitHubApi, enabled: bool) -> None:
+    def already_matches(value: object) -> bool:
+        state = str(value.get("state", "")) if isinstance(value, dict) else ""
+        return state == "active" if enabled else state.startswith("disabled")
+
+    workflow = api.request("GET", "/actions/workflows/cleanup.yml")
+    if already_matches(workflow):
+        print(f"Automatic cleanup workflow is already {'active' if enabled else 'stopped'}.")
+        return
     action = "enable" if enabled else "disable"
-    api.request("PUT", f"/actions/workflows/cleanup.yml/{action}")
+    try:
+        api.request("PUT", f"/actions/workflows/cleanup.yml/{action}")
+    except ApiError as error:
+        # A second queued cleanup can observe the timer as active and then race
+        # with the first run that disables it. Re-read state before treating
+        # GitHub's 403 "not active" response as a real failure.
+        if error.status == 403 and already_matches(api.request("GET", "/actions/workflows/cleanup.yml")):
+            print(f"Automatic cleanup workflow is already {'active' if enabled else 'stopped'}.")
+            return
+        raise
 
 
 def activate_cleanup(api: GitHubApi, branch: str) -> None:
