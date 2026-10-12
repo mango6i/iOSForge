@@ -121,9 +121,9 @@
           : item.status !== "completed"
             ? labels[item.status] || item.status || "检查中"
             : labels[item.conclusion] || item.conclusion || "结果未知";
-        return `[${exactTime(item.created_at)}] 后台检查 #${item.run_number || item.id} · ${resultLabel}${item.updated_at ? ` · 结束 ${exactTime(item.updated_at)}` : ""}`;
+        return `[${exactTime(item.created_at)}] 后台检查 #${item.run_number || item.id} · ${resultLabel}`;
       });
-      if (checkLines.length) result.push([errorsOnly ? "今日异常检查" : "今日已结束的后台检查（从早到晚）", checkLines.join("\n")]);
+      if (checkLines.length) result.push([errorsOnly ? "今日异常检查" : "今日已结束的后台检查（从早到晚）", checkLines.join("\n\n")]);
       if (cleanupError) result.push(["读取提示", cleanupError]);
       return result;
     }
