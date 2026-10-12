@@ -80,6 +80,21 @@ def save_cleanup_log(api: GitHubApi, branch: str, value: dict) -> None:
     save_json(api, branch, LOG_PATH, value, "Update iOSForge daily cleanup log [skip ci]")
 
 
+def set_cleanup_workflow_enabled(api: GitHubApi, enabled: bool) -> None:
+    action = "enable" if enabled else "disable"
+    api.request("PUT", f"/actions/workflows/cleanup.yml/{action}")
+
+
+def activate_cleanup(api: GitHubApi, branch: str) -> None:
+    config_value, _ = load_json(api, branch, CONFIG_PATH)
+    config = validated_config(config_value)
+    if not config["enabled"]:
+        print("Automatic cleanup remains disabled by repository settings.")
+        return
+    set_cleanup_workflow_enabled(api, True)
+    print("Automatic cleanup timer enabled for the registered build.")
+
+
 def append_cleanup_log(
     value: dict,
     now: datetime,
@@ -570,13 +585,15 @@ def clean(api: GitHubApi, repository: str, branch: str, current_run_id: str) -> 
     if not config["enabled"]:
         if cleanup_log_changed:
             save_cleanup_log(api, branch, cleanup_log)
+        set_cleanup_workflow_enabled(api, False)
         print("Automatic cleanup is disabled.")
         return
     manifests = list_manifests(api, branch)
     if not manifests:
         if cleanup_log_changed:
             save_cleanup_log(api, branch, cleanup_log)
-        print("No uploaded iOSForge build is registered. Cleanup is idle until a new upload/build is detected.")
+        set_cleanup_workflow_enabled(api, False)
+        print("No uploaded iOSForge build is registered. The cleanup timer is stopped until the next build enables it.")
         return
     runs = list_runs(api, branch)
     notifications = notify_builds(api, repository, config, runs, manifests)
@@ -606,6 +623,9 @@ def clean(api: GitHubApi, repository: str, branch: str, current_run_id: str) -> 
         cleanup_log_changed = True
     if cleanup_log_changed:
         save_cleanup_log(api, branch, cleanup_log)
+    if not (set(manifests) - expired_ids):
+        set_cleanup_workflow_enabled(api, False)
+        print("No managed iOSForge build remains. The cleanup timer is now stopped.")
     print(f"Sent {notifications} GitHub build notification(s).")
     print(f"Deleted {removed_runs} Actions run record(s).")
     print(f"Applied {changes} repository deletion(s).")
@@ -615,7 +635,7 @@ def clean(api: GitHubApi, repository: str, branch: str, current_run_id: str) -> 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=["record", "clean"])
+    parser.add_argument("command", choices=["record", "activate", "clean"])
     args = parser.parse_args()
     repository = required_env("IOSFORGE_REPOSITORY")
     api = GitHubApi(repository, required_env("GITHUB_TOKEN"))
@@ -623,6 +643,8 @@ def main() -> int:
     run_id = required_env("IOSFORGE_RUN_ID")
     if args.command == "record":
         record_build(api, branch, run_id)
+    elif args.command == "activate":
+        activate_cleanup(api, branch)
     else:
         clean(api, repository, branch, run_id)
     return 0

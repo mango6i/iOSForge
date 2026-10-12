@@ -45,7 +45,7 @@
   function create() {
     const q = selector => document.querySelector(selector);
     const output = q("#logs-output"), jobSelect = q("#logs-job"), notice = q("#logs-notice");
-    let context = null, run = null, jobs = [], entries = [], documents = new Map(), cleanupRuns = [], cleanupRecord = null, cleanupError = "", epoch = 0, paused = false, busy = false, lastSync = 0, lastState = "", controllers = new Set();
+    let context = null, run = null, jobs = [], entries = [], documents = new Map(), cleanupRuns = [], cleanupRecord = null, cleanupWorkflowState = "", cleanupError = "", epoch = 0, paused = false, busy = false, lastSync = 0, lastState = "", controllers = new Set();
     const el = (tag, text, className) => { const node = document.createElement(tag); node.textContent = text; if (className) node.className = className; return node; };
     const failure = current => current?.status === "completed" && ["failure", "timed_out", "action_required", "startup_failure"].includes(current.conclusion);
     function empty(message) { output.replaceChildren(el("p", message, "logs-empty")); }
@@ -69,7 +69,7 @@
     }
     function purge(message, retainContext = false) {
       epoch++; controllers.forEach(controller => controller.abort()); controllers.clear();
-      jobs = []; entries = []; documents.clear(); cleanupRuns = []; cleanupRecord = null; cleanupError = ""; lastState = ""; lastSync = 0; busy = false;
+      jobs = []; entries = []; documents.clear(); cleanupRuns = []; cleanupRecord = null; cleanupWorkflowState = ""; cleanupError = ""; lastState = ""; lastSync = 0; busy = false;
       if (!retainContext) { context = null; run = null; }
       resetJobOptions();
       q("#logs-copy-fallback").value = ""; q("#logs-copy-fallback").hidden = true;
@@ -108,18 +108,22 @@
         return `[${exactTime(item.timestamp)}] 已执行清理 · Actions 记录 ${Number(item.actions_runs_deleted) || 0} 条 · 仓库项目 ${Number(item.repository_items_deleted) || 0} 项${runIds}${paths}`;
       });
       if (actualLines.length && !errorsOnly) result.push(["今日实际清理", actualLines.join("\n")]);
-      const checkLines = cleanupRuns.filter(item => !errorsOnly || ["failure", "cancelled", "timed_out", "action_required", "startup_failure"].includes(item.conclusion)).map(item => {
+      const visibleChecks = cleanupRuns.filter(item => !errorsOnly || ["failure", "cancelled", "timed_out", "action_required", "startup_failure"].includes(item.conclusion));
+      const checkLines = visibleChecks.map((item, index) => {
         const deletion = actual.find(record => Number(record.cleanup_run_id) === Number(item.id));
+        const stoppedAfterThisCheck = cleanupWorkflowState.startsWith("disabled") && index === visibleChecks.length - 1;
         const resultLabel = item.conclusion === "success"
           ? deletion
             ? `清理完成（删除 Actions 记录 ${Number(deletion.actions_runs_deleted) || 0} 条、仓库项目 ${Number(deletion.repository_items_deleted) || 0} 项）`
-            : "检查完成（没有到期任务，无需删除）"
+            : stoppedAfterThisCheck
+              ? "检查完成（没有待管理构建，定时清理已停止）"
+              : "检查完成（没有到期任务，无需删除）"
           : item.status !== "completed"
             ? labels[item.status] || item.status || "检查中"
             : labels[item.conclusion] || item.conclusion || "结果未知";
         return `[${exactTime(item.created_at)}] 后台检查 #${item.run_number || item.id} · ${resultLabel}${item.updated_at ? ` · 结束 ${exactTime(item.updated_at)}` : ""}`;
       });
-      if (checkLines.length) result.push([errorsOnly ? "今日异常检查" : "今日后台检查（从早到晚）", checkLines.join("\n")]);
+      if (checkLines.length) result.push([errorsOnly ? "今日异常检查" : "今日已结束的后台检查（从早到晚）", checkLines.join("\n")]);
       if (cleanupError) result.push(["读取提示", cleanupError]);
       return result;
     }
@@ -173,7 +177,11 @@
       busy = true; cleanupError = ""; q("#logs-refresh").disabled = true;
       notice.textContent = "正在读取今天的自动清理检查和删除明细…";
       try {
-        const first = await request(`/actions/workflows/cleanup.yml/runs?branch=${encodeURIComponent(current.branch)}&per_page=100&page=1`, current);
+        const [workflow, first] = await Promise.all([
+          request(`/actions/workflows/cleanup.yml`, current),
+          request(`/actions/workflows/cleanup.yml/runs?branch=${encodeURIComponent(current.branch)}&per_page=100&page=1`, current),
+        ]);
+        cleanupWorkflowState = String(workflow?.state || "");
         let records = Array.isArray(first.workflow_runs) ? first.workflow_runs : [];
         if (records.length === 100) {
           const second = await request(`/actions/workflows/cleanup.yml/runs?branch=${encodeURIComponent(current.branch)}&per_page=100&page=2`, current);
@@ -192,8 +200,9 @@
         }
         if (generation !== epoch) return;
         const actual = cleanupRecord.entries.length;
-        notice.textContent = `今天已记录 ${cleanupRuns.length} 次后台检查、${actual} 次实际清理；时间精确到秒。到明天后，今天的页面记录会自动清除。`;
-        q("#logs-badge").textContent = "今日清理";
+        const stopped = cleanupWorkflowState.startsWith("disabled");
+        notice.textContent = `${stopped ? "定时清理已停止" : "定时清理运行中"}；今天已结束 ${cleanupRuns.length} 次检查、${actual} 次实际清理。${stopped ? "下一次构建会自动开启。" : "没有待管理构建后会自动停止。"}到明天后，今天的页面记录会自动清除。`;
+        q("#logs-badge").textContent = stopped ? "清理已停止" : "今日清理";
       } catch (error) {
         if (generation !== epoch) return;
         cleanupRuns = []; cleanupRecord = null; cleanupError = error.message || "暂时无法读取清理记录。";

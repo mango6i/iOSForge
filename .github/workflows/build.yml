@@ -55,6 +55,7 @@ on:
         default: ExportOptions.plist
 permissions:
   contents: write
+  actions: write
 concurrency:
   group: iosforge-build-${{ github.ref }}
   cancel-in-progress: false
@@ -86,6 +87,14 @@ jobs:
           IOSFORGE_SOURCE_DIRECTORY: ${{ inputs.source_directory }}
           IOSFORGE_NOTIFY_VIA_GITHUB: ${{ inputs.notify_email }}
         run: python .github/scripts/cleanup.py record
+      - name: Start cleanup timer for this build
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          IOSFORGE_REPOSITORY: ${{ github.repository }}
+          IOSFORGE_BRANCH: ${{ github.ref_name }}
+          IOSFORGE_RUN_ID: ${{ github.run_id }}
+        run: python .github/scripts/cleanup.py activate
       - name: Find projects
         id: plan
         env:

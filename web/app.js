@@ -332,7 +332,7 @@ async function loadPublicCleanupSettings() {
     const config = showCleanupConfig(JSON.parse(decodeGitHubText(item.content)));
     state.cleanupSha = item.sha || "";
     rememberCleanupConfig(config, state.cleanupSha);
-    setCleanupState(config.enabled ? "success" : "", config.enabled ? "已启用" : "已停用", `已自动读取仓库中的真实设置。没有任务时保持空闲；检测到新构建后自动执行。失败任务${config.delete_failed_runs ? "完成后立即清理" : "保留"}；成功任务保留 ${cleanupRetentionLabel(config.success_retention_minutes)}。${config.notify_via_github ? "结果通过 GitHub Issue 通知。" : "GitHub 结果通知已关闭。"}`);
+    setCleanupState(config.enabled ? "success" : "", config.enabled ? "规则已启用" : "已停用", `已自动读取仓库中的真实设置。没有待管理构建时定时器会停止；下一次构建会自动开启并检查。失败任务${config.delete_failed_runs ? "完成后立即清理" : "保留"}；成功任务保留 ${cleanupRetentionLabel(config.success_retention_minutes)}。${config.notify_via_github ? "结果通过 GitHub Issue 通知。" : "GitHub 结果通知已关闭。"}`);
   } catch {
     if (sequence === cleanupPreviewSequence && key === currentCleanupKey() && !cachedCleanupConfig()) resetCleanupSettings("网络暂时无法读取公开配置；规则仍在 GitHub 后台运行。可稍后刷新，或填写 Token 后点“检查我的仓库”核对。");
   }
@@ -850,6 +850,7 @@ $("#save-cleanup").addEventListener("click", async () => {
     rememberCleanupConfig(config, state.cleanupSha);
     let dispatched = false;
     if (config.enabled) {
+      await github(`${repoBase()}/actions/workflows/cleanup.yml/enable`, { method: "PUT" });
       try {
         await github(`${repoBase()}/actions/workflows/cleanup.yml/dispatches`, {
           method: "POST",
@@ -860,11 +861,13 @@ $("#save-cleanup").addEventListener("click", async () => {
       } catch (error) {
         if (error?.status !== 404) throw error;
       }
+    } else {
+      await github(`${repoBase()}/actions/workflows/cleanup.yml/disable`, { method: "PUT" });
     }
     const notification = config.notify_via_github ? "成功和失败会写入 GitHub 通知 Issue；账户启用 Email 后由 GitHub 发信。" : "GitHub 结果通知已关闭。";
-    const schedule = config.enabled ? `后台每 10 分钟检查${dispatched ? "，并已立即启动一次检查" : ""}` : "后台自动清理已停用";
-    const idle = config.enabled ? "没有上传构建时自动空闲退出，检测到新构建后自动处理。" : "";
-    setCleanupState(config.enabled ? "success" : "", config.enabled ? "已启用" : "已停用", `${schedule}；${idle}失败任务${config.delete_failed_runs ? "完成后立即清理" : "保留"}；成功任务保留 ${cleanupRetentionLabel(minutes)}。${notification}`);
+    const schedule = config.enabled ? `有待管理构建时每 10 分钟检查${dispatched ? "，并已立即检查一次" : ""}` : "后台自动清理已停用";
+    const idle = config.enabled ? "没有待管理构建时定时器会停止；下一次构建会自动开启。" : "";
+    setCleanupState(config.enabled ? "success" : "", config.enabled ? "规则已启用" : "已停用", `${schedule}；${idle}失败任务${config.delete_failed_runs ? "完成后立即清理" : "保留"}；成功任务保留 ${cleanupRetentionLabel(minutes)}。${notification}`);
   } catch (error) {
     if (configSaved) {
       setCleanupState("error", "已保存", `规则已经写入仓库，但未能立即启动检查：${error.message || "GitHub 暂时拒绝请求"}。定时任务仍会按仓库中的规则运行。`);
