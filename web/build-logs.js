@@ -42,7 +42,7 @@
       return { text: clipped ? text.slice(text.indexOf("\n") + 1) : text, clipped };
     } finally { reader.releaseLock(); }
   }
-  function create() {
+  function create({ onCleanupStatus } = {}) {
     const q = selector => document.querySelector(selector);
     const output = q("#logs-output"), jobSelect = q("#logs-job"), notice = q("#logs-notice");
     let context = null, run = null, jobs = [], entries = [], documents = new Map(), cleanupRuns = [], cleanupRecord = null, cleanupWorkflowState = "", cleanupError = "", epoch = 0, paused = false, busy = false, lastSync = 0, lastState = "", controllers = new Set();
@@ -138,17 +138,29 @@
       entries = entries.slice(-80); render();
     }
     function selectedJobs() { return jobs.filter(job => jobSelect.value === "all" || String(job.id) === jobSelect.value); }
+    function cleanupChecks() {
+      const records = new Map(cleanupRuns.map(item => [Number(item.id), item]));
+      for (const check of cleanupRecord?.checks || []) {
+        const id = Number(check.cleanup_run_id);
+        if (!Number.isSafeInteger(id) || records.has(id) || dayKey(check.timestamp) !== cleanupDay) continue;
+        const conclusion = check.workflow_conclusion || (check.result === "retry_pending" ? "failure" : check.result === "legacy_completed" ? "unknown" : "success");
+        records.set(id, { id, run_number: check.run_number || id, status: "completed", conclusion, created_at: check.timestamp });
+      }
+      return [...records.values()].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    }
     function cleanupSections(errorsOnly = false) {
       const result = [], actual = Array.isArray(cleanupRecord?.entries) ? cleanupRecord.entries : [];
       const checks = Array.isArray(cleanupRecord?.checks) ? cleanupRecord.checks : [];
-      const reasons = { idle_stopped: "检查完成（没有待管理构建，定时清理已停止）", disabled: "检查完成（自动清理规则已关闭）", waiting: "检查完成（仍有构建进行中或尚未到期，定时清理继续等待）", cleaned: "清理完成", retry_pending: "清理失败，未完成（任务登记已保留，将在下次检查重试）" };
+      const reasons = { idle_stopped: "检查完成（没有待管理构建，定时清理已停止）", disabled: "检查完成（自动清理规则已关闭）", waiting: "检查完成（仍有构建进行中或尚未到期，定时清理继续等待）", cleaned: "清理完成", legacy_completed: "旧检查已完成（原记录已清理，没有详细检查结果）", retry_pending: "清理失败，未完成（将在下次检查重试）" };
       const actualLines = actual.map(item => {
         const paths = Array.isArray(item.removed_paths) && item.removed_paths.length ? `\n  删除内容：${item.removed_paths.join("、")}` : "";
         const runIds = Array.isArray(item.deleted_run_ids) && item.deleted_run_ids.length ? `\n  删除构建记录：${item.deleted_run_ids.join("、")}` : "";
         return `[${exactTime(item.timestamp)}] 已执行清理 · Actions 记录 ${Number(item.actions_runs_deleted) || 0} 条 · 仓库项目 ${Number(item.repository_items_deleted) || 0} 项${runIds}${paths}`;
       });
       if (actualLines.length && !errorsOnly) result.push(["今日实际清理", actualLines.join("\n\n")]);
-      const visibleChecks = cleanupRuns.filter(item => !errorsOnly || ["failure", "cancelled", "timed_out", "action_required", "startup_failure"].includes(item.conclusion));
+      const systemLines = (cleanupRecord?.system_deletions || []).map(item => `[${exactTime(item.timestamp)}] 已删除 ${item.deleted_run_ids?.length || 0} 条旧清理检查记录及对应 GitHub 日志\n  检查记录：${(item.deleted_run_ids || []).join("、")}\n  未删除源码和产物；当天检查明细仍保留。`);
+      if (systemLines.length && !errorsOnly) result.push(["今日清理检查记录回收", systemLines.join("\n\n")]);
+      const visibleChecks = cleanupChecks().filter(item => !errorsOnly || ["failure", "cancelled", "timed_out", "action_required", "startup_failure"].includes(item.conclusion));
       const checkLines = visibleChecks.map(item => {
         const deletion = actual.find(record => Number(record.cleanup_run_id) === Number(item.id));
         const check = checks.find(record => Number(record.cleanup_run_id) === Number(item.id));
@@ -158,7 +170,8 @@
             : reasons[check?.result] || "检查成功（旧记录没有检查明细，请查看 GitHub 原始日志）"
           : item.status !== "completed"
             ? labels[item.status] || item.status || "检查中"
-            : reasons[check?.result] || labels[item.conclusion] || item.conclusion || "结果未知";
+            : check?.result === "legacy_completed" ? `旧检查${labels[item.conclusion] || "结果未知"}（原记录已清理，没有详细检查结果）`
+              : reasons[check?.result] || labels[item.conclusion] || item.conclusion || "结果未知";
         const detail = check?.detail ? `\n  原因：${clean(check.detail, context?.token)}` : "";
         return `[${exactTime(check?.timestamp || item.created_at)}] 后台检查 #${item.run_number || item.id} · ${resultLabel}${detail}`;
       });
@@ -253,14 +266,17 @@
         cleanupRecord = nextRecord; cleanupError = nextError;
         const actual = cleanupRecord.entries.length;
         const stopped = cleanupWorkflowState.startsWith("disabled");
-        const completed = cleanupRuns.filter(item => item.status === "completed").length;
-          notice.textContent = `${stopped ? "定时清理已停止" : "定时清理运行中"}；今天 ${completed} 次检查已完成${cleanupRuns.length > completed ? `、${cleanupRuns.length - completed} 次排队或执行中` : ""}，${actual} 次实际清理。${!cleanupEnabled ? "自动清理规则已关闭，不会随新构建启动。" : stopped ? "下一次构建会自动开启。" : "没有待管理构建后会自动停止。"}记录每 ${current.token ? "30 秒" : "10 分钟"}刷新${current.token ? "" : "（填写 Token 可加快）"}，跨天自动清除昨天的页面记录。`;
+        const allChecks = cleanupChecks(), completed = allChecks.filter(item => item.status === "completed").length;
+        const reclaimed = (cleanupRecord?.system_deletions || []).reduce((sum, item) => sum + (item.deleted_run_ids?.length || 0), 0);
+        notice.textContent = `${stopped ? "定时清理已停止" : "定时清理运行中"}；今天 ${completed} 次检查已完成${allChecks.length > completed ? `、${allChecks.length - completed} 次排队或执行中` : ""}，${actual} 次实际清理，已回收 ${reclaimed} 条旧检查记录。${!cleanupEnabled ? "自动清理规则已关闭，不会随新构建启动。" : stopped ? "下一次构建会自动开启。" : "没有待管理构建后会自动停止。"}记录每 ${current.token ? "30 秒" : "10 分钟"}刷新${current.token ? "" : "（填写 Token 可加快）"}，跨天自动清除昨天的页面记录。`;
+        onCleanupStatus?.({ base: current.base, branch: current.branch, enabled: cleanupEnabled, workflowState: cleanupWorkflowState, pending: allChecks.some(item => item.status !== "completed") });
         q("#logs-badge").textContent = stopped ? "清理已停止" : "今日清理";
       } catch (error) {
         if (generation !== epoch) return;
         cleanupRuns = []; cleanupRecord = null; cleanupError = error.message || "暂时无法读取清理记录。";
         notice.textContent = `清理记录读取失败：${cleanupError}`;
         q("#logs-badge").textContent = "读取失败";
+        onCleanupStatus?.({ base: current.base, branch: current.branch, error: true });
       } finally { if (generation === epoch) { busy = false; render(); } }
     }
     async function update(nextRun, force = false) {

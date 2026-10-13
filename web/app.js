@@ -26,12 +26,12 @@ const uploadConsentRow = uploadConsentInput.closest(".upload-consent");
 const uploadConsentMemory = $("#upload-consent-memory");
 const uploadConsentDialog = $("#upload-consent-dialog");
 const uploadConsentDialogDescription = $("#upload-consent-dialog-description");
-const buildLogs = globalThis.IOSForgeLogs?.create();
+const buildLogs = globalThis.IOSForgeLogs?.create({ onCleanupStatus: showCleanupRuntime });
 const cleanupConfigPath = ".github/iosforge-cleanup.json";
 const cleanupDefaults = Object.freeze({ version: 1, enabled: true, delete_failed_runs: true, success_retention_minutes: 60, notify_via_github: true });
 const preferencesKey = "iosforge.preferences.v1";
 
-const state = { token: "", repo: null, branch: "main", runId: null, busy: false, knownRuns: new Set(), phase: "idle", artifacts: [], history: [], projects: [], cleanupSha: "" };
+const state = { token: "", repo: null, branch: "main", runId: null, busy: false, cleanupBusy: false, knownRuns: new Set(), phase: "idle", artifacts: [], history: [], projects: [], cleanupSha: "" };
 const selectedRuns = new Set();
 let historyPage = 0, historyHasMore = false;
 let selectedSource = null;
@@ -196,6 +196,17 @@ function setCleanupState(kind, label, message) {
   if (message !== undefined) $("#cleanup-message").textContent = message;
 }
 
+function showCleanupRuntime(runtime) {
+  const repo = parseRepo(repoInput.value);
+  if (!repo || runtime.base !== repoBase(repo) || runtime.branch !== (branchInput.value.trim() || "main") || state.cleanupBusy) return;
+  const label = $("#cleanup-runtime");
+  if (runtime.error) { label.textContent = "后台：状态暂时无法读取"; return; }
+  label.textContent = !runtime.enabled ? "后台：已停用"
+    : runtime.pending ? "后台：正在检查"
+    : runtime.workflowState.startsWith("disabled") ? "后台：已停止，等待新构建"
+    : "后台：定时检查已开启";
+}
+
 function cleanupMinutesFromControls() {
   const unit = cleanupUnitValue();
   if (unit === "immediate") return 0;
@@ -278,6 +289,7 @@ function showCleanupConfig(value) {
 
 function resetCleanupSettings(message = "独立于上传和编译，可随时设置。填写仓库与有效 Token 后保存一次即可后台运行。") {
   state.cleanupSha = "";
+  $("#cleanup-runtime").textContent = "后台：状态待核对";
   const cached = cachedCleanupConfig();
   if (cached) {
     showCleanupConfig(cached);
@@ -289,7 +301,7 @@ function resetCleanupSettings(message = "独立于上传和编译，可随时设
 }
 
 function updateCleanupControls() {
-  const locked = state.busy;
+  const locked = state.cleanupBusy;
   $("#cleanup-settings").querySelectorAll("input, button").forEach(control => { control.disabled = locked; });
   if (!locked && cleanupUnitValue() === "immediate") $("#cleanup-value").disabled = true;
   try { $("#cleanup-retention-label").textContent = `成功任务保留：${cleanupRetentionLabel(cleanupMinutesFromControls())}`; }
@@ -297,15 +309,18 @@ function updateCleanupControls() {
 }
 
 async function loadCleanupSettings() {
-  cleanupPreviewSequence += 1;
+  const sequence = ++cleanupPreviewSequence;
+  if (state.cleanupBusy) return;
   setCleanupState("", "读取中", "正在读取仓库中的后台清理设置…");
   try {
     const item = await github(`${repoBase()}/contents/${encodePath(cleanupConfigPath)}?ref=${encodeURIComponent(state.branch)}`);
+    if (sequence !== cleanupPreviewSequence || state.cleanupBusy) return;
     const config = showCleanupConfig(JSON.parse(decodeGitHubText(item.content)));
     state.cleanupSha = item.sha || "";
     rememberCleanupConfig(config, state.cleanupSha);
     setCleanupState(config.enabled ? "success" : "", config.enabled ? "已启用" : "已停用", `独立后台规则已读取。没有任务时保持空闲；检测到新构建后自动执行。失败任务${config.delete_failed_runs ? "完成后立即清理" : "保留"}；成功任务保留 ${cleanupRetentionLabel(config.success_retention_minutes)}。${config.notify_via_github ? "结果通过 GitHub Issue 通知。" : "GitHub 结果通知已关闭。"}`);
   } catch (error) {
+    if (sequence !== cleanupPreviewSequence || state.cleanupBusy) return;
     if (error?.status !== 404) throw error;
     state.cleanupSha = "";
     forgetCleanupConfig();
@@ -315,6 +330,7 @@ async function loadCleanupSettings() {
 }
 
 async function loadPublicCleanupSettings() {
+  if (state.cleanupBusy) return;
   const repo = parseRepo(repoInput.value), branch = branchInput.value.trim() || "main";
   if (!repo) return;
   if (!tokenInput.value.trim()) buildLogs?.connect?.({ base: repoBase(repo), repoName: `${repo.owner}/${repo.name}`, branch, token: "" });
@@ -817,81 +833,94 @@ function editCleanupControls() {
 }
 document.querySelectorAll('input[name="cleanup-unit"], #cleanup-enabled, #cleanup-failed, #cleanup-notify').forEach(input => input.addEventListener("change", editCleanupControls));
 $("#cleanup-value").addEventListener("input", editCleanupControls);
-async function setCleanupWorkflowEnabled(enabled) {
-  const path = `${repoBase()}/actions/workflows/cleanup.yml`;
+async function setCleanupWorkflowEnabled(enabled, request = github, base = repoBase()) {
+  const path = `${base}/actions/workflows/cleanup.yml`;
   const matches = workflow => enabled ? workflow?.state === "active" : String(workflow?.state || "").startsWith("disabled");
-  if (matches(await github(path))) return;
-  try { await github(`${path}/${enabled ? "enable" : "disable"}`, { method: "PUT" }); }
+  if (matches(await request(path))) return;
+  try { await request(`${path}/${enabled ? "enable" : "disable"}`, { method: "PUT" }); }
   catch (error) {
-    if (error?.status === 403 && matches(await github(path))) return;
+    if (error?.status === 403 && matches(await request(path))) return;
     throw error;
   }
 }
 $("#save-cleanup").addEventListener("click", async () => {
-  if (state.busy) return;
+  if (state.cleanupBusy) return;
+  clearTimeout(cleanupPreviewTimer);
   cleanupPreviewSequence += 1;
   const repo = parseRepo(repoInput.value), token = tokenInput.value.trim();
   if (!repo || !token) { setCleanupState("error", "缺少授权", "自动清理不需要先上传源码，但必须填写目标仓库和有效 GitHub Token，才能把规则写入仓库并在网页关闭后继续运行。"); return; }
   let minutes;
   try { minutes = cleanupMinutesFromControls(); }
   catch (error) { setCleanupState("error", "检查时间", error.message); return; }
-  state.repo = repo; state.token = token; state.branch = branchInput.value.trim() || "main"; state.closed = false;
-  setBusy(true, "正在同步独立清理规则…");
+  const base = repoBase(repo), branch = branchInput.value.trim() || "main", key = currentCleanupKey();
+  const sameScope = () => !state.closed && currentCleanupKey() === key && tokenInput.value.trim() === token;
+  const request = (path, options = {}) => {
+    if (!sameScope()) throw new Error("仓库、分支或授权已变化，已停止同步清理规则。");
+    return github(path, { ...options, headers: { ...options.headers, Authorization: `Bearer ${token}` } });
+  };
+  const config = {
+    version: 1, enabled: $("#cleanup-enabled").checked,
+    delete_failed_runs: $("#cleanup-failed").checked,
+    success_retention_minutes: minutes, notify_via_github: $("#cleanup-notify").checked,
+  };
+  state.cleanupBusy = true; updateCleanupControls();
+  $("#save-cleanup").textContent = "正在保存…";
   let configSaved = false;
   try {
     let current = null;
-    try { current = await github(`${repoBase()}/contents/${encodePath(cleanupConfigPath)}?ref=${encodeURIComponent(state.branch)}`); }
+    try { current = await request(`${base}/contents/${encodePath(cleanupConfigPath)}?ref=${encodeURIComponent(branch)}`); }
     catch (error) { if (error?.status !== 404) throw error; }
-    const config = {
-      version: 1,
-      enabled: $("#cleanup-enabled").checked,
-      delete_failed_runs: $("#cleanup-failed").checked,
-      success_retention_minutes: minutes,
-      notify_via_github: $("#cleanup-notify").checked,
-    };
     const payload = {
       message: "Update iOSForge automatic cleanup settings [skip ci]",
       content: utf8Base64(`${JSON.stringify(config, null, 2)}\n`),
-      branch: state.branch,
+      branch,
     };
     if (current?.sha) payload.sha = current.sha;
-    const saved = await github(`${repoBase()}/contents/${encodePath(cleanupConfigPath)}`, {
+    const saved = await request(`${base}/contents/${encodePath(cleanupConfigPath)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
     configSaved = true;
+    if (!sameScope()) return;
     state.cleanupSha = saved?.content?.sha || "";
     showCleanupConfig(config);
     rememberCleanupConfig(config, state.cleanupSha);
     let dispatched = false;
     if (config.enabled) {
-      await setCleanupWorkflowEnabled(true);
+      await setCleanupWorkflowEnabled(true, request, base);
       try {
-        await github(`${repoBase()}/actions/workflows/cleanup.yml/dispatches`, {
+        await request(`${base}/actions/workflows/cleanup.yml/dispatches`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ref: state.branch }),
+          body: JSON.stringify({ ref: branch }),
         });
         dispatched = true;
       } catch (error) {
         if (error?.status !== 404) throw error;
       }
     } else {
-      await setCleanupWorkflowEnabled(false);
+      await setCleanupWorkflowEnabled(false, request, base);
     }
+    if (!sameScope()) return;
+    $("#cleanup-runtime").textContent = config.enabled ? "后台：已请求检查，等待结果" : "后台：已停用";
+    buildLogs?.connect?.({ base, repoName: `${repo.owner}/${repo.name}`, branch, token });
     const notification = config.notify_via_github ? "成功和失败会写入 GitHub 通知 Issue；账户启用 Email 后由 GitHub 发信。" : "GitHub 结果通知已关闭。";
     const schedule = config.enabled ? `有待管理构建时每 10 分钟检查${dispatched ? "，并已立即检查一次" : ""}` : "后台自动清理已停用";
     const idle = config.enabled ? "没有待管理构建时定时器会停止；下一次构建会自动开启。" : "";
     setCleanupState(config.enabled ? "success" : "", config.enabled ? "规则已启用" : "已停用", `${schedule}；${idle}失败任务${config.delete_failed_runs ? "完成后立即清理" : "保留"}；成功任务保留 ${cleanupRetentionLabel(minutes)}。${notification}`);
   } catch (error) {
+    if (!sameScope()) return;
     if (configSaved) {
       setCleanupState("error", "规则已保存", `规则已经写入仓库，但未能同步后台定时器状态：${error.message || "GitHub 暂时拒绝请求"}。请重试保存；在同步成功前，不能保证后台按新规则运行。`);
     } else {
       const reason = error?.status === 401 ? "当前 GitHub Token 无效或已过期，请更新 Token 后重试" : (error.message || "无法写入仓库");
       setCleanupState("error", "同步失败", `自动清理与源码上传无关；这次失败仅因为${reason}。仓库中的原设置没有改变。`);
     }
-  } finally { setBusy(false); }
+  } finally {
+    state.cleanupBusy = false; updateCleanupControls();
+    $("#save-cleanup").textContent = "保存后台规则";
+  }
 });
 
 function updateProjectControls() {

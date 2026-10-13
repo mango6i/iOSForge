@@ -7,11 +7,11 @@
   <meta name="description" content="iOSForge 编译工作台。在 GitHub 上构建面向 iOS 15+ 的动态库、插件包和应用。" />
   <title>iOSForge · 编译工作台</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=cleanup-recovery-1" />
+  <link rel="stylesheet" href="./styles.css?v=cleanup-history-1" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
   <script src="./source-upload.js?v=fast-reads-1" defer></script>
-    <script src="./build-logs.js?v=cleanup-recovery-1" defer></script>
-  <script src="./app.js?v=cleanup-recovery-1" defer></script>
+    <script src="./build-logs.js?v=cleanup-history-1" defer></script>
+  <script src="./app.js?v=cleanup-history-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">跳到编译工作台</a>
@@ -178,6 +178,7 @@
 
               <section id="cleanup-settings" class="cleanup-settings" aria-labelledby="cleanup-heading">
                 <div class="cleanup-heading"><div><span class="section-overline">AUTO CLEANUP</span><h3 id="cleanup-heading">自动清理</h3></div><span id="cleanup-state" class="cleanup-state">未读取</span></div>
+                <p id="cleanup-runtime" class="cleanup-runtime" role="status">后台：状态待核对</p>
                 <div class="cleanup-controls">
                   <label class="cleanup-switch"><input id="cleanup-enabled" type="checkbox" checked /><span>启用后台定时清理</span></label>
                   <label class="cleanup-switch"><input id="cleanup-failed" type="checkbox" checked /><span>失败／取消任务完成后清理</span></label>
@@ -186,6 +187,7 @@
                 </div>
                 <button id="save-cleanup" class="secondary-button cleanup-save" type="button">保存后台规则</button>
                 <p id="cleanup-message" class="field-hint" role="status">独立于上传和编译，可随时设置。没有任务时后台保持空闲；检测到新构建后自动执行。</p>
+                <p class="field-hint cleanup-history-hint">旧清理检查记录会自动删除，当天明细仍在“清理记录”中。当前执行记录保留到下一次检查，不会为删除自身反复运行。</p>
               </section>
             </div>
 

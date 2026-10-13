@@ -133,6 +133,7 @@ def record_cleanup_check(api: GitHubApi, branch: str, run_id: int, result: str,
               if isinstance(item, dict) and item.get("cleanup_run_id") != run_id]
     checks.append({"timestamp": cleanup_local_time(now).isoformat(),
                    "cleanup_run_id": run_id, "result": result,
+                   "run_number": int(os.environ.get("IOSFORGE_RUN_NUMBER", "0") or "0"),
                    "managed_builds": managed, "detail": detail[:500]})
     value["checks"] = checks[-200:]
     save_cleanup_log(api, branch, value)
@@ -359,6 +360,74 @@ def list_runs(api: GitHubApi, branch: str) -> list[dict]:
         if len(page_runs) < 100:
             break
     return runs
+
+
+def prune_cleanup_history(api: GitHubApi, branch: str, current_run_id: int) -> list[int]:
+    """Prune only completed cleanup runs, preserving today's independent journal.
+
+    Collect all pages before deleting: deleting while paginating skips records.
+    Never delete the current run, queued/running runs, or other workflows/branches.
+    """
+    snapshots: dict[int, dict] = {}
+    for page in range(1, 101):
+        data = api.request("GET", f"/actions/workflows/cleanup.yml/runs?branch={quote(branch, safe='')}&per_page=100&page={page}")
+        records = data.get("workflow_runs", []) if isinstance(data, dict) else []
+        for run in records:
+            if (isinstance(run, dict) and type(run.get("id")) is int
+                    and run["id"] != current_run_id and run.get("status") == "completed"
+                    and str(run.get("path") or "").split("@", 1)[0] == ".github/workflows/cleanup.yml"
+                    and run.get("head_branch") == branch):
+                snapshots[run["id"]] = run
+        if len(records) < 100:
+            break
+    if not snapshots:
+        return []
+
+    now = utc_now()
+    journal, _ = daily_cleanup_log(api, branch, now)
+    checks = {item["cleanup_run_id"]: item for item in journal.get("checks", [])
+              if isinstance(item, dict) and type(item.get("cleanup_run_id")) is int}
+    today = cleanup_local_time(now).date()
+    for run_id, run in snapshots.items():
+        completed = parse_time(run.get("updated_at") or run.get("created_at"))
+        if completed and cleanup_local_time(completed).date() == today:
+            checks.setdefault(run_id, {"cleanup_run_id": run_id,
+                                      "timestamp": cleanup_local_time(completed).isoformat(),
+                                      "result": "legacy_completed", "detail": ""})
+            checks[run_id].update(run_number=run.get("run_number", run_id),
+                                  workflow_conclusion=run.get("conclusion") or "unknown")
+    journal["checks"] = list(checks.values())[-200:]
+    # Persist fallback check results BEFORE removing the GitHub originals.
+    save_cleanup_log(api, branch, journal)
+    deleted: list[int] = []
+    errors: list[str] = []
+    for run_id, snapshot in snapshots.items():
+        try:
+            run = api.request("GET", f"/actions/runs/{run_id}", allow_404=True)
+            if not isinstance(run, dict):
+                continue
+            if (run.get("id") != run_id or run.get("status") != "completed"
+                    or any(run.get(key) != snapshot.get(key) for key in
+                           ("path", "head_branch", "workflow_id", "head_sha", "run_attempt", "conclusion"))):
+                continue
+            api.request("DELETE", f"/actions/runs/{run_id}")
+            deleted.append(run_id)
+        except ApiError as error:
+            if error.status != 404:
+                errors.append(f"Cleanup check {run_id}: {error}")
+        except Exception as error:
+            errors.append(f"Cleanup check {run_id}: {error}")
+    if deleted:
+        journal, _ = daily_cleanup_log(api, branch, utc_now())
+        items = journal.setdefault("system_deletions", [])
+        items.append({"timestamp": cleanup_local_time().isoformat(),
+                      "cleanup_run_id": current_run_id,
+                      "deleted_run_ids": sorted(deleted)})
+        journal["system_deletions"] = items[-200:]
+        save_cleanup_log(api, branch, journal)
+    if errors:
+        raise RuntimeError("Cleanup history will retry: " + "; ".join(errors))
+    return deleted
 
 
 def list_manifests(api: GitHubApi, branch: str, ref: str | None = None) -> dict[int, dict]:
@@ -650,10 +719,12 @@ def clean_registered(api: GitHubApi, repository: str, branch: str, current_run_i
         record_cleanup_check(api, branch, int(current_run_id), "disabled")
         print("Automatic cleanup is disabled.")
         return
+    if cleanup_log_changed:
+        save_cleanup_log(api, branch, cleanup_log)
+    removed_checks = prune_cleanup_history(api, branch, int(current_run_id))
+    print(f"Deleted {len(removed_checks)} completed cleanup check record(s); current/running checks are preserved.")
     manifests = list_manifests(api, branch)
     if not manifests:
-        if cleanup_log_changed:
-            save_cleanup_log(api, branch, cleanup_log)
         stopped = stop_cleanup_if_idle(api, branch)
         record_cleanup_check(api, branch, int(current_run_id), "idle_stopped" if stopped else "waiting",
                              len(list_manifests(api, branch)))

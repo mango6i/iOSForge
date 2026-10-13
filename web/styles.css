@@ -206,6 +206,8 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 .cleanup-state { flex-shrink: 0; padding: 2px 7px; border: 1px solid #cbdcf1; border-radius: 999px; color: var(--subtle); background: #fff; font-size: .6875rem; }
 .cleanup-state[data-kind="success"] { color: var(--success); border-color: #9fd4bc; background: #f3fbf7; }
 .cleanup-state[data-kind="error"] { color: var(--error); border-color: #e4b9bf; background: #fff7f8; }
+.cleanup-runtime { margin: 4px 0 6px; color: var(--subtle); font-size: .6875rem; line-height: 1.5; }
+.cleanup-history-hint { margin-bottom: 0; }
 .cleanup-controls { display: grid; gap: 5px; margin-top: 9px; }
 .cleanup-switch, .cleanup-retention { display: flex; align-items: center; gap: 7px; color: #46617d; font-size: .75rem; line-height: 1.45; }
 .cleanup-switch { min-height: 24px; padding: 2px 5px; border-radius: 6px; transition: background .16s ease; }
