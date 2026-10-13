@@ -10,6 +10,13 @@
       "result": "idle_stopped",
       "managed_builds": 0,
       "detail": ""
+    },
+    {
+      "timestamp": "2026-10-13T17:46:44+08:00",
+      "cleanup_run_id": 38378723942,
+      "result": "idle_stopped",
+      "managed_builds": 0,
+      "detail": ""
     }
   ]
 }
