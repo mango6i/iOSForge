@@ -2,5 +2,14 @@
   "version": 1,
   "date": "2026-10-13",
   "timezone": "Asia/Shanghai",
-  "entries": []
+  "entries": [],
+  "checks": [
+    {
+      "timestamp": "2026-10-13T17:36:09+08:00",
+      "cleanup_run_id": 38377473430,
+      "result": "idle_stopped",
+      "managed_builds": 0,
+      "detail": ""
+    }
+  ]
 }
