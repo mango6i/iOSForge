@@ -784,33 +784,6 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .workspace:not(.guide-workspace) .footer { padding: 8px 0; }
 }
 
-/* Keep the complete dashboard readable on short desktop screens without hiding copy or controls. */
-@media (min-width: 1350px) and (min-height: 1001px) and (max-height: 1150px) {
-  .workspace:not(.guide-workspace):has(input[name="source_mode"][value="upload"]:checked) {
-    width: auto;
-    max-width: none;
-    zoom: .94;
-  }
-}
-@media (min-width: 1350px) and (max-height: 1000px) {
-  .workspace:not(.guide-workspace) { width: auto; max-width: none; zoom: .88; }
-  .workspace:not(.guide-workspace):has(input[name="source_mode"][value="upload"]:checked) { zoom: .88; }
-}
-@media (min-width: 1350px) and (max-height: 820px) {
-  .workspace:not(.guide-workspace) { width: auto; max-width: none; zoom: .74; }
-  .workspace:not(.guide-workspace):has(input[name="source_mode"][value="upload"]:checked) { zoom: .69; }
-  .activity-column { gap: 6px; }
-  .build-panel { padding-block: 16px 14px; }
-  .build-panel > .panel-heading { margin-bottom: 10px; }
-  #build-form { row-gap: 12px; }
-  #build-form > .source-section { padding-top: 12px; }
-  .primary-button { min-height: 43px; }
-  .form-footnote { margin-top: 5px; line-height: 1.4; }
-  .activity-column > .workspace-note { padding-block: 7px; }
-  .activity-column > .footer { padding-block: 3px; }
-  .logs-output { height: 92px; }
-}
-
 /* Cohesive desktop source cards: target, build settings and local files. */
 @media (min-width: 1350px) {
   #build-form > .source-section { align-items: stretch; }
@@ -894,4 +867,165 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="repository"]:checked) .source-fields { grid-area: target-fields; }
   .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="repository"]:checked) #repository-help { grid-area: target-help; margin: 0; }
   .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="repository"]:checked) .source-directory-field { grid-area: target-directory; margin: 0; }
+}
+
+/* Size the actual controls and reclaim whitespace; never shrink the whole page. */
+@media (min-width: 1350px) {
+  .app-shell { grid-template-columns: 148px minmax(0, 1fr); }
+  .sidebar { padding: 16px 10px 12px; }
+  .brand { gap: 7px; padding-inline: 3px; font-size: 1.125rem; }
+  .brand-caption { font-size: .625rem; letter-spacing: 1px; }
+  .brand-mark { width: 28px; }
+  .brand-mark .icon { width: 27px; height: 27px; }
+  .nav-label { margin-top: 24px; }
+  .nav-item { min-height: 38px; padding: 8px 9px; gap: 8px; font-size: .8125rem; }
+  .sidebar-bottom { padding-top: 16px; }
+  .sidebar-signature { gap: 6px; padding-inline: 3px; font-size: .6875rem; }
+  .workspace:not(.guide-workspace) { max-width: none; width: auto; height: 100dvh; padding: 8px 14px 10px; display: flex; flex-direction: column; }
+  .page-heading { min-height: 32px; gap: 12px; }
+  .page-heading > .heading-copy { gap: 10px; flex-wrap: wrap; }
+  .page-heading h1 { font-size: 1.625rem; }
+  .page-heading .eyebrow { font-size: .5625rem; letter-spacing: 1.1px; }
+  .page-heading .page-description { font-size: .75rem; }
+  .workspace-grid { grid-template-columns: minmax(0, 1.75fr) minmax(400px, 1fr); gap: 12px; align-items: stretch; flex: 1; min-height: 0; }
+  .build-panel { min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+  .build-panel, .status-panel, .project-manager, .history-panel { padding: 12px; border-radius: 12px; }
+  .panel-heading { margin-bottom: 8px; }
+  .section-overline { font-size: .625rem; margin-bottom: 4px; }
+  h2 { font-size: 1rem; }
+  #build-form { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 10px 16px; }
+  .output-fieldset legend, .form-section-title { font-size: .75rem; margin-bottom: 8px; }
+  .output-options { gap: 8px; }
+  .output-card { position: relative; padding: 8px 22px 8px 32px; }
+  .output-top { position: absolute; inset: 10px 8px auto; margin: 0; }
+  .output-top > .icon { width: 16px; height: 16px; }
+  .output-card strong { font-size: .9375rem; }
+  .output-card > span:last-child { font-size: .75rem; }
+  .field-hint { font-size: .75rem; line-height: 1.5; margin-top: 7px; }
+  .field > span:first-child, .token-label { font-size: .75rem; margin-bottom: 5px; }
+  .workspace:not(.guide-workspace) input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):not([type="hidden"]) { height: 36px; font-size: .75rem; }
+  .token-input-wrap .icon-button { height: 32px; }
+  .token-help { margin-top: 0; }
+  .workspace-connection { margin-top: 7px; gap: 7px; }
+  .workspace-connection p { padding: 6px 8px; font-size: .75rem; line-height: 1.45; }
+  .secondary-button { min-height: 32px; padding: 5px 9px; font-size: .75rem; }
+  #build-form > .source-section { row-gap: 8px; column-gap: 12px; padding-top: 10px; }
+  #build-form > .source-section > .form-section-title { grid-column: 1 / -1; grid-row: 1; margin: 0; }
+  #build-form > .source-section > #repository-help { grid-area: auto; grid-column: 1 / -1; grid-row: 2; margin: 0; padding: 5px 10px; background: #f5f9ff; border-radius: 6px; }
+  #build-form > .source-section > .source-target-card { grid-column: 1; grid-row: 3; }
+  #build-form > .source-section > .ipa-fields { grid-column: 2; grid-row: 3; }
+  #build-form > .source-section:has(input[name="source_mode"][value="upload"]:checked) { grid-template-columns: minmax(0, .9fr) minmax(0, .82fr) minmax(0, 1.38fr); grid-template-areas: none; gap: 8px 10px; }
+  #build-form > .source-section:has(input[name="source_mode"][value="upload"]:checked) > .source-target-card,
+  #build-form > .source-section:has(input[name="source_mode"][value="upload"]:checked) > .ipa-fields,
+  #build-form > .source-section:has(input[name="source_mode"][value="upload"]:checked) > .upload-panel { grid-row: 3; height: auto; padding: 9px; }
+  .source-target-card .source-switch { margin-bottom: 9px; }
+  .source-switch { padding: 3px; gap: 3px; }
+  .source-switch span { padding: 6px 3px; font-size: .75rem; }
+  .source-target-card .source-fields { grid-template-columns: minmax(0, 1.7fr) minmax(76px, .8fr); gap: 8px; }
+  .source-target-card > .source-upload-zone { margin-top: 10px; }
+  .source-card-heading, .upload-panel-heading { gap: 5px; margin-bottom: 8px; }
+  .source-card-heading strong, .upload-panel-heading strong { font-size: .75rem; }
+  .source-card-heading span, .upload-panel-heading span { font-size: .5625rem; letter-spacing: .8px; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-dropzone { min-height: 130px; padding: 7px 6px; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-dropzone > .icon { width: 20px; height: 20px; margin-bottom: 4px; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-dropzone p { margin: 3px 0 6px; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-limits { margin-top: 6px; }
+  .upload-pickers .secondary-button { padding: 5px 10px; min-height: 32px; }
+  .upload-dropzone > strong { font-size: .8125rem; }
+  .upload-dropzone p { font-size: .75rem; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-preview { padding: 5px 8px; }
+  .upload-preview details { margin-top: 5px; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-details-column { gap: 4px; }
+  .upload-preview ul { max-height: 90px; }
+  .signing-options { gap: 7px; margin-bottom: 11px; }
+  .signing-option { padding: 9px 7px; gap: 6px; }
+  .signing-option strong { font-size: .75rem; line-height: 1.4; }
+  .signing-option > span > span { line-height: 1.45; }
+  .ipa-fields .field-row { grid-template-columns: minmax(0, 1fr); gap: 8px; margin-bottom: 9px; }
+  .ipa-guide-link { margin-top: 7px; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .public-upload-warning { padding: 6px; font-size: .75rem; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .public-upload-warning p { line-height: 1.4; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-consent { line-height: 1.4; }
+  .upload-consent { gap: 7px; }
+  .upload-consent-memory { padding: 2px 6px; }
+  .build-notify-option strong { font-size: .75rem; }
+  .build-notify-option { padding: 5px 7px; }
+  .primary-button { min-height: 38px; padding-block: 7px; font-size: .875rem; }
+  .form-footnote { margin-top: 6px; font-size: .6875rem; line-height: 1.45; }
+  .activity-column { gap: 10px; grid-template-rows: minmax(0, 1fr) auto; min-height: 0; }
+  .status-panel { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); grid-template-rows: auto minmax(0, 1fr) auto auto; column-gap: 12px; min-height: 0; }
+  .status-overview { grid-template-columns: 72px minmax(0, 1fr); gap: 10px; align-content: start; }
+  .status-visual { width: 62px; height: 62px; }
+  .status-card > strong { font-size: .75rem; }
+  .status-card p { font-size: .75rem; }
+  .pipeline li strong { font-size: .75rem; }
+  .pipeline li > div > span, .pipeline-state { font-size: .6875rem; }
+  .cleanup-settings { margin-top: 4px; padding: 9px; }
+  .build-logs { padding: 10px; }
+  #logs-notice { font-size: .75rem; line-height: 1.5; }
+  .logs-output { flex: 1 1 180px; min-height: 140px; height: auto; max-height: 55vh; font-size: .75rem; line-height: 1.7; padding: 9px; }
+  .logs-privacy { font-size: .6875rem; line-height: 1.5; }
+  .logs-toolbar { flex-wrap: wrap; }
+  .logs-toolbar select { flex-basis: 120px; }
+  .project-manager-heading, .history-heading { gap: 6px; }
+  .project-manager-heading h3, .history-heading h3 { font-size: .875rem; }
+  .project-manager-heading .secondary-button, .history-heading .secondary-button { padding: 5px 7px; font-size: .75rem; }
+  .project-manager-controls { gap: 7px; margin-top: 8px; }
+  .project-manager select { height: 34px; font-size: .75rem; }
+  .project-manager .danger-button { min-height: 32px; padding: 5px 8px; font-size: .75rem; }
+  .history-retention-note { margin-top: 7px; line-height: 1.5; }
+  .workspace:not(.guide-workspace) .workspace-note { padding: 5px 10px; gap: 7px; }
+  .build-panel > .workspace-note { margin-top: 12px; }
+  .workspace-note p, .workspace-note a { font-size: .6875rem; line-height: 1.5; }
+  .workspace:not(.guide-workspace) .footer { padding: 1px 0; font-size: .625rem; line-height: 1.4; }
+  #build-form > .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="upload"]:checked) { grid-template-columns: minmax(0, .9fr) minmax(0, 1.25fr); }
+  #build-form > .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="repository"]:checked) { display: grid; grid-template-columns: minmax(0, 1fr); }
+  #build-form > .source-section:has(> .ipa-fields[hidden]):has(input[name="source_mode"][value="repository"]:checked) > .source-target-card { grid-column: 1 / -1; }
+}
+@media (min-width: 1600px) {
+  .status-panel { grid-template-rows: auto minmax(min-content, 1fr) auto auto; overflow: auto; }
+  .status-overview { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .status-card { display: grid; grid-template-columns: 48px minmax(0, 1fr); column-gap: 8px; text-align: left; }
+  .status-card .status-visual { grid-column: 1; grid-row: 1 / span 2; width: 48px; height: 48px; margin: 0; }
+  .status-card > strong, .status-card > p { grid-column: 2; margin: 0; max-width: none; line-height: 1.5; }
+  .pipeline { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .pipeline li { display: block; padding: 0; }
+  .pipeline-marker { float: left; width: 18px; height: 18px; margin-right: 4px; }
+  .pipeline li > div > span { clear: both; margin-top: 4px; min-height: 32px; }
+  .pipeline-state { display: block; margin-top: 4px; }
+  .pipeline li::after { display: none; }
+  .cleanup-settings { margin-top: 0; }
+  .cleanup-controls { gap: 3px; margin-top: 5px; }
+  .cleanup-switch { min-height: 20px; padding-block: 0; }
+  .cleanup-retention { grid-template-columns: 54px minmax(0, 1fr); gap: 4px 6px; }
+  .cleanup-retention > label { grid-column: 1 / -1; }
+  .workspace:not(.guide-workspace) .cleanup-retention > input { height: 30px; }
+  .cleanup-unit-options { grid-column: 2; grid-row: 2; }
+  .status-panel > .run-meta { gap: 6px 10px; padding-top: 6px; margin-top: 6px; }
+  .run-meta .meta-item strong, .run-meta .meta-item a { font-size: .75rem; }
+  .status-panel > .artifact-list { padding: 6px 0 0 10px; margin-top: 6px; }
+  .status-panel .artifact-row { padding: 8px; gap: 6px; }
+  .artifact-controls { flex-wrap: wrap; }
+  .artifact-name { font-size: .75rem; }
+  .project-manager-controls { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
+  .project-manager-controls .danger-button { width: auto; }
+}
+@media (min-width: 1350px) and (max-width: 1599px) {
+  .workspace-grid { grid-template-columns: minmax(0, 1.8fr) minmax(380px, 1fr); }
+  .page-heading .heading-copy { column-gap: 8px; }
+  .page-heading .page-description { white-space: normal; }
+  .source-target-card .source-fields { grid-template-columns: minmax(0, 1fr); }
+  .source-target-card .source-fields > .field:last-child { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 6px; align-items: center; }
+  .source-target-card .source-fields > .field:last-child > span:first-child { margin: 0; }
+  .activity-column { overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; grid-template-rows: max-content max-content; }
+  .status-panel { height: max-content; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto auto auto auto; }
+  .status-overview { grid-column: 1; grid-row: 2; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); align-items: start; }
+  .status-overview > .status-card { grid-column: 1; grid-row: 1; }
+  .status-overview > .pipeline { grid-column: 1; grid-row: 2; }
+  .status-overview > .cleanup-settings { grid-column: 2; grid-row: 1 / span 2; margin: 0; }
+  .status-panel > .build-logs { grid-column: 1; grid-row: 3; margin-top: 12px; }
+  .status-panel > .run-meta { grid-column: 1; grid-row: 4; }
+  .status-panel > .artifact-list { grid-column: 1; grid-row: 5; border-left: 0; padding-left: 0; }
+  .status-panel > .download-message { grid-column: 1; grid-row: 6; }
+  .logs-output { min-height: 180px; flex-basis: 180px; }
 }

@@ -809,8 +809,24 @@ $("#check-workspace").addEventListener("click", async () => {
   finally { setBusy(false); }
 });
 
-document.querySelectorAll('input[name="cleanup-unit"]').forEach(input => input.addEventListener("change", updateCleanupControls));
-$("#cleanup-value").addEventListener("input", updateCleanupControls);
+function editCleanupControls() {
+  clearTimeout(cleanupPreviewTimer);
+  cleanupPreviewSequence += 1;
+  updateCleanupControls();
+  setCleanupState("", "待保存", "设置已修改，点击“保存后台规则”后生效；尚未保存的调整不会改变仓库中的后台规则。");
+}
+document.querySelectorAll('input[name="cleanup-unit"], #cleanup-enabled, #cleanup-failed, #cleanup-notify').forEach(input => input.addEventListener("change", editCleanupControls));
+$("#cleanup-value").addEventListener("input", editCleanupControls);
+async function setCleanupWorkflowEnabled(enabled) {
+  const path = `${repoBase()}/actions/workflows/cleanup.yml`;
+  const matches = workflow => enabled ? workflow?.state === "active" : String(workflow?.state || "").startsWith("disabled");
+  if (matches(await github(path))) return;
+  try { await github(`${path}/${enabled ? "enable" : "disable"}`, { method: "PUT" }); }
+  catch (error) {
+    if (error?.status === 403 && matches(await github(path))) return;
+    throw error;
+  }
+}
 $("#save-cleanup").addEventListener("click", async () => {
   if (state.busy) return;
   cleanupPreviewSequence += 1;
@@ -850,7 +866,7 @@ $("#save-cleanup").addEventListener("click", async () => {
     rememberCleanupConfig(config, state.cleanupSha);
     let dispatched = false;
     if (config.enabled) {
-      await github(`${repoBase()}/actions/workflows/cleanup.yml/enable`, { method: "PUT" });
+      await setCleanupWorkflowEnabled(true);
       try {
         await github(`${repoBase()}/actions/workflows/cleanup.yml/dispatches`, {
           method: "POST",
@@ -862,7 +878,7 @@ $("#save-cleanup").addEventListener("click", async () => {
         if (error?.status !== 404) throw error;
       }
     } else {
-      await github(`${repoBase()}/actions/workflows/cleanup.yml/disable`, { method: "PUT" });
+      await setCleanupWorkflowEnabled(false);
     }
     const notification = config.notify_via_github ? "成功和失败会写入 GitHub 通知 Issue；账户启用 Email 后由 GitHub 发信。" : "GitHub 结果通知已关闭。";
     const schedule = config.enabled ? `有待管理构建时每 10 分钟检查${dispatched ? "，并已立即检查一次" : ""}` : "后台自动清理已停用";
@@ -870,7 +886,7 @@ $("#save-cleanup").addEventListener("click", async () => {
     setCleanupState(config.enabled ? "success" : "", config.enabled ? "规则已启用" : "已停用", `${schedule}；${idle}失败任务${config.delete_failed_runs ? "完成后立即清理" : "保留"}；成功任务保留 ${cleanupRetentionLabel(minutes)}。${notification}`);
   } catch (error) {
     if (configSaved) {
-      setCleanupState("error", "已保存", `规则已经写入仓库，但未能立即启动检查：${error.message || "GitHub 暂时拒绝请求"}。定时任务仍会按仓库中的规则运行。`);
+      setCleanupState("error", "规则已保存", `规则已经写入仓库，但未能同步后台定时器状态：${error.message || "GitHub 暂时拒绝请求"}。请重试保存；在同步成功前，不能保证后台按新规则运行。`);
     } else {
       const reason = error?.status === 401 ? "当前 GitHub Token 无效或已过期，请更新 Token 后重试" : (error.message || "无法写入仓库");
       setCleanupState("error", "同步失败", `自动清理与源码上传无关；这次失败仅因为${reason}。仓库中的原设置没有改变。`);

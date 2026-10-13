@@ -112,6 +112,32 @@ def activate_cleanup(api: GitHubApi, branch: str) -> None:
     print("Automatic cleanup timer enabled for the registered build.")
 
 
+def stop_cleanup_if_idle(api: GitHubApi, branch: str) -> bool:
+    # Registration and activation are separate requests. Recheck after disabling
+    # so a build that activated just before this request cannot be stranded.
+    if list_manifests(api, branch):
+        return False
+    set_cleanup_workflow_enabled(api, False)
+    config, _ = load_json(api, branch, CONFIG_PATH)
+    if validated_config(config)["enabled"] and list_manifests(api, branch):
+        set_cleanup_workflow_enabled(api, True)
+        return False
+    return True
+
+
+def record_cleanup_check(api: GitHubApi, branch: str, run_id: int, result: str,
+                         managed: int = 0, detail: str = "") -> None:
+    now = utc_now()
+    value, _ = daily_cleanup_log(api, branch, now)
+    checks = [item for item in value.get("checks", [])
+              if isinstance(item, dict) and item.get("cleanup_run_id") != run_id]
+    checks.append({"timestamp": cleanup_local_time(now).isoformat(),
+                   "cleanup_run_id": run_id, "result": result,
+                   "managed_builds": managed, "detail": detail[:500]})
+    value["checks"] = checks[-200:]
+    save_cleanup_log(api, branch, value)
+
+
 def append_cleanup_log(
     value: dict,
     now: datetime,
@@ -190,6 +216,7 @@ class GitHubApi:
                 "Authorization": f"Bearer {self.token}",
                 "Content-Type": "application/json",
                 "User-Agent": "iOSForge-cleanup",
+                "Cache-Control": "no-cache",
                 "X-GitHub-Api-Version": "2022-11-28",
             },
         )
@@ -325,7 +352,7 @@ def list_runs(api: GitHubApi, branch: str) -> list[dict]:
     for page in range(1, 101):
         data = api.request(
             "GET",
-            f"/actions/runs?branch={quote(branch, safe='')}&per_page=100&page={page}",
+            f"/actions/workflows/build.yml/runs?branch={quote(branch, safe='')}&per_page=100&page={page}",
         )
         page_runs = data.get("workflow_runs", []) if isinstance(data, dict) else []
         runs.extend(run for run in page_runs if isinstance(run, dict))
@@ -334,10 +361,10 @@ def list_runs(api: GitHubApi, branch: str) -> list[dict]:
     return runs
 
 
-def list_manifests(api: GitHubApi, branch: str) -> dict[int, dict]:
+def list_manifests(api: GitHubApi, branch: str, ref: str | None = None) -> dict[int, dict]:
     listing = api.request(
         "GET",
-        f"/contents/{encoded_path(MANIFEST_DIRECTORY)}?ref={quote(branch, safe='')}",
+        f"/contents/{encoded_path(MANIFEST_DIRECTORY)}?ref={quote(ref or branch, safe='')}",
         allow_404=True,
     )
     if not isinstance(listing, list):
@@ -348,7 +375,7 @@ def list_manifests(api: GitHubApi, branch: str) -> dict[int, dict]:
         if not name.endswith(".json") or not name[:-5].isdecimal():
             continue
         path = f"{MANIFEST_DIRECTORY}/{name}"
-        value, _ = load_json(api, branch, path)
+        value, _ = load_json(api, ref or branch, path)
         if not isinstance(value, dict) or value.get("run_id") != int(name[:-5]) or value.get("branch") != branch:
             continue
         value["_path"] = path
@@ -534,7 +561,15 @@ def cleanup_tree(
     branch: str,
     expired_ids: set[int],
     manifests: dict[int, dict],
+    *,
+    cleanup_log: dict | None = None,
+    cleanup_run_id: int = 0,
+    deleted_run_ids: list[int] | None = None,
 ) -> tuple[int, list[str]]:
+    head, tree_sha, current = branch_tree(api, branch)
+    # Protect ownership recorded by newly started builds using the same immutable
+    # commit as the tree; a later branch change makes the non-force update fail.
+    manifests = list_manifests(api, branch, ref=head)
     candidates = [manifest for run_id, manifest in manifests.items() if run_id in expired_ids]
     if not candidates:
         return 0, []
@@ -550,7 +585,6 @@ def cleanup_tree(
         for output in manifest.get("outputs", [])
         if isinstance(output, dict) and output.get("path") and output.get("sha")
     }
-    head, tree_sha, current = branch_tree(api, branch)
     deletions: dict[str, dict] = {}
     removed_data: list[str] = []
     for manifest in candidates:
@@ -572,6 +606,16 @@ def cleanup_tree(
         manifest_path = manifest.get("_path")
         if isinstance(manifest_path, str) and current.get(manifest_path, {}).get("type") == "blob":
             deletions[manifest_path] = {"path": manifest_path, "mode": "100644", "type": "blob", "sha": None}
+    data_deletions = len(set(removed_data))
+    if cleanup_log is not None and (deletions or deleted_run_ids):
+        log_now = utc_now()
+        cleanup_log, _ = daily_cleanup_log(api, head, log_now)
+        append_cleanup_log(cleanup_log, log_now, cleanup_run_id,
+                           deleted_run_ids or [], data_deletions, removed_data)
+        # The deletion details and manifest removal commit together. If the ref
+        # update fails, the pending manifests remain available for the next run.
+        deletions[LOG_PATH] = {"path": LOG_PATH, "mode": "100644", "type": "blob",
+                               "content": json.dumps(cleanup_log, ensure_ascii=False, indent=2) + "\n"}
     if not deletions:
         return 0, removed_data
     tree = api.request("POST", "/git/trees", {"base_tree": tree_sha, "tree": list(deletions.values())})
@@ -589,10 +633,10 @@ def cleanup_tree(
     if not isinstance(current_ref, dict) or current_ref.get("object", {}).get("sha") != head:
         raise RuntimeError("The branch changed during cleanup; no cleanup commit was applied. The next scheduled run will retry.")
     api.request("PATCH", ref_path, {"sha": created["sha"], "force": False})
-    return len(deletions), removed_data
+    return data_deletions, removed_data
 
 
-def clean(api: GitHubApi, repository: str, branch: str, current_run_id: str) -> None:
+def clean_registered(api: GitHubApi, repository: str, branch: str, current_run_id: str) -> None:
     if not current_run_id.isdecimal():
         raise RuntimeError("IOSFORGE_RUN_ID must be numeric.")
     now = utc_now()
@@ -603,51 +647,82 @@ def clean(api: GitHubApi, repository: str, branch: str, current_run_id: str) -> 
         if cleanup_log_changed:
             save_cleanup_log(api, branch, cleanup_log)
         set_cleanup_workflow_enabled(api, False)
+        record_cleanup_check(api, branch, int(current_run_id), "disabled")
         print("Automatic cleanup is disabled.")
         return
     manifests = list_manifests(api, branch)
     if not manifests:
         if cleanup_log_changed:
             save_cleanup_log(api, branch, cleanup_log)
-        set_cleanup_workflow_enabled(api, False)
-        print("No uploaded iOSForge build is registered. The cleanup timer is stopped until the next build enables it.")
+        stopped = stop_cleanup_if_idle(api, branch)
+        record_cleanup_check(api, branch, int(current_run_id), "idle_stopped" if stopped else "waiting",
+                             len(list_manifests(api, branch)))
+        print("No uploaded iOSForge build is registered. The cleanup timer is stopped until the next build enables it."
+              if stopped else "A new build was registered during the idle check. The cleanup timer remains active.")
         return
     runs = list_runs(api, branch)
     notifications = notify_builds(api, repository, config, runs, manifests)
-    expired_ids = expired_run_ids(runs, config, int(current_run_id), now)
+    expired_ids = expired_run_ids(runs, config, int(current_run_id), now) & set(manifests)
     # Remove orphaned manifests after the success retention window. This also
     # recovers from a run record that was manually deleted before its files.
     known_ids = {run.get("id") for run in runs if isinstance(run.get("id"), int)}
     orphan_cutoff = now - timedelta(minutes=max(config["success_retention_minutes"], 60))
     for run_id, manifest in manifests.items():
-        if run_id not in known_ids and (created := parse_time(manifest.get("created_at"))) and created <= orphan_cutoff:
+        if isinstance(manifest.get("cleanup_pending"), dict):
             expired_ids.add(run_id)
-    changes, removed_data = cleanup_tree(api, branch, expired_ids, manifests)
-    removed_runs = 0
+        elif run_id not in known_ids and (created := parse_time(manifest.get("created_at"))) and created <= orphan_cutoff:
+            expired_ids.add(run_id)
+    ready_ids: set[int] = set()
     deleted_run_ids: list[int] = []
+    errors: list[str] = []
     for run_id in sorted(expired_ids):
-        if run_id not in known_ids:
-            continue
         try:
-            api.request("DELETE", f"/actions/runs/{run_id}")
-            removed_runs += 1
-            deleted_run_ids.append(run_id)
-        except ApiError as error:
-            if error.status != 404:
-                raise
-    if changes or removed_runs:
-        append_cleanup_log(cleanup_log, now, int(current_run_id), deleted_run_ids, changes, removed_data)
-        cleanup_log_changed = True
-    if cleanup_log_changed:
-        save_cleanup_log(api, branch, cleanup_log)
-    if not (set(manifests) - expired_ids):
-        set_cleanup_workflow_enabled(api, False)
+            manifest = manifests[run_id]
+            if not isinstance(manifest.get("cleanup_pending"), dict):
+                manifest["cleanup_pending"] = {"actions_record": run_id in known_ids}
+                save_json(api, branch, manifest["_path"],
+                          {key: value for key, value in manifest.items() if not key.startswith("_")},
+                          f"Checkpoint cleanup for iOSForge run {run_id} [skip ci]")
+            if run_id in known_ids:
+                try:
+                    api.request("DELETE", f"/actions/runs/{run_id}")
+                except ApiError as error:
+                    if error.status != 404:
+                        raise
+            ready_ids.add(run_id)
+            if manifest["cleanup_pending"].get("actions_record"):
+                deleted_run_ids.append(run_id)
+        except Exception as error:
+            errors.append(f"Run {run_id}: {error}")
+    changes, removed_data = cleanup_tree(api, branch, ready_ids, manifests,
+                                         cleanup_log=cleanup_log,
+                                         cleanup_run_id=int(current_run_id),
+                                         deleted_run_ids=deleted_run_ids) if ready_ids else (0, [])
+    stopped = stop_cleanup_if_idle(api, branch)
+    remaining = len(list_manifests(api, branch))
+    if errors:
+        raise RuntimeError("Cleanup will retry registered builds: " + "; ".join(errors))
+    record_cleanup_check(api, branch, int(current_run_id),
+                         "cleaned" if ready_ids else "idle_stopped" if stopped else "waiting", remaining)
+    if stopped:
         print("No managed iOSForge build remains. The cleanup timer is now stopped.")
     print(f"Sent {notifications} GitHub build notification(s).")
-    print(f"Deleted {removed_runs} Actions run record(s).")
+    print(f"Deleted {len(deleted_run_ids)} Actions run record(s).")
     print(f"Applied {changes} repository deletion(s).")
     for path in sorted(set(removed_data)):
         print(f"- {path}")
+
+
+def clean(api: GitHubApi, repository: str, branch: str, current_run_id: str) -> None:
+    try:
+        clean_registered(api, repository, branch, current_run_id)
+    except Exception as error:
+        if current_run_id.isdecimal():
+            try:
+                record_cleanup_check(api, branch, int(current_run_id), "retry_pending", detail=str(error))
+            except Exception as log_error:
+                print(f"Unable to save cleanup failure details: {log_error}", file=os.sys.stderr)
+        raise
 
 
 def main() -> int:
