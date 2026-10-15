@@ -10,5 +10,8 @@
     "path": "sources/AutoTap-iOSForge-IPA-Source-v1.0.3",
     "sha": "f1824589c0e01a87ae5ddbcbdcb973437ab2b7b7"
   },
-  "outputs": []
+  "outputs": [],
+  "cleanup_pending": {
+    "actions_record": true
+  }
 }
