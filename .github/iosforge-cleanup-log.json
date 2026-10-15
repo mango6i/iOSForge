@@ -40,7 +40,8 @@
       "result": "idle_stopped",
       "run_number": 34,
       "managed_builds": 0,
-      "detail": ""
+      "detail": "",
+      "workflow_conclusion": "success"
     }
   ],
   "system_deletions": [
