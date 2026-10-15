@@ -45,10 +45,11 @@ def notification_hub_body() -> str:
 
 
 def own_notification_issue(issue: dict) -> bool:
-    return (isinstance(issue, dict) and issue.get("title") == NOTIFICATION_ISSUE_TITLE
+    return (isinstance(issue, dict)
             and "pull_request" not in issue and issue.get("user", {}).get("login") == "github-actions[bot]"
             and (NOTIFICATION_MARKER in str(issue.get("body", ""))
-                 or "此 Issue 接收 iOSForge 构建成功、失败和自动清理通知" in str(issue.get("body", ""))))
+                 or (issue.get("title") == NOTIFICATION_ISSUE_TITLE
+                     and "此 Issue 接收 iOSForge 构建成功、失败和自动清理通知" in str(issue.get("body", "")))))
 
 
 class ApiError(RuntimeError):
@@ -515,7 +516,7 @@ def retention_label(minutes: int) -> str:
     return f"{minutes} 分钟"
 
 
-def notification_issue(api: GitHubApi, owner: str, first_body: str) -> tuple[int, bool]:
+def notification_issue(api: GitHubApi, title: str, first_body: str) -> tuple[int, bool]:
     match = None
     for page in range(1, 101):
         path = "/issues?state=all&per_page=100" + (f"&page={page}" if page > 1 else "")
@@ -534,7 +535,7 @@ def notification_issue(api: GitHubApi, owner: str, first_body: str) -> tuple[int
         "POST",
         "/issues",
         {
-            "title": NOTIFICATION_ISSUE_TITLE,
+            "title": title,
             "body": NOTIFICATION_MARKER + "\n" + first_body,
         },
     )
@@ -574,6 +575,13 @@ def project_name(manifest: dict, run: dict) -> str:
     return title or "iOSForge 项目"
 
 
+def build_notification_title(run: dict, manifest: dict) -> str:
+    name = " ".join(project_name(manifest, run).split())[:200]
+    result = {"success": "创建成功", "failure": "构建失败", "cancelled": "构建已取消",
+              "timed_out": "构建超时"}.get(run.get("conclusion"), "构建未完成")
+    return f"{name} {result}"
+
+
 def notify_builds(
     api: GitHubApi,
     repository: str,
@@ -598,7 +606,7 @@ def notify_builds(
     owner = repository.split("/", 1)[0]
     first = min(candidates, key=lambda item: item["id"])
     first_body = build_notification_body(owner, config, first, manifests[first["id"]])
-    issue_number, created = notification_issue(api, owner, first_body)
+    issue_number, created = notification_issue(api, build_notification_title(first, manifests[first["id"]]), first_body)
     notified = notified_run_ids(api, issue_number)
     if created:
         notified.add(first["id"])
@@ -610,6 +618,15 @@ def notify_builds(
         ):
             continue
         body = build_notification_body(owner, config, run, manifests[run_id])
+        # GitHub derives the email subject from the Issue title, not the body.
+        # Rename before posting this result, and never reset the title during
+        # immediate cleanup while its email might still be queued by GitHub.
+        issue = api.request("GET", f"/issues/{issue_number}")
+        if not own_notification_issue(issue):
+            raise RuntimeError("Notification thread changed; no result was posted.")
+        title = build_notification_title(run, manifests[run_id])
+        if issue.get("title") != title:
+            api.request("PATCH", f"/issues/{issue_number}", {"title": title})
         api.request("POST", f"/issues/{issue_number}/comments", {"body": body})
         sent += 1
     return sent
@@ -625,12 +642,12 @@ def build_notification_body(owner: str, config: dict, run: dict, manifest: dict)
         if isinstance(output, dict) and output.get("path")
     ]
     if conclusion == "success":
-        heading = f"✅ {name} 创建成功"
+        heading = f"✅ {build_notification_title(run, manifest)}"
         result = "、".join(f"`{item}`" for item in outputs) if outputs else "构建成功，但未记录成品文件"
         cleanup_copy = ("成功任务会在本次通知后立即自动清理。" if config["success_retention_minutes"] == 0
                         else f"成功任务将在 **{retention_label(config['success_retention_minutes'])}** 后自动清理。")
     else:
-        heading = f"❌ {name} 构建{('失败' if conclusion == 'failure' else '未完成')}"
+        heading = f"❌ {build_notification_title(run, manifest)}"
         result = f"状态：`{conclusion}`"
         cleanup_copy = "失败／取消任务会在本次通知后立即自动清理。" if config["delete_failed_runs"] else "失败任务自动清理当前已关闭。"
     return "\n".join(

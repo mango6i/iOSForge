@@ -928,12 +928,15 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .workspace-grid { grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); gap: 16px; align-items: stretch; flex: 1; min-height: 0; }
   .build-panel, .status-panel, .project-manager, .history-panel { padding: 16px; border-radius: 12px; }
   .build-panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-  .panel-heading { margin-bottom: 14px; }
+  .panel-heading { margin-bottom: 10px; }
   .section-overline { font-size: .625rem; margin-bottom: 5px; }
   h2 { font-size: 1.0625rem; }
   .build-panel > .panel-heading .section-overline { display: none; }
   .build-panel > .panel-heading { flex-shrink: 0; min-height: 32px; }
-  #build-form { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); align-content: start; gap: 14px 18px; padding-bottom: 2px; }
+  #build-form { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); align-content: start; gap: 12px 18px; padding-bottom: 2px; }
+  .output-fieldset { position: relative; }
+  .output-fieldset > .output-help { position: absolute; right: 0; top: -30px; margin: 0; }
+  .output-help > summary { padding: 0; font-size: .75rem; }
   .output-fieldset legend, .form-section-title { font-size: .8125rem; margin-bottom: 10px; }
   .output-options { gap: 8px; }
   .output-card { position: relative; min-height: 68px; padding: 12px 26px 12px 36px; }
@@ -952,7 +955,7 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .token-help { grid-column: 2; grid-row: 3; align-self: center; margin: 0; }
   .token-help summary { font-size: .75rem; }
   .secondary-button { min-height: 34px; padding: 6px 10px; font-size: .8125rem; }
-  #build-form > .source-section { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; gap: 10px 12px; padding-top: 12px; }
+  #build-form > .source-section { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; gap: 8px 12px; padding-top: 10px; }
   #build-form > .source-section > .form-section-title { grid-column: 1; grid-row: 1; margin: 0; }
   #build-form > .source-section > .repository-help-dialog { grid-column: 2 / -1; grid-row: 1; justify-self: end; align-self: center; }
   #build-form > .source-section > #workspace-status { grid-column: 1 / -1; grid-row: 2; }
@@ -964,13 +967,13 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .source-target-card .field > span:first-child { white-space: nowrap; font-size: .75rem; }
   .source-target-card .input-wrap > input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):not([type="hidden"]) { padding-left: 32px; padding-right: 8px; }
   .source-target-card .input-wrap > .icon { left: 9px; width: 14px; }
-  .source-card-heading, .upload-panel-heading { margin-bottom: 8px; }
+  .source-card-heading, .upload-panel-heading { margin-bottom: 6px; }
   .source-card-heading span, .upload-panel-heading span { font-size: .5625rem; letter-spacing: .9px; }
   .source-card-heading strong, .upload-panel-heading strong { font-size: .8125rem; }
   .source-switch { padding: 3px; gap: 3px; }
   .source-switch span { padding: 7px 4px; font-size: .8125rem; }
-  .source-target-card .source-switch { margin-bottom: 12px; }
-  #build-form > .source-section:has(input[name="source_mode"][value="upload"]:checked) { grid-template-columns: minmax(0, 1fr) minmax(0, .93fr) minmax(0, 1.22fr); gap: 10px 12px; }
+  .source-target-card .source-switch { margin-bottom: 10px; }
+  #build-form > .source-section:has(input[name="source_mode"][value="upload"]:checked) { grid-template-columns: minmax(0, 1fr) minmax(0, .93fr) minmax(0, 1.22fr); gap: 8px 12px; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) > .source-target-card,
   .source-section:has(input[name="source_mode"][value="upload"]:checked) > .ipa-fields,
   .source-section:has(input[name="source_mode"][value="upload"]:checked) > .upload-panel { grid-row: 3; padding: 12px; height: auto; }
@@ -978,8 +981,8 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .source-upload-zone { margin-top: 10px; gap: 8px; }
   .source-target-card > .source-upload-zone > .upload-panel-heading { display: none; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-dropzone { min-height: 126px; padding: 12px 8px; gap: 6px; }
-  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-primary-column { gap: 6px; }
-  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-dropzone { padding-block: 10px; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-primary-column { gap: 4px; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-dropzone { padding-block: 8px; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-dropzone > .icon { display: none; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-dropzone > strong { font-size: .875rem; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-dropzone > p { margin: 0; font-size: .75rem; }
@@ -990,7 +993,7 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .upload-preview-heading { grid-column: 2; grid-row: 1; }
   .upload-preview details { grid-column: 1; grid-row: 1; margin: 0; font-size: .75rem; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-preview { padding: 7px 8px; }
-  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-details-column { gap: 8px; }
+  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-details-column { gap: 6px; }
   #upload-destination { font-size: .75rem; overflow-wrap: anywhere; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-consent { font-size: .75rem; line-height: 1.6; }
   .source-section:has(input[name="source_mode"][value="upload"]:checked) .public-upload-warning { padding: 9px 10px; font-size: .75rem; }
@@ -1013,7 +1016,7 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .activity-column { grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); grid-template-rows: minmax(0, 1fr) 250px; gap: 12px; min-height: 0; overflow: hidden; }
   .activity-column > .status-panel { grid-column: 1 / -1; grid-row: 1; display: grid; grid-template-columns: minmax(0, .78fr) minmax(0, 1.22fr); grid-template-rows: auto minmax(0, 1fr) auto auto; gap: 10px 14px; min-height: 0; overflow: hidden; }
   .status-panel > .panel-heading { grid-column: 1 / -1; grid-row: 1; margin: 0; }
-  .status-overview { grid-column: 1; grid-row: 2 / span 2; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-content: start; min-height: 0; overflow: auto; }
+  .status-overview { grid-column: 1; grid-row: 2 / span 2; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; align-content: start; min-height: 0; overflow: auto; }
   .status-card { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 3px 9px; text-align: left; }
   .status-card .status-visual { grid-column: 1; grid-row: 1 / span 2; width: 46px; height: 46px; margin: 0; }
   .status-card > strong, .status-card > p { grid-column: 2; margin: 0; max-width: none; }

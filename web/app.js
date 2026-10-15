@@ -1164,8 +1164,9 @@ function confirmRunDeletion(runs) {
 async function removeRunNotifications(runIds, base, branch) {
   const targets = new Set(runIds);
   if (!targets.size) return 0;
-  const own = issue => issue?.title === "iOSForge 构建通知" && !issue.pull_request && issue.user?.login === "github-actions[bot]"
-    && (/<!-- iosforge-notifications:v2 -->|此 Issue 接收 iOSForge 构建成功、失败和自动清理通知/.test(issue.body || ""));
+  const own = issue => issue && !issue.pull_request && issue.user?.login === "github-actions[bot]"
+    && (/<!-- iosforge-notifications:v2 -->/.test(issue.body || "")
+      || issue.title === "iOSForge 构建通知" && /此 Issue 接收 iOSForge 构建成功、失败和自动清理通知/.test(issue.body || ""));
   const marker = body => /^<!--\s*iosforge-run:(\d+)\s*-->/m.exec(body || "");
   const request = (path, options) => {
     if (state.closed || !historyMatchesInputs() || repoBase() !== base || state.branch !== branch) throw new Error("会话变化，已停止通知清理。");

@@ -235,7 +235,8 @@
       q("#logs-refresh").disabled = !context || busy || (jobSelect.value !== "cleanup" && !run);
       output.scrollTop = q("#logs-follow").checked ? output.scrollHeight : previousScroll;
     }
-    async function request(path, current, asText = false) {
+    async function request(path, current, asText = false, attempt = 0) {
+      const generation = epoch;
       const controller = new AbortController(); controllers.add(controller);
       const timeout = setTimeout(() => controller.abort(), 15000);
       try {
@@ -244,6 +245,17 @@
         const response = await fetch(`https://api.github.com${current.base}${path}`, { method: "GET", cache: "no-store", signal: controller.signal, headers });
         if (!response.ok) { const error = new Error(response.status === 403 || response.status === 401 ? "请检查 Token 的 Actions 读取权限或请求额度。" : `GitHub 暂未提供日志（${response.status}）。`); error.status = response.status; throw error; }
         return asText ? await readTail(response) : await response.json();
+      } catch (error) {
+        const transport = error?.name === "TypeError" || error?.name === "AbortError";
+        const same = generation === epoch && context && context.base === current.base
+          && context.branch === current.branch && context.token === current.token;
+        if (same && !asText && attempt === 0 && (transport || [502, 503, 504].includes(error?.status))) {
+          return await request(path, current, false, 1);
+        }
+        if (transport) throw new Error(error?.name === "AbortError"
+          ? "连接 GitHub 超时，请稍后刷新日志；这不代表后台清理失败。"
+          : "暂时无法连接 GitHub，请检查网络、代理或浏览器拦截后刷新日志；这不代表后台清理失败。");
+        throw error;
       } finally { clearTimeout(timeout); controllers.delete(controller); }
     }
     async function loadCleanup(force = false) {
@@ -271,8 +283,9 @@
           const parsed = JSON.parse(decodeContent(item.content));
           nextRecord = parsed?.version === 1 && parsed.date === today && Array.isArray(parsed.entries) ? parsed : { version: 1, date: today, entries: [] };
         } catch (error) {
-          nextRecord = { version: 1, date: today, entries: [] };
-          if (error?.status !== 404) nextError = error.message || "实际删除明细暂时无法读取。";
+          nextRecord = error?.status !== 404 && cleanupRecord?.date === today
+            ? cleanupRecord : { version: 1, date: today, entries: [] };
+          if (error?.status !== 404) nextError = `${clean(error.message || "实际删除明细暂时无法读取。", current.token)}${cleanupRecord?.date === today ? " 已保留今天上次读取的明细，暂非最新数据。" : ""}`;
         }
         if (generation !== epoch) return;
         if (today !== dayKey()) { rolloverCleanupDay(); return; }
@@ -285,14 +298,16 @@
         const stopped = cleanupWorkflowState.startsWith("disabled");
         const allChecks = cleanupChecks(), completed = allChecks.filter(item => item.status === "completed").length;
         const reclaimed = (cleanupRecord?.system_deletions || []).reduce((sum, item) => sum + (item.deleted_run_ids?.length || 0), 0);
-        notice.textContent = `${stopped ? "定时清理已停止" : "定时清理运行中"}；今天 ${completed} 次检查已完成${allChecks.length > completed ? `、${allChecks.length - completed} 次排队或执行中` : ""}，${actual} 次实际清理，已回收 ${reclaimed} 条旧检查记录。${!cleanupEnabled ? "自动清理规则已关闭，不会随新构建启动。" : stopped ? "下一次构建会自动开启。" : "没有待管理构建后会自动停止。"}记录每 ${current.token ? "30 秒" : "10 分钟"}刷新${current.token ? "" : "（填写 Token 可加快）"}，跨天自动清除昨天的页面记录。`;
+        notice.textContent = nextError ? `部分清理记录更新失败：${nextError}` : `${stopped ? "定时清理已停止" : "定时清理运行中"}；今天 ${completed} 次检查已完成${allChecks.length > completed ? `、${allChecks.length - completed} 次排队或执行中` : ""}，${actual} 次实际清理，已回收 ${reclaimed} 条旧检查记录。${!cleanupEnabled ? "自动清理规则已关闭，不会随新构建启动。" : stopped ? "下一次构建会自动开启。" : "没有待管理构建后会自动停止。"}记录每 ${current.token ? "30 秒" : "10 分钟"}刷新${current.token ? "" : "（填写 Token 可加快）"}，跨天自动清除昨天的页面记录。`;
         onCleanupStatus?.({ base: current.base, branch: current.branch, enabled: cleanupEnabled, workflowState: cleanupWorkflowState, pending: allChecks.some(item => item.status !== "completed") });
-        q("#logs-badge").textContent = stopped ? "清理已停止" : "今日清理";
+        q("#logs-badge").textContent = nextError ? "明细更新失败" : stopped ? "清理已停止" : "今日清理";
       } catch (error) {
         if (generation !== epoch) return;
-        cleanupRuns = []; cleanupRecord = null; cleanupError = error.message || "暂时无法读取清理记录。";
-        notice.textContent = `清理记录读取失败：${cleanupError}`;
-        q("#logs-badge").textContent = "读取失败";
+        rolloverCleanupDay();
+        cleanupError = clean(error.message || "暂时无法读取清理记录。", current.token);
+        const retained = cleanupRecord?.date === dayKey() || cleanupRuns.length > 0;
+        notice.textContent = `清理记录读取失败：${cleanupError}${retained ? " 已保留今天上次读取的记录，暂非最新数据。" : ""}`;
+        q("#logs-badge").textContent = retained ? "更新失败" : "读取失败";
         onCleanupStatus?.({ base: current.base, branch: current.branch, error: true });
       } finally { if (generation === epoch) { busy = false; render(); } }
     }
