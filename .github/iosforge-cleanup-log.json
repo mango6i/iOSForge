@@ -24,6 +24,14 @@
       "run_number": 32,
       "managed_builds": 0,
       "detail": ""
+    },
+    {
+      "timestamp": "2026-10-15T10:38:59+08:00",
+      "cleanup_run_id": 38672084301,
+      "result": "idle_stopped",
+      "run_number": 33,
+      "managed_builds": 0,
+      "detail": ""
     }
   ],
   "system_deletions": [
