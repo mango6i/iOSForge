@@ -36,6 +36,19 @@ DEFAULT_CONFIG = {
     "notify_via_github": True,
 }
 NOTIFICATION_ISSUE_TITLE = "iOSForge 构建通知"
+NOTIFICATION_MARKER = "<!-- iosforge-notifications:v2 -->"
+NOTIFICATION_RUN = re.compile(r"^<!--\s*iosforge-run:(\d+)\s*-->", re.MULTILINE)
+
+
+def notification_hub_body() -> str:
+    return NOTIFICATION_MARKER + "\n\n构建结果会直接写入此通知线程。对应任务清理后，其结果记录也会同步移除；已送达邮箱的邮件不会被撤回。"
+
+
+def own_notification_issue(issue: dict) -> bool:
+    return (isinstance(issue, dict) and issue.get("title") == NOTIFICATION_ISSUE_TITLE
+            and "pull_request" not in issue and issue.get("user", {}).get("login") == "github-actions[bot]"
+            and (NOTIFICATION_MARKER in str(issue.get("body", ""))
+                 or "此 Issue 接收 iOSForge 构建成功、失败和自动清理通知" in str(issue.get("body", ""))))
 
 
 class ApiError(RuntimeError):
@@ -422,7 +435,10 @@ def prune_cleanup_history(api: GitHubApi, branch: str, current_run_id: int) -> l
         items = journal.setdefault("system_deletions", [])
         items.append({"timestamp": cleanup_local_time().isoformat(),
                       "cleanup_run_id": current_run_id,
-                      "deleted_run_ids": sorted(deleted)})
+                      "deleted_run_ids": sorted(deleted),
+                      "deleted_runs": [{"id": run_id, "run_number": snapshots[run_id].get("run_number")} for run_id in sorted(deleted)],
+                      "retained_run_id": current_run_id,
+                      "retained_run_number": int(os.environ.get("IOSFORGE_RUN_NUMBER", "0") or "0")})
         journal["system_deletions"] = items[-200:]
         save_cleanup_log(api, branch, journal)
     if errors:
@@ -484,52 +500,48 @@ def retention_label(minutes: int) -> str:
     return f"{minutes} 分钟"
 
 
-def notification_issue(api: GitHubApi, owner: str) -> int:
-    issues = api.request("GET", "/issues?state=all&per_page=100")
-    match = next(
-        (
-            issue
-            for issue in issues or []
-            if isinstance(issue, dict)
-            and issue.get("title") == NOTIFICATION_ISSUE_TITLE
-            and "pull_request" not in issue
-        ),
-        None,
-    )
+def notification_issue(api: GitHubApi, owner: str, first_body: str) -> tuple[int, bool]:
+    match = None
+    for page in range(1, 101):
+        path = "/issues?state=all&per_page=100" + (f"&page={page}" if page > 1 else "")
+        issues = api.request("GET", path)
+        match = next((issue for issue in issues or [] if own_notification_issue(issue)), None)
+        if match or not isinstance(issues, list) or len(issues) < 100:
+            break
     if match:
         number = match.get("number")
         if not isinstance(number, int):
             raise RuntimeError("The iOSForge notification issue is invalid.")
         if match.get("state") != "open":
             api.request("PATCH", f"/issues/{number}", {"state": "open"})
-        return number
+        return number, False
     created = api.request(
         "POST",
         "/issues",
         {
             "title": NOTIFICATION_ISSUE_TITLE,
-            "body": (
-                f"@{owner}\n\n"
-                "此 Issue 接收 iOSForge 构建成功、失败和自动清理通知。请保持订阅，并在 "
-                "GitHub **Settings → Notifications** 中启用 Email，GitHub 才会把通知发送到邮箱。\n\n"
-                "网页中的“自动清理”设置可随时关闭此类通知。"
-            ),
+            "body": NOTIFICATION_MARKER + "\n" + first_body,
         },
     )
     number = created.get("number") if isinstance(created, dict) else None
     if not isinstance(number, int):
         raise RuntimeError("GitHub did not return the notification issue number.")
-    return number
+    return number, True
 
 
 def notified_run_ids(api: GitHubApi, issue_number: int) -> set[int]:
     notified: set[int] = set()
     pattern = re.compile(r"<!--\s*iosforge-run:(\d+)\s*-->")
+    issue = api.request("GET", f"/issues/{issue_number}")
+    if own_notification_issue(issue):
+        notified.update(int(value) for value in pattern.findall(str(issue.get("body", ""))))
     for page in range(1, 101):
         comments = api.request("GET", f"/issues/{issue_number}/comments?per_page=100&page={page}")
         if not isinstance(comments, list):
             break
         for comment in comments:
+            if not isinstance(comment, dict) or comment.get("user", {}).get("login") != "github-actions[bot]":
+                continue
             body = str(comment.get("body", "")) if isinstance(comment, dict) else ""
             match = pattern.search(body)
             if match:
@@ -562,55 +574,148 @@ def notify_builds(
         if isinstance(run.get("id"), int)
         and run.get("id") in manifests
         and manifests[run["id"]].get("notify_via_github", True) is True
+        and not manifests[run["id"]].get("cleanup_pending")
         and run.get("status") == "completed"
         and run.get("path") == ".github/workflows/build.yml"
     ]
     if not candidates:
         return 0
     owner = repository.split("/", 1)[0]
-    issue_number = notification_issue(api, owner)
+    first = min(candidates, key=lambda item: item["id"])
+    first_body = build_notification_body(owner, config, first, manifests[first["id"]])
+    issue_number, created = notification_issue(api, owner, first_body)
     notified = notified_run_ids(api, issue_number)
-    sent = 0
+    if created:
+        notified.add(first["id"])
+    sent = int(created)
     for run in sorted(candidates, key=lambda item: item["id"]):
         run_id = run.get("id")
         if (
             run_id in notified
         ):
             continue
-        manifest = manifests[run_id]
-        conclusion = str(run.get("conclusion") or "unknown")
-        name = project_name(manifest, run)
-        outputs = [
-            PurePosixPath(str(output.get("path"))).name
-            for output in manifest.get("outputs", [])
-            if isinstance(output, dict) and output.get("path")
-        ]
-        if conclusion == "success":
-            heading = f"✅ {name} 创建成功"
-            result = "、".join(f"`{item}`" for item in outputs) if outputs else "构建成功，但未记录成品文件"
-            cleanup_copy = f"成功任务将在 **{retention_label(config['success_retention_minutes'])}** 后自动清理。"
-        else:
-            heading = f"❌ {name} 构建{('失败' if conclusion == 'failure' else '未完成')}"
-            result = f"状态：`{conclusion}`"
-            cleanup_copy = "失败／取消任务会在本次通知后立即自动清理。" if config["delete_failed_runs"] else "失败任务自动清理当前已关闭。"
-        body = "\n".join(
-            [
-                f"<!-- iosforge-run:{run_id} -->",
-                f"@{owner}",
-                "",
-                f"### {heading}",
-                f"- 项目：`{name}`",
-                f"- 构建类型：`{manifest.get('build_type', 'auto')}`",
-                f"- 结果／产物：{result}",
-                f"- 任务：[{run.get('name', 'GitHub Actions')} #{run.get('run_number', '')}]({run.get('html_url', '')})",
-                f"- 完成时间：`{run.get('completed_at') or run.get('updated_at') or ''}`",
-                "",
-                cleanup_copy,
-            ]
-        )
+        body = build_notification_body(owner, config, run, manifests[run_id])
         api.request("POST", f"/issues/{issue_number}/comments", {"body": body})
         sent += 1
     return sent
+
+
+def build_notification_body(owner: str, config: dict, run: dict, manifest: dict) -> str:
+    run_id = run["id"]
+    conclusion = str(run.get("conclusion") or "unknown")
+    name = project_name(manifest, run)
+    outputs = [
+        PurePosixPath(str(output.get("path"))).name
+        for output in manifest.get("outputs", [])
+        if isinstance(output, dict) and output.get("path")
+    ]
+    if conclusion == "success":
+        heading = f"✅ {name} 创建成功"
+        result = "、".join(f"`{item}`" for item in outputs) if outputs else "构建成功，但未记录成品文件"
+        cleanup_copy = ("成功任务会在本次通知后立即自动清理。" if config["success_retention_minutes"] == 0
+                        else f"成功任务将在 **{retention_label(config['success_retention_minutes'])}** 后自动清理。")
+    else:
+        heading = f"❌ {name} 构建{('失败' if conclusion == 'failure' else '未完成')}"
+        result = f"状态：`{conclusion}`"
+        cleanup_copy = "失败／取消任务会在本次通知后立即自动清理。" if config["delete_failed_runs"] else "失败任务自动清理当前已关闭。"
+    return "\n".join(
+        [
+            f"<!-- iosforge-run:{run_id} -->",
+            f"@{owner}",
+            "",
+            f"### {heading}",
+            f"- 项目：`{name}`",
+            f"- 构建类型：`{manifest.get('build_type', 'auto')}`",
+            f"- 结果／产物：{result}",
+            f"- 任务：[{run.get('name', 'GitHub Actions')} #{run.get('run_number', '')}]({run.get('html_url', '')})",
+            f"- 完成时间（北京时间）：`{cleanup_local_time(completed).strftime('%Y-%m-%d %H:%M:%S') if (completed := parse_time(run.get('completed_at') or run.get('updated_at'))) else '时间未提供'}`",
+            "",
+            cleanup_copy,
+        ]
+    )
+
+
+def prune_build_notifications(api: GitHubApi, branch: str, run_ids: set[int] | None = None) -> int:
+    """Delete only bot-authored, tagged results whose Actions records are gone."""
+    issues: list[dict] = []
+    for page in range(1, 101):
+        try:
+            batch = api.request("GET", f"/issues?state=all&per_page=100&page={page}")
+        except ApiError as error:
+            if error.status in {404, 410}:
+                return 0
+            raise
+        if not isinstance(batch, list):
+            break
+        issues.extend(item for item in batch if own_notification_issue(item))
+        if len(batch) < 100:
+            break
+    removed: list[dict] = []
+    errors: list[str] = []
+    absent: dict[int, bool] = {}
+
+    def is_gone(run_id: int) -> bool:
+        if run_ids is not None and run_id not in run_ids:
+            return False
+        if run_id not in absent:
+            absent[run_id] = api.request("GET", f"/actions/runs/{run_id}", allow_404=True) is None
+        return absent[run_id]
+
+    for issue in issues:
+        number = issue["number"]
+        comments: list[dict] = []
+        for page in range(1, 101):
+            batch = api.request("GET", f"/issues/{number}/comments?per_page=100&page={page}")
+            if not isinstance(batch, list):
+                break
+            comments.extend(batch)
+            if len(batch) < 100:
+                break
+        for comment in comments:
+            body = str(comment.get("body", "")) if isinstance(comment, dict) else ""
+            match = NOTIFICATION_RUN.search(body)
+            if not match or comment.get("user", {}).get("login") != "github-actions[bot]" or type(comment.get("id")) is not int:
+                continue
+            run_id = int(match[1])
+            try:
+                if not is_gone(run_id):
+                    continue
+                path = f"/issues/comments/{comment['id']}"
+                current = api.request("GET", path, allow_404=True)
+                if not isinstance(current, dict):
+                    continue
+                if current.get("id") != comment["id"] or current.get("body") != body or current.get("user", {}).get("login") != "github-actions[bot]":
+                    continue
+                api.request("DELETE", path)
+                removed.append({"run_id": run_id, "comment_id": comment["id"], "issue_number": number})
+            except ApiError as error:
+                if error.status != 404:
+                    errors.append(f"Notification {comment['id']}: {error}")
+            except Exception as error:
+                errors.append(f"Notification {comment['id']}: {error}")
+        match = NOTIFICATION_RUN.search(str(issue.get("body", "")))
+        if match:
+            run_id = int(match[1])
+            try:
+                if is_gone(run_id):
+                    current = api.request("GET", f"/issues/{number}", allow_404=True)
+                    if own_notification_issue(current) and current.get("body") == issue.get("body"):
+                        api.request("PATCH", f"/issues/{number}", {"body": notification_hub_body()})
+                        removed.append({"run_id": run_id, "issue_number": number, "body_reset": True})
+            except ApiError as error:
+                if error.status != 404:
+                    errors.append(f"Notification issue {number}: {error}")
+            except Exception as error:
+                errors.append(f"Notification issue {number}: {error}")
+    if removed:
+        log, _ = daily_cleanup_log(api, branch, utc_now())
+        records = log.setdefault("notification_deletions", [])
+        records.append({"timestamp": cleanup_local_time().isoformat(), "removed": removed})
+        log["notification_deletions"] = records[-200:]
+        save_cleanup_log(api, branch, log)
+    if errors:
+        raise RuntimeError("Notification cleanup will retry: " + "; ".join(errors))
+    return len(removed)
 
 
 def branch_tree(api: GitHubApi, branch: str) -> tuple[str, str, dict[str, dict]]:
@@ -634,6 +739,7 @@ def cleanup_tree(
     cleanup_log: dict | None = None,
     cleanup_run_id: int = 0,
     deleted_run_ids: list[int] | None = None,
+    deleted_run_numbers: dict[int, int] | None = None,
 ) -> tuple[int, list[str]]:
     head, tree_sha, current = branch_tree(api, branch)
     # Protect ownership recorded by newly started builds using the same immutable
@@ -681,6 +787,8 @@ def cleanup_tree(
         cleanup_log, _ = daily_cleanup_log(api, head, log_now)
         append_cleanup_log(cleanup_log, log_now, cleanup_run_id,
                            deleted_run_ids or [], data_deletions, removed_data)
+        if deleted_run_numbers:
+            cleanup_log["entries"][-1]["deleted_run_numbers"] = {str(key): value for key, value in deleted_run_numbers.items()}
         # The deletion details and manifest removal commit together. If the ref
         # update fails, the pending manifests remain available for the next run.
         deletions[LOG_PATH] = {"path": LOG_PATH, "mode": "100644", "type": "blob",
@@ -722,6 +830,7 @@ def clean_registered(api: GitHubApi, repository: str, branch: str, current_run_i
     if cleanup_log_changed:
         save_cleanup_log(api, branch, cleanup_log)
     removed_checks = prune_cleanup_history(api, branch, int(current_run_id))
+    removed_notifications = prune_build_notifications(api, branch)
     print(f"Deleted {len(removed_checks)} completed cleanup check record(s); current/running checks are preserved.")
     manifests = list_manifests(api, branch)
     if not manifests:
@@ -765,20 +874,25 @@ def clean_registered(api: GitHubApi, repository: str, branch: str, current_run_i
                 deleted_run_ids.append(run_id)
         except Exception as error:
             errors.append(f"Run {run_id}: {error}")
+    if ready_ids:
+        removed_notifications += prune_build_notifications(api, branch, ready_ids)
     changes, removed_data = cleanup_tree(api, branch, ready_ids, manifests,
                                          cleanup_log=cleanup_log,
                                          cleanup_run_id=int(current_run_id),
-                                         deleted_run_ids=deleted_run_ids) if ready_ids else (0, [])
+                                         deleted_run_ids=deleted_run_ids,
+                                         deleted_run_numbers={run["id"]: run["run_number"] for run in runs if run.get("id") in deleted_run_ids and type(run.get("run_number")) is int}) if ready_ids else (0, [])
     stopped = stop_cleanup_if_idle(api, branch)
     remaining = len(list_manifests(api, branch))
     if errors:
         raise RuntimeError("Cleanup will retry registered builds: " + "; ".join(errors))
     record_cleanup_check(api, branch, int(current_run_id),
-                         "cleaned" if ready_ids else "idle_stopped" if stopped else "waiting", remaining)
+                         "cleaned" if ready_ids else "idle_stopped" if stopped else "waiting", remaining,
+                         f"本轮只清理到期编译任务及旧清理检查。当前清理检查 #{os.environ.get('IOSFORGE_RUN_NUMBER') or current_run_id} 是本轮记录，留待下次检查回收；网页发布和其他工作流记录不在编译清理范围。")
     if stopped:
         print("No managed iOSForge build remains. The cleanup timer is now stopped.")
     print(f"Sent {notifications} GitHub build notification(s).")
     print(f"Deleted {len(deleted_run_ids)} Actions run record(s).")
+    print(f"Removed {removed_notifications} corresponding GitHub notification record(s).")
     print(f"Applied {changes} repository deletion(s).")
     for path in sorted(set(removed_data)):
         print(f"- {path}")

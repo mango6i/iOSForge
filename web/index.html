@@ -7,11 +7,11 @@
   <meta name="description" content="iOSForge 编译工作台。在 GitHub 上构建面向 iOS 15+ 的动态库、插件包和应用。" />
   <title>iOSForge · 编译工作台</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=cleanup-history-1" />
+  <link rel="stylesheet" href="./styles.css?v=balanced-workbench-1" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
   <script src="./source-upload.js?v=fast-reads-1" defer></script>
-    <script src="./build-logs.js?v=cleanup-empty-state-1" defer></script>
-  <script src="./app.js?v=cleanup-history-1" defer></script>
+    <script src="./build-logs.js?v=balanced-workbench-1" defer></script>
+  <script src="./app.js?v=balanced-workbench-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">跳到编译工作台</a>
@@ -36,35 +36,24 @@
   </svg>
 
   <div class="app-shell">
-    <aside class="sidebar" aria-label="主导航">
+    <header class="app-navigation" aria-label="主导航">
       <a class="brand" href="./" aria-label="iOSForge 首页">
         <span class="brand-mark"><svg class="icon"><use href="#i-layers"/></svg></span>
         <span>iOSForge<span class="brand-caption">BUILD STUDIO</span></span>
       </a>
-      <div class="nav-label">工作空间</div>
       <nav class="navigation">
         <a class="nav-item active" href="./" aria-current="page" aria-label="编译工作台"><svg class="icon"><use href="#i-grid"/></svg><span>编译工作台</span><span class="nav-indicator"></span></a>
         <a class="nav-item" href="./guide.html" aria-label="使用指南"><svg class="icon"><use href="#i-book"/></svg><span>使用指南</span></a>
         <a class="nav-item" id="repo-link" href="https://github.com/mango6i/iOSForge" target="_blank" rel="noreferrer" aria-label="工具源码，在新标签页打开"><svg class="icon"><use href="#i-repo"/></svg><span>工具源码</span><svg class="icon nav-external"><use href="#i-external"/></svg></a>
       </nav>
-      <div class="sidebar-bottom">
-        <div class="environment-card">
-          <span class="environment-icon"><svg class="icon"><use href="#i-layers"/></svg></span>
-          <div><strong>为 iOS 而构建</strong><p>iOS 15.0 及以上</p></div>
-        </div>
-        <div class="sidebar-signature"><span>iOSForge</span><span>源于你的代码</span></div>
-      </div>
-    </aside>
-
-    <div class="main-shell">
-      <main id="workspace" class="workspace">
-        <section class="page-heading" aria-labelledby="page-title">
-          <div class="heading-copy"><p class="eyebrow">YOUR NEXT BUILD STARTS HERE</p><h1 id="page-title">从代码，到作品<span class="heading-dot">.</span></h1><p class="page-description">连接源码仓库，在云端完成你的下一次 iOS 构建。</p></div>
           <div class="heading-actions">
             <a id="actions-link" class="topbar-link" href="https://github.com" target="_blank" rel="noreferrer"><svg class="icon"><use href="#i-github"/></svg><span>GitHub 日志</span><svg class="icon small-icon"><use href="#i-external"/></svg></a>
             <span class="platform-badge"><svg class="icon"><use href="#i-phone"/></svg>iOS 15+</span>
           </div>
-        </section>
+    </header>
+
+    <div class="main-shell">
+      <main id="workspace" class="workspace">
 
         <div class="workspace-grid">
           <section class="panel build-panel" aria-labelledby="build-title">
@@ -92,6 +81,7 @@
 
               <div class="source-section">
                 <h3 class="form-section-title"><span class="step-number">02</span>配置源码</h3>
+                <p id="workspace-status" role="status" data-visibility="unknown">尚未核对账号和仓库。当前默认使用 mango6i/iOSForge。</p>
                 <div class="source-target-card">
                   <div class="source-card-heading"><span>UPLOAD TARGET</span><strong>上传目标仓库</strong></div>
                   <fieldset class="source-switch"><legend class="sr-only">源码来源</legend><label><input type="radio" name="source_mode" value="repository" checked /><span>使用仓库源码</span></label><label><input type="radio" name="source_mode" value="upload" /><span>上传本地源码</span></label></fieldset>
@@ -110,23 +100,24 @@
                         <span class="upload-limits">ZIP ≤ 25 MB · 解压后 ≤ 50 MB · 最多 1000 个文件</span>
                       </div>
                       <p id="upload-selection-status" class="field-hint" role="status" aria-live="polite">文件先在浏览器中检查，点击“上传并编译”后才会提交。</p>
-                      <div id="upload-preview" class="upload-preview" hidden><div class="upload-preview-heading"><strong id="upload-file-count"></strong><button id="clear-upload" class="copy-button" type="button">清除选择</button></div><details><summary>查看待上传文件</summary><ul id="upload-file-list"></ul></details></div>
+                      <div id="upload-preview" class="upload-preview" hidden><div class="upload-preview-heading"><button id="clear-upload" class="copy-button" type="button">清除选择</button></div><details><summary><strong id="upload-file-count">查看待上传文件</strong></summary><ul id="upload-file-list"></ul></details></div>
+                      <div id="upload-progress-wrap" hidden><progress id="upload-progress" max="100" value="0" aria-label="源码上传进度"></progress><p id="upload-progress-text" class="field-hint" role="status" aria-live="polite"></p></div>
                     </div>
                   </div>
                 </div>
-                <p id="repository-help" class="field-hint repository-context">当前为你的个人工作台，默认使用 mango6i/iOSForge；分支保持 main。需要保护源码时，请先将仓库改为 Private 私有仓库。<a href="./guide.html#own-repository" target="_blank" rel="noreferrer">首次使用：建立自己的构建仓库 ↗</a></p>
+                <details class="repository-help-dialog inline-help" data-desktop-dialog><summary>仓库与源码隐私说明</summary><div class="help-content"><p id="repository-help" class="field-hint repository-context">当前为你的个人工作台，默认使用 mango6i/iOSForge；分支保持 main。需要保护源码时，请先将仓库改为 Private 私有仓库。<a href="./guide.html#own-repository" target="_blank" rel="noreferrer">首次使用：建立自己的构建仓库 ↗</a></p><p id="form-footnote" class="form-footnote">使用仓库已有源码，或切换到“上传本地源码”。</p><p><strong>你的源码，你的构建。</strong> 本页面调用仓库中已有的编译流程。首次使用可参考项目配置指南。</p></div></details>
                 <div id="upload-panel" class="upload-panel" hidden>
                   <div class="upload-panel-heading"><span>UPLOAD DETAILS</span><strong>上传设置</strong></div>
                   <div class="upload-details-column">
                     <label class="field"><span>项目文件夹名称</span><input id="upload-project" placeholder="例如 MyProject" autocomplete="off" spellcheck="false" maxlength="64" /></label>
                     <p id="upload-destination" class="field-hint"></p>
-                    <div class="upload-consent-block"><label class="upload-consent"><input id="upload-consent" type="checkbox" /><span>确认提交到以上我自己的仓库，已检查源码不含密钥；如果仓库是 Public 公开仓库，我也确认源码上传后所有人可见。私有仓库可降低公开泄露风险，但不能保证绝对安全。</span></label><div id="upload-consent-memory" class="upload-consent-memory" hidden><span>已为当前仓库记住，下次自动确认</span><button id="forget-upload-consent" type="button">取消记住</button></div></div>
-                    <div id="public-upload-warning" class="public-upload-warning" hidden><strong>当前仓库是公开的：上传后所有人可见。</strong><p>如果源码不应公开，请停止上传，换成自己的 Private 私有仓库。删除当前文件也无法自动清除提交历史。上方“确认提交”是唯一需要勾选的上传确认。</p></div>
+                    <div class="upload-consent-block"><label class="upload-consent"><input id="upload-consent" type="checkbox" /><span>确认提交到我自己的仓库，源码不含密钥；公开仓库中的源码所有人可见。</span></label><div id="upload-consent-memory" class="upload-consent-memory" hidden><span>已为当前仓库记住，下次自动确认</span><button id="forget-upload-consent" type="button">取消记住</button></div></div>
+                    <div id="public-upload-warning" class="public-upload-warning" hidden><strong>当前仓库是公开的：上传后所有人可见。</strong><details class="inline-help" data-desktop-dialog><summary>公开上传注意事项</summary><div class="help-content"><p>如果源码不应公开，请停止上传，换成自己的 Private 私有仓库。删除当前文件也无法自动清除提交历史。私有仓库可降低公开泄露风险，但不能保证绝对安全。上方“确认提交”是唯一需要勾选的上传确认。</p></div></details></div>
                     <label class="upload-consent"><input id="upload-replace" type="checkbox" /><span>如果目录已存在，允许更新本次同名文件；未上传的旧文件不会删除。</span></label>
-                    <label class="upload-consent build-notify-option"><input id="build-notify" type="checkbox" checked /><span><strong>构建完成后发送邮件通知</strong><small>成功或失败都会通过 GitHub 通知；需在 GitHub 账户中启用 Email 通知。</small></span></label>
-                    <p class="field-hint">支持完整 Theos / Xcode 源码，不是现成 IPA、deb 或 dylib。单个文件上限 10 MB。<a href="./guide.html#upload">查看上传说明 ↗</a></p>
+                    <label class="upload-consent build-notify-option"><input id="build-notify" type="checkbox" checked /><span><strong>构建完成后发送邮件通知</strong><small>成功／失败均通知，需启用 GitHub Email。</small></span></label>
+                    <details class="inline-help" data-desktop-dialog><summary>支持的文件与上传限制</summary><div class="help-content"><p class="field-hint">支持完整 Theos / Xcode 源码，不是现成 IPA、deb 或 dylib。单个文件上限 10 MB。<a href="./guide.html#upload">查看上传说明 ↗</a></p></div></details>
                   </div>
-                  <div id="upload-progress-wrap" hidden><progress id="upload-progress" max="100" value="0" aria-label="源码上传进度"></progress><p id="upload-progress-text" class="field-hint" role="status" aria-live="polite"></p></div>
+
                 </div>
                 <p id="upload-result" class="upload-result" role="status" hidden></p>
                 <div id="ipa-fields" class="ipa-fields">
@@ -141,28 +132,30 @@
                     <label class="field"><span>Scheme · 可选</span><input id="xcode-scheme" placeholder="留空自动识别方案" autocomplete="off" spellcheck="false" /></label>
                   </div>
                   <label id="export-options-field" class="field" hidden><span>导出配置文件</span><input id="export-options" value="ExportOptions.plist" autocomplete="off" spellcheck="false" /></label>
-                  <p id="signing-hint" class="field-hint">输出未签名 IPA，无需 Apple 证书。普通设备需后续自签；巨魔需设备与系统兼容。</p>
-                  <a class="ipa-guide-link" href="./guide.html#ipa-config">不知道怎么选？查看 IPA 准备与安装说明 ↗</a>
-                  <p class="field-hint">单个工程可直接留空；多个工程或方案时再指定。常见 CocoaPods 与 Swift Package 依赖会在云端处理。</p>
+                  <details class="inline-help" data-desktop-dialog><summary>编译模式与安装说明</summary><div class="help-content"><p id="signing-hint" class="field-hint">输出未签名 IPA，无需 Apple 证书。普通设备需后续自签；巨魔需设备与系统兼容。</p><a class="ipa-guide-link" href="./guide.html#ipa-config">不知道怎么选？查看 IPA 准备与安装说明 ↗</a><p class="field-hint">单个工程可直接留空；多个工程或方案时再指定。常见 CocoaPods 与 Swift Package 依赖会在云端处理。</p></div></details>
                 </div>
               </div>
 
               <div class="token-section">
                 <div class="token-label"><label for="token">GitHub Token</label><span><svg class="icon small-icon"><use href="#i-lock"/></svg>仅当前会话</span></div>
                 <div class="input-wrap token-input-wrap"><svg class="icon"><use href="#i-lock"/></svg><input id="token" name="token" type="password" placeholder="粘贴你的访问令牌" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="token-help" required /><button id="token-toggle" class="icon-button" type="button" aria-label="显示访问令牌" aria-pressed="false"><svg class="icon"><use href="#i-eye"/></svg></button></div>
-                <div class="workspace-connection"><button id="check-workspace" class="secondary-button" type="button">检查我的仓库</button><p id="workspace-status" role="status" data-visibility="unknown">尚未核对账号和仓库。当前默认使用 mango6i/iOSForge。</p></div>
+                <div class="workspace-connection"><button id="check-workspace" class="secondary-button" type="button">检查我的仓库</button></div>
                 <details class="token-help" id="token-help"><summary>没有 Token？跟着步骤获取<svg class="icon small-icon"><use href="#i-info"/></svg></summary><div class="token-help-content"><p>先建立自己的构建仓库，再创建只授权该仓库的 Token。它不是 GitHub 登录密码。</p><ol><li>打开下方预填页面，确认登录的是<strong>你自己的 GitHub 账号</strong>。</li><li>选择 <strong>Only select repositories</strong>，仅勾选<strong>你自己的构建仓库</strong>。</li><li>确认仓库权限 <strong>Actions</strong> 和 <strong>Contents</strong> 都为 <strong>Read and write</strong>。</li><li>点 <strong>Generate token</strong>，复制生成的字符，切回本页粘贴后点“检查我的仓库”。</li></ol><a href="https://github.com/settings/personal-access-tokens/new?name=iOSForge&amp;description=iOSForge+web+build+and+source+upload&amp;expires_in=30&amp;actions=write&amp;contents=write" target="_blank" rel="noreferrer">打开预填创建页面（仍需确认）↗</a><a href="./guide.html#own-repository" target="_blank" rel="noreferrer">还没有自己的仓库？从这里开始 ↗</a><a href="./guide.html#token-guide" target="_blank" rel="noreferrer">查看完整 Token 教程 ↗</a><a href="./guide.html#token-repair" target="_blank" rel="noreferrer">已有 Token 报权限错误？按这里补齐 ↗</a><p>不会预填网站作者的账号，也不会自动创建或读取你的令牌。令牌仅在本页内存中使用；<strong>不要发给 AI 或截图分享</strong>。</p></div></details>
               </div>
 
-              <div class="submit-row"><button id="submit-button" class="primary-button" type="submit"><svg class="icon"><use href="#i-play"/></svg><span id="submit-label">开始构建</span><svg class="icon button-arrow"><use href="#i-arrow"/></svg></button><p id="form-footnote" class="form-footnote">使用仓库已有源码，或切换到“上传本地源码”。</p></div>
+              <div class="submit-row"><button id="submit-button" class="primary-button" type="submit"><svg class="icon"><use href="#i-play"/></svg><span id="submit-label">开始构建</span><svg class="icon button-arrow"><use href="#i-arrow"/></svg></button></div>
             </form>
-            <aside class="workspace-note"><span class="note-icon"><svg class="icon"><use href="#i-info"/></svg></span><p><strong>你的源码，你的构建。</strong> 本页面调用仓库中已有的编译流程。首次使用可参考项目配置指南。</p><a href="./guide.html">查看指南<svg class="icon small-icon"><use href="#i-external"/></svg></a></aside>
-            <footer class="footer"><span>iOSForge <span class="footer-slash">/</span> Build Studio</span><span>Powered by GitHub Actions</span></footer>
+            <div class="build-help-bar"><details class="cleanup-description inline-help" data-desktop-dialog><summary>后台清理规则与记录说明</summary><div class="help-content">
+
+                <p class="field-hint cleanup-history-hint">旧清理检查记录会自动删除，当天明细仍在“清理记录”中。当前执行记录保留到下一次检查，不会为删除自身反复运行。</p>
+            </div></details>
+            <aside class="workspace-note"><span class="note-icon"><svg class="icon"><use href="#i-info"/></svg></span><a href="./guide.html">查看指南<svg class="icon small-icon"><use href="#i-external"/></svg></a></aside>
+            </div><footer class="footer"><span>iOSForge <span class="footer-slash">/</span> Build Studio</span><span>Powered by GitHub Actions</span></footer>
           </section>
 
           <div class="activity-column">
           <section class="panel status-panel" id="status-panel" data-phase="idle" aria-labelledby="status-heading">
-            <div class="panel-heading"><div><span class="section-overline">BUILD ACTIVITY</span><h2 id="status-heading">构建动态</h2></div><span id="status-badge" class="status-badge idle">待命</span></div>
+            <div class="panel-heading"><div><span class="section-overline">BUILD ACTIVITY</span><h2 id="status-heading">构建动态</h2></div><span id="status-badge" class="status-badge idle">待命</span><details class="run-meta-launch inline-help" data-desktop-dialog><summary>构建详情</summary><div id="run-meta" class="run-meta" hidden></div></details></div>
             <div class="status-overview">
               <div id="status-card" class="status-card idle-card" role="status" aria-live="polite" aria-atomic="true">
                 <div class="status-visual" aria-hidden="true"><div class="orbit-ring orbit-ring-outer"></div><div class="orbit-ring orbit-ring-inner"></div><span class="orbit-dot"></span><div class="status-core"><svg class="icon"><use id="status-symbol" href="#i-layers"/></svg></div></div>
@@ -175,33 +168,20 @@
                 <li data-step="build"><span class="pipeline-marker">2</span><div><strong>云端编译</strong><span>在 macOS 上处理源码</span></div><span class="pipeline-state">等待</span></li>
                 <li data-step="artifacts"><span class="pipeline-marker">3</span><div><strong>保存产物</strong><span>写入 sources/Download</span></div><span class="pipeline-state">等待</span></li>
               </ol>
+              <section id="cleanup-settings" class="cleanup-settings" aria-labelledby="cleanup-heading"><div class="cleanup-heading"><div><span class="section-overline">AUTO CLEANUP</span><h3 id="cleanup-heading">自动清理</h3></div><span id="cleanup-state" class="cleanup-state">未读取</span></div><p id="cleanup-runtime" class="cleanup-runtime" role="status">后台：状态待核对</p><div class="cleanup-controls"><label class="cleanup-switch"><input id="cleanup-enabled" type="checkbox" checked /><span>启用后台定时清理</span></label><label class="cleanup-switch"><input id="cleanup-failed" type="checkbox" checked /><span>失败／取消任务完成后清理</span></label><label class="cleanup-switch"><input id="cleanup-notify" type="checkbox" checked /><span>通过 GitHub 通知成功／失败结果</span></label><div class="cleanup-retention"><label id="cleanup-retention-label" for="cleanup-value">成功任务保留：1 小时</label><input id="cleanup-value" type="number" min="1" max="525600" step="1" value="1" inputmode="numeric" aria-label="成功任务保留数值" /><div class="cleanup-unit-options" role="radiogroup" aria-label="成功任务保留单位"><label><input type="radio" name="cleanup-unit" value="immediate" /><span>立即</span></label><label><input type="radio" name="cleanup-unit" value="minute" /><span>分钟</span></label><label><input type="radio" name="cleanup-unit" value="hour" checked /><span>小时</span></label><label><input type="radio" name="cleanup-unit" value="day" /><span>天</span></label></div></div></div><button id="save-cleanup" class="secondary-button cleanup-save" type="button">保存后台规则</button><details class="cleanup-feedback inline-help" data-desktop-dialog><summary id="cleanup-feedback-label">后台规则说明与保存结果</summary><div class="help-content"><p id="cleanup-message" class="field-hint" role="status">独立于上传和编译，可随时设置。没有任务时后台保持空闲；检测到新构建后自动执行。</p></div></details></section>
 
-              <section id="cleanup-settings" class="cleanup-settings" aria-labelledby="cleanup-heading">
-                <div class="cleanup-heading"><div><span class="section-overline">AUTO CLEANUP</span><h3 id="cleanup-heading">自动清理</h3></div><span id="cleanup-state" class="cleanup-state">未读取</span></div>
-                <p id="cleanup-runtime" class="cleanup-runtime" role="status">后台：状态待核对</p>
-                <div class="cleanup-controls">
-                  <label class="cleanup-switch"><input id="cleanup-enabled" type="checkbox" checked /><span>启用后台定时清理</span></label>
-                  <label class="cleanup-switch"><input id="cleanup-failed" type="checkbox" checked /><span>失败／取消任务完成后清理</span></label>
-                  <label class="cleanup-switch"><input id="cleanup-notify" type="checkbox" checked /><span>通过 GitHub 通知成功／失败结果</span></label>
-                  <div class="cleanup-retention"><label id="cleanup-retention-label" for="cleanup-value">成功任务保留：1 小时</label><input id="cleanup-value" type="number" min="1" max="525600" step="1" value="1" inputmode="numeric" aria-label="成功任务保留数值" /><div class="cleanup-unit-options" role="radiogroup" aria-label="成功任务保留单位"><label><input type="radio" name="cleanup-unit" value="immediate" /><span>立即</span></label><label><input type="radio" name="cleanup-unit" value="minute" /><span>分钟</span></label><label><input type="radio" name="cleanup-unit" value="hour" checked /><span>小时</span></label><label><input type="radio" name="cleanup-unit" value="day" /><span>天</span></label></div></div>
-                </div>
-                <button id="save-cleanup" class="secondary-button cleanup-save" type="button">保存后台规则</button>
-                <p id="cleanup-message" class="field-hint" role="status">独立于上传和编译，可随时设置。没有任务时后台保持空闲；检测到新构建后自动执行。</p>
-                <p class="field-hint cleanup-history-hint">旧清理检查记录会自动删除，当天明细仍在“清理记录”中。当前执行记录保留到下一次检查，不会为删除自身反复运行。</p>
-              </section>
             </div>
 
-            <div id="run-meta" class="run-meta" hidden></div>
             <div id="artifact-list" class="artifact-list" hidden><h3 class="artifact-heading">构建产物<span>DOWNLOAD FILES</span></h3><div id="artifacts"></div></div>
             <p id="download-message" class="download-message" role="status" hidden></p>
             <section id="build-logs" class="build-logs" aria-labelledby="logs-heading">
-              <div class="logs-heading"><div><span class="section-overline">SESSION CONSOLE</span><h3 id="logs-heading">运行日志</h3></div><span id="logs-badge" class="logs-badge">仅当前页面</span></div>
-              <p id="logs-notice" class="field-hint" role="status" aria-live="polite">构建日志仅在当前页面暂留；选择“清理记录”可查看今天的后台检查和实际删除时间。</p>
+              <div class="logs-heading"><div><span class="section-overline">SESSION CONSOLE</span><h3 id="logs-heading">运行日志</h3></div><span id="logs-badge" class="logs-badge">仅当前页面</span><div class="logs-actions"><button id="logs-copy" type="button" class="secondary-button" disabled>复制给 AI</button><button id="logs-clear" type="button" class="secondary-button" disabled>清空并暂停</button></div></div>
+
               <div class="logs-toolbar"><label class="logs-job-label" for="logs-job">查看</label><select id="logs-job" aria-label="选择日志类型"><option value="all">构建日志（全部任务）</option><option value="cleanup">清理记录（今天）</option></select><button id="logs-errors" type="button" class="secondary-button" aria-pressed="false">只看错误</button><button id="logs-refresh" type="button" class="secondary-button" disabled>刷新日志</button></div>
               <div id="logs-output" class="logs-output" tabindex="0" aria-label="构建日志与自动清理记录"><p class="logs-empty">这里显示步骤变化、GitHub 已提供的编译输出和当天清理记录。</p></div>
               <div class="logs-footer"><span id="logs-count">尚无日志</span><label class="logs-follow"><input id="logs-follow" type="checkbox" checked />跟随最新</label></div>
-              <div class="logs-actions"><button id="logs-copy" type="button" class="secondary-button" disabled>复制给 AI</button><button id="logs-clear" type="button" class="secondary-button" disabled>清空并暂停</button></div>
-              <p class="logs-privacy">构建步骤约每 15 秒更新，临时日志不落盘；“清理记录”来自 GitHub，只显示当天检查与删除明细，隔天自动清除前一天的页面记录。</p>
+
+              <details class="logs-help inline-help" data-desktop-dialog><summary>日志状态与更新说明</summary><div class="help-content"><p id="logs-notice" class="field-hint" role="status" aria-live="polite">构建日志仅在当前页面暂留；选择“清理记录”可查看今天的后台检查和实际删除时间。</p><p class="logs-privacy">构建步骤约每 15 秒更新，临时日志不落盘；“清理记录”来自 GitHub，只显示当天检查与删除明细，隔天自动清除前一天的页面记录。</p></div></details>
               <p id="logs-action-message" class="field-hint" role="status" hidden></p>
               <textarea id="logs-copy-fallback" class="logs-copy-fallback" aria-label="无法自动复制时，请手动选择复制以下诊断内容" readonly hidden></textarea>
             </section>
@@ -209,9 +189,9 @@
           <section class="panel project-manager" aria-labelledby="project-manager-title">
             <div class="project-manager-heading"><div><span class="section-overline">SOURCE PROJECTS</span><h3 id="project-manager-title">项目源码管理</h3></div><button id="refresh-projects" class="secondary-button" type="button">读取项目</button></div>
             <div class="project-manager-controls"><label class="field" for="project-list"><span>仓库中的项目</span><select id="project-list" disabled><option value="">尚未读取项目</option></select></label><button id="delete-project" class="danger-button" type="button" disabled>删除这个项目</button></div>
-            <p id="project-message" class="field-hint" role="status">点击“读取项目”查看源码工程；sources/Download 不会被当成项目。删除项目会同时删除该项目全部源码，并清空 sources/Download 中的全部成品。</p>
+            <p id="project-message" class="field-hint" role="status">读取仓库中的源码工程；Download 产物不作为项目列出。删除范围会在确认时完整列出。</p>
           </section>
-          <section class="panel history-panel" aria-labelledby="history-heading"><div class="history-heading"><div><span class="section-overline">ACTIONS HISTORY</span><h3 id="history-heading">任务记录</h3></div><button id="refresh-history" class="secondary-button" type="button">刷新全部记录</button></div><p id="history-message" class="field-hint" role="status">填好仓库、分支和 Token 后刷新，一次读取最多 100 条 Actions 记录，包括编译、网页发布和环境检查。</p><div id="history-toolbar" class="history-toolbar" hidden><label class="history-select-all"><input id="select-all-runs" type="checkbox" /><span>全选已加载的已结束记录</span></label><div class="history-batch-actions"><button id="select-failed-runs" class="secondary-button" type="button">只选失败 / 取消</button><button id="delete-selected-runs" class="danger-button" type="button" disabled>删除所选（0）</button></div><p>处理当前仓库和分支的全部 Actions 工作流记录。编译任务可查看产物，网页发布和环境检查可打开 GitHub 原始记录。删除记录只会删除 Actions 记录与日志，不会删除 sources/Download 中的真实产物或源码。</p></div><div id="history-list"></div><button id="load-more-runs" class="secondary-button history-load-more" type="button" hidden>再加载 100 条记录</button><p class="history-retention-note">真实产物统一保存在 sources/Download/文件名.ipa|deb|dylib；同名文件在下次成功构建时更新。删除最后一个成品后，空的 Download 文件夹会自动消失。<a href="./guide.html#history-cleanup" target="_blank" rel="noreferrer">查看清理说明 ↗</a></p></section>
+          <section class="panel history-panel" aria-labelledby="history-heading"><div class="history-heading"><div><span class="section-overline">ACTIONS HISTORY</span><h3 id="history-heading">任务记录</h3></div><button id="refresh-history" class="secondary-button" type="button">刷新全部记录</button><details class="history-help inline-help" data-desktop-dialog><summary>记录与产物说明</summary><div class="help-content"><p>处理当前仓库和分支的全部 Actions 工作流记录。编译任务可查看产物，网页发布和环境检查可打开 GitHub 原始记录。删除记录只会删除 Actions 记录与日志，不会删除 sources/Download 中的真实产物或源码。编译记录的对应机器人通知结果也会同步清理，已发送邮件无法撤回。</p><p class="history-retention-note">真实产物统一保存在 sources/Download/文件名.ipa|deb|dylib；同名文件在下次成功构建时更新。删除最后一个成品后，空的 Download 文件夹会自动消失。<a href="./guide.html#history-cleanup" target="_blank" rel="noreferrer">查看清理说明 ↗</a></p></div></details></div><p id="history-message" class="field-hint" role="status">填写仓库、分支和 Token 后刷新，查看编译、网页发布和环境检查记录（每批 100 条）。</p><div id="history-toolbar" class="history-toolbar" hidden><label class="history-select-all"><input id="select-all-runs" type="checkbox" /><span>全选已加载的已结束记录</span></label><div class="history-batch-actions"><button id="select-failed-runs" class="secondary-button" type="button">只选失败 / 取消</button><button id="delete-selected-runs" class="danger-button" type="button" disabled>删除所选（0）</button></div></div><div id="history-list"></div><button id="load-more-runs" class="secondary-button history-load-more" type="button" hidden>再加载 100 条记录</button></section>
           </div>
         </div>
       </main>
@@ -219,7 +199,7 @@
   </div>
   <dialog id="upload-consent-dialog" class="delete-dialog consent-dialog" aria-labelledby="upload-consent-dialog-title" aria-describedby="upload-consent-dialog-description"><span class="section-overline">UPLOAD CONFIRMATION</span><h2 id="upload-consent-dialog-title">请先勾选上传确认</h2><p id="upload-consent-dialog-description">请确认源码提交位置和公开范围，再勾选“确认提交”。未确认前不会上传任何源码。</p><div class="dialog-actions"><button id="close-upload-consent-dialog" type="button" class="primary-button" autofocus>知道了，去勾选</button></div></dialog>
   <dialog id="delete-dialog" class="delete-dialog" aria-labelledby="delete-title" aria-describedby="delete-description"><span class="section-overline">DOWNLOAD FILE</span><h2 id="delete-title">删除这份构建产物？</h2><p id="delete-target" class="delete-target"></p><p id="delete-description">这会从仓库 sources/Download 中删除该真实文件。删除后需重新编译才能生成；源码、构建记录和已下载到本地的文件不受影响。最后一个文件删除后 Download 文件夹会自动消失。</p><div class="dialog-actions"><button id="cancel-delete" type="button" class="secondary-button" autofocus>保留文件</button><button id="confirm-delete" type="button" class="danger-button">确认永久删除</button></div></dialog>
-  <dialog id="delete-runs-dialog" class="delete-dialog" aria-labelledby="delete-runs-title" aria-describedby="delete-runs-description"><span class="section-overline">ACTIONS HISTORY</span><h2 id="delete-runs-title">永久删除所选 Actions 记录？</h2><p id="delete-runs-scope" class="delete-target"></p><ul id="delete-runs-targets" class="delete-runs-targets"></ul><p id="delete-runs-description">所选编译、网页发布或环境检查记录及对应日志会被删除，无法恢复。sources/Download 中的真实产物、项目源码、提交历史、已经发布的网页和本地下载不受影响；正在运行或排队的任务不会被选择。</p><div class="dialog-actions"><button id="cancel-delete-runs" type="button" class="secondary-button" autofocus>保留记录</button><button id="confirm-delete-runs" type="button" class="danger-button">确认永久删除</button></div></dialog>
+  <dialog id="delete-runs-dialog" class="delete-dialog" aria-labelledby="delete-runs-title" aria-describedby="delete-runs-description"><span class="section-overline">ACTIONS HISTORY</span><h2 id="delete-runs-title">永久删除所选 Actions 记录？</h2><p id="delete-runs-scope" class="delete-target"></p><ul id="delete-runs-targets" class="delete-runs-targets"></ul><p id="delete-runs-description">所选编译、网页发布或环境检查记录及对应日志会被删除，无法恢复。sources/Download 中的真实产物、项目源码、提交历史、已经发布的网页和本地下载不受影响；正在运行或排队的任务不会被选择。已删除编译记录的对应机器人通知结果会同步移除；通知容器和已发送邮件保留。手动同步需要 Token 的 Issues 读写权限。</p><div class="dialog-actions"><button id="cancel-delete-runs" type="button" class="secondary-button" autofocus>保留记录</button><button id="confirm-delete-runs" type="button" class="danger-button">确认永久删除</button></div></dialog>
   <dialog id="delete-project-dialog" class="delete-dialog" aria-labelledby="delete-project-title" aria-describedby="delete-project-description"><span class="section-overline">WHOLE PROJECT</span><h2 id="delete-project-title">删除整个项目？</h2><p id="delete-project-target" class="delete-target"></p><p id="delete-project-description">这会在一次提交中删除所选 sources/项目名 下的全部上传源码，并删除共享的 sources/Download 文件夹及其中所有 IPA、DEB、DYLIB。其他项目的源码不受影响；构建记录与日志继续保留。文件仍可能存在于 Git 历史中。</p><div class="dialog-actions"><button id="cancel-delete-project" type="button" class="secondary-button" autofocus>保留项目</button><button id="confirm-delete-project" type="button" class="danger-button">确认删除全部</button></div></dialog>
   <noscript><p class="noscript-message">请开启 JavaScript 以使用编译工作台。也可以到你自己的 GitHub 仓库，在 Actions 中发起构建。</p></noscript>
 </body>

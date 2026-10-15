@@ -193,6 +193,10 @@ function setCleanupState(kind, label, message) {
   const badge = $("#cleanup-state");
   badge.textContent = label;
   badge.dataset.kind = kind || "";
+  const launch = $("#cleanup-launch-state");
+  if (launch) { launch.textContent = label; launch.dataset.kind = kind || ""; }
+  const feedback = $("#cleanup-feedback-label");
+  if (feedback) { feedback.textContent = kind === "error" ? `${label}，点击查看原因` : "后台规则说明与保存结果"; feedback.dataset.kind = kind || ""; }
   if (message !== undefined) $("#cleanup-message").textContent = message;
 }
 
@@ -1046,6 +1050,11 @@ function renderHistory() {
     const info = element("div");
     const status = run.status === "completed" ? ({ success: "已完成", failure: "失败", cancelled: "已取消", skipped: "已跳过", timed_out: "超时" }[run.conclusion] || "已结束") : run.status === "in_progress" ? "编译中" : "排队中";
     info.append(element("strong", "", `${run.name || "GitHub Actions"} #${run.run_number}`), element("span", "", `${run.display_title || "无标题"} · ${status} · ${new Date(run.created_at).toLocaleString("zh-CN")}`));
+    const category = isBuildRun(run) ? "编译任务记录"
+      : run.path === ".github/workflows/cleanup.yml" ? "清理检查记录：不是编译任务，旧检查由下一轮回收"
+      : run.path === ".github/workflows/pages.yml" ? "网页发布记录：不属于编译任务自动清理范围"
+      : "其他工作流记录：可在这里手动删除";
+    info.append(element("span", "history-category", category));
     let action;
     if (isBuildRun(run)) {
       action = element("button", "download-button", "查看产物"); action.type = "button"; action.dataset.runId = String(run.id); action.disabled = state.busy;
@@ -1129,12 +1138,57 @@ function confirmRunDeletion(runs) {
     dialog.showModal(); $("#cancel-delete-runs").focus();
   });
 }
+async function removeRunNotifications(runIds, base, branch) {
+  const targets = new Set(runIds);
+  if (!targets.size) return 0;
+  const own = issue => issue?.title === "iOSForge 构建通知" && !issue.pull_request && issue.user?.login === "github-actions[bot]"
+    && (/<!-- iosforge-notifications:v2 -->|此 Issue 接收 iOSForge 构建成功、失败和自动清理通知/.test(issue.body || ""));
+  const marker = body => /^<!--\s*iosforge-run:(\d+)\s*-->/m.exec(body || "");
+  const request = (path, options) => {
+    if (state.closed || !historyMatchesInputs() || repoBase() !== base || state.branch !== branch) throw new Error("会话变化，已停止通知清理。");
+    return github(path, options);
+  };
+  let removed = 0;
+  for (let page = 1; page <= 100; page++) {
+    const issues = await request(`${base}/issues?state=all&per_page=100&page=${page}`);
+    if (!Array.isArray(issues)) break;
+    for (const issue of issues.filter(own)) {
+      const comments = [];
+      for (let commentPage = 1; commentPage <= 100; commentPage++) {
+        const batch = await request(`${base}/issues/${issue.number}/comments?per_page=100&page=${commentPage}`);
+        if (!Array.isArray(batch)) break;
+        comments.push(...batch);
+        if (batch.length < 100) break;
+      }
+      for (const comment of comments) {
+        const match = marker(comment.body);
+        if (!match || !targets.has(Number(match[1])) || comment.user?.login !== "github-actions[bot]" || !Number.isSafeInteger(comment.id)) continue;
+        const path = `${base}/issues/comments/${comment.id}`;
+        let current;
+        try { current = await request(path); } catch (error) { if (error.status === 404) continue; throw error; }
+        if (current.id !== comment.id || current.body !== comment.body || current.user?.login !== "github-actions[bot]") continue;
+        try { await request(path, { method: "DELETE" }); removed++; } catch (error) { if (error.status !== 404) throw error; }
+      }
+      const match = marker(issue.body);
+      if (match && targets.has(Number(match[1]))) {
+        const current = await request(`${base}/issues/${issue.number}`);
+        if (own(current) && current.body === issue.body) {
+          await request(`${base}/issues/${issue.number}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body: "<!-- iosforge-notifications:v2 -->\n\n该任务的构建通知已随记录清理。已送达邮箱的邮件不会被撤回。" }) });
+          removed++;
+        }
+      }
+    }
+    if (issues.length < 100) break;
+  }
+  return removed;
+}
 $("#delete-selected-runs").addEventListener("click", async () => {
   if (state.busy || !historyMatchesInputs()) return;
   const targets = state.history.filter(run => selectedRuns.has(run.id) && selectableRun(run)).map(run => ({ ...run }));
   if (!targets.length) return;
   const base = repoBase(), branch = state.branch;
   let removed = 0, skipped = 0, confirmed = false;
+  const removedBuildIds = [];
   setBusy(true, "正在确认删除…");
   try {
     await verifyWorkspace({ fresh: true });
@@ -1149,6 +1203,7 @@ $("#delete-selected-runs").addEventListener("click", async () => {
       if (state.runId === target.id) buildLogs?.close();
       await github(`${base}/actions/runs/${target.id}`, { method: "DELETE" });
       removed += 1; selectedRuns.delete(target.id); state.history = state.history.filter(run => run.id !== target.id);
+      if (isBuildRun(target)) removedBuildIds.push(target.id);
       if (state.runId === target.id) {
         state.runId = null; state.artifacts = []; artifacts.replaceChildren(); artifactList.hidden = true; runMeta.hidden = true; downloadMessage.hidden = true;
         setStatus("idle", "已清理", "所选 Actions 记录已删除", "对应日志已删除；sources/Download 产物和源码保留。");
@@ -1156,7 +1211,12 @@ $("#delete-selected-runs").addEventListener("click", async () => {
       }
       renderHistory();
     }
-    $("#history-message").textContent = `已永久删除 ${removed} 条 Actions 记录及对应日志。${skipped ? `另有 ${skipped} 条状态已变化，未删除。` : ""}sources/Download 产物和源码保留。请刷新记录查看最新列表。`;
+    let notification = "";
+    if (removedBuildIds.length) {
+      try { const count = await removeRunNotifications(removedBuildIds, base, branch); notification = `已同步清理 ${count} 条对应 GitHub 通知结果。`; }
+      catch (error) { notification = `通知记录尚未全部清理：${error.message} 手动同步需要 Token 的 Issues 读写权限，后台会在下次检查时重试。`; }
+    }
+    $("#history-message").textContent = `已永久删除 ${removed} 条 Actions 记录及对应日志。${notification}${skipped ? `另有 ${skipped} 条状态已变化，未删除。` : ""}sources/Download 产物和源码保留。请刷新记录查看最新列表。`;
   } catch (error) {
     $("#history-message").textContent = `批量操作已停止，已确认删除 ${removed} 条。${error.message || "网络中断，最后一条结果可能未确认"} 请先刷新记录核对，不要直接重复删除。`;
   } finally {
@@ -1216,6 +1276,34 @@ artifacts.addEventListener("click", async event => {
   } finally { setBusy(false); }
 });
 
+// Desktop help opens in a bounded native dialog, not in the form's layout.
+// Move the existing nodes (rather than copy them) so live status and handlers survive.
+function setupDesktopHelp() {
+  if (typeof document.createElement("dialog").showModal !== "function") return;
+  const dialog = document.createElement("dialog");
+  dialog.className = "help-dialog";
+  dialog.setAttribute("aria-labelledby", "help-dialog-title");
+  const heading = document.createElement("div"); heading.className = "help-dialog-heading";
+  const title = document.createElement("h2"); title.id = "help-dialog-title";
+  const close = document.createElement("button"); close.type = "button"; close.className = "secondary-button"; close.textContent = "关闭";
+  heading.append(title, close); dialog.append(heading); document.body.append(dialog);
+  let origin = null, content = null;
+  close.addEventListener("click", () => dialog.close());
+  dialog.addEventListener("close", () => {
+    if (origin && content) { origin.append(content); origin.querySelector("summary")?.focus(); }
+    origin = content = null;
+  });
+  document.querySelectorAll("[data-desktop-dialog], #token-help, #upload-preview details").forEach(details => {
+    details.addEventListener("toggle", () => {
+      if (!details.open || dialog.open) return;
+      const body = details.querySelector(":scope > div, :scope > ul");
+      if (!body) return;
+      origin = details; content = body; title.textContent = details.querySelector("summary").textContent;
+      details.open = false; dialog.append(content); dialog.showModal(); close.focus();
+    });
+  });
+}
+setupDesktopHelp();
 updateIpaFields();
 updateLinks();
 updateSourceMode();

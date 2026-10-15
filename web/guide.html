@@ -7,7 +7,7 @@
   <meta name="description" content="iOSForge 新手使用指南：一步步上传源码、配置 iOS 15+ 工程、获取 Token、编译和下载 dylib、deb 或 IPA。" />
   <title>使用指南 · iOSForge</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=cleanup-history-1" />
+  <link rel="stylesheet" href="./styles.css?v=balanced-workbench-1" />
   <script src="./guide.js?v=beginner-token-1" defer></script>
 </head>
 <body>
@@ -33,31 +33,20 @@
   </svg>
 
   <div class="app-shell">
-    <aside class="sidebar" aria-label="主导航">
+    <header class="app-navigation" aria-label="主导航">
       <a class="brand" href="./" aria-label="iOSForge 首页">
         <span class="brand-mark"><svg class="icon"><use href="#i-layers"/></svg></span>
         <span>iOSForge<span class="brand-caption">BUILD STUDIO</span></span>
       </a>
-      <div class="nav-label">工作空间</div>
       <nav class="navigation">
         <a class="nav-item" href="./" aria-label="编译工作台"><svg class="icon"><use href="#i-grid"/></svg><span>编译工作台</span></a>
         <a class="nav-item active" href="./guide.html" aria-current="page" aria-label="使用指南"><svg class="icon"><use href="#i-book"/></svg><span>使用指南</span><span class="nav-indicator"></span></a>
         <a class="nav-item" id="repo-link" href="https://github.com/mango6i/iOSForge" target="_blank" rel="noreferrer" aria-label="工具源码，在新标签页打开"><svg class="icon"><use href="#i-repo"/></svg><span>工具源码</span><svg class="icon nav-external"><use href="#i-external"/></svg></a>
       </nav>
-      <div class="sidebar-bottom">
-        <div class="environment-card">
-          <span class="environment-icon"><svg class="icon"><use href="#i-layers"/></svg></span>
-          <div><strong>为 iOS 而构建</strong><p>iOS 15.0 及以上</p></div>
-        </div>
-        <div class="sidebar-signature"><span>iOSForge</span><span>源于你的代码</span></div>
-      </div>
-    </aside>
+      <div class="heading-actions"><a class="topbar-link" href="https://github.com" target="_blank" rel="noreferrer"><svg class="icon"><use href="#i-github"/></svg><span>GitHub</span><svg class="icon small-icon"><use href="#i-external"/></svg></a></div>
+    </header>
 
     <div class="main-shell">
-      <header class="topbar">
-        <div class="breadcrumb"><span>工作空间</span><span class="breadcrumb-slash">/</span><strong>使用指南</strong></div>
-        <a class="topbar-link" href="https://github.com" target="_blank" rel="noreferrer"><svg class="icon"><use href="#i-github"/></svg><span>GitHub</span><svg class="icon small-icon"><use href="#i-external"/></svg></a>
-      </header>
 
       <main id="workspace" class="workspace guide-workspace">
         <section class="page-heading" aria-labelledby="page-title">
@@ -236,7 +225,9 @@ package_scheme = "rootless"</code></pre></div>
               <p>要确认后台是否真的运行，请在工作台右侧“运行日志”的任务下拉框选择“清理记录”。页面会分开列出“今日后台检查”和“今日实际清理”：每次检查、结束和实际删除都按北京时间显示到秒；实际清理还会列出删除的 Actions 任务编号、源码和成品路径。这里只显示当天记录，进入第二天后前一天的记录会自动清除。</p>
               <p>源码和成品的自动清理只处理已登记的 iOSForge 编译任务。到期后会删除对应的 Actions 记录与日志、该次上传且之后未被修改的源码，以及仍与该次构建版本一致的 <code>sources/Download</code> 成品；文件被后续任务更新或仍被未到期任务使用时不会误删。删完最后一个成品后，空的 Download 文件夹会自动消失。</p>
               <p>清理功能自身已结束的旧检查运行记录也会自动回收，不会删除网页发布或环境检查等其他工作流。回收前先保留当天检查明细，“清理记录”中仍能看到完整时间、检查结果与回收数量。当前正在执行的检查不能删除，会在下一次检查中回收；没有构建后定时器停止，不会为了删除最后一条记录反复启动。“规则已启用”表示设置已保存，独立的“后台”状态提示才表示当前是否正在检查。手动批量删除任务记录时，清理设置仍可独立编辑和保存。</p>
-              <p>“通过 GitHub 通知”是全局开关；上传设置中的“构建完成后发送邮件通知”控制本次任务。两处都开启时，成功或失败会写入仓库的 <code>iOSForge 构建通知</code> Issue，并 @提及仓库所有者，内容包含项目名、构建类型、结果、产物和任务链接。还需在 GitHub <strong>Settings → Notifications</strong> 中启用 Email，邮件由 GitHub 官方通知系统发送。</p>
+              <p>“通过 GitHub 通知”是全局开关；上传设置中的“构建完成后发送邮件通知”控制本次任务。两处都开启时，成功或失败会写入仓库的 <code>iOSForge 构建通知</code> Issue，并 @提及仓库所有者，内容包含项目名、构建类型、结果、产物、任务链接和北京时间（到秒）。新建通知 Issue 的第一封邮件就使用实际构建结果，不再先发送只有介绍的建档邮件；之后的任务结果写为评论。还需在 GitHub <strong>Settings → Notifications</strong> 中启用 Email，邮件由 GitHub 官方通知系统发送，实际投递受账户通知设置影响。</p>
+              <p>删除编译任务记录后，也会同步移除对应的机器人结果评论；若结果位于通知 Issue 正文，会恢复为中性的通知容器说明。不会删除人工评论、其他任务结果或通知容器本身，也无法撤回已送达邮箱的邮件。后台会补查已经删除任务留下的旧通知；手动批量同步需要 Token 的 <strong>Issues：Read and write</strong> 权限，不影响只具备 Actions / Contents 权限的基础上传功能。同步失败时页面会明确显示未完成，不会声称全部清理成功。</p>
+              <p>“已清理”会列出实际删除的编译任务编号、源码或成品路径及通知结果。当前这次清理检查属于另一条运行记录，保留到下次回收；网页发布和环境检查也不属于到期编译清理范围，所以刷新“任务记录”时仍可能看到它们。</p>
               <p class="guide-note">定时任务由 GitHub 调度，“每 10 分钟”是检查计划，不保证精确到秒。注意仓库容量：每个产物限制在 95 MiB 以内；需要长期保留的成品请先下载。</p>
             </section>
 

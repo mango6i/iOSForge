@@ -154,19 +154,23 @@
       const reasons = { idle_stopped: "检查完成（没有待管理构建，定时清理已停止）", disabled: "检查完成（自动清理规则已关闭）", waiting: "检查完成（仍有构建进行中或尚未到期，定时清理继续等待）", cleaned: "清理完成", legacy_completed: "旧检查已完成（原记录已清理，没有详细检查结果）", retry_pending: "清理失败，未完成（将在下次检查重试）" };
       const actualLines = actual.map(item => {
         const paths = Array.isArray(item.removed_paths) && item.removed_paths.length ? `\n  删除内容：${item.removed_paths.join("、")}` : "";
-        const runIds = Array.isArray(item.deleted_run_ids) && item.deleted_run_ids.length ? `\n  删除构建记录：${item.deleted_run_ids.join("、")}` : "";
-        return `[${exactTime(item.timestamp)}] 已执行清理 · Actions 记录 ${Number(item.actions_runs_deleted) || 0} 条 · 仓库项目 ${Number(item.repository_items_deleted) || 0} 项${runIds}${paths}`;
+        const runIds = Array.isArray(item.deleted_run_ids) && item.deleted_run_ids.length ? `\n  删除构建记录：${item.deleted_run_ids.map(id => item.deleted_run_numbers?.[id] ? `#${item.deleted_run_numbers[id]}（ID ${id}）` : `运行 ID ${id}`).join("、")}` : "";
+        const current = checks.find(check => Number(check.cleanup_run_id) === Number(item.cleanup_run_id));
+        const retained = `\n  本轮清理检查 ${current?.run_number ? `#${current.run_number}` : `ID ${item.cleanup_run_id}`} 保留至下次回收，不是未删掉的编译任务。`;
+        return `[${exactTime(item.timestamp)}] 已执行清理 · 编译任务记录 ${Number(item.actions_runs_deleted) || 0} 条 · 源码／产物 ${Number(item.repository_items_deleted) || 0} 项${runIds}${paths}${retained}`;
       });
       if (actualLines.length && !errorsOnly) result.push(["今日实际清理", actualLines.join("\n\n")]);
-      const systemLines = (cleanupRecord?.system_deletions || []).map(item => `[${exactTime(item.timestamp)}] 已删除 ${item.deleted_run_ids?.length || 0} 条旧清理检查记录及对应 GitHub 日志\n  检查记录：${(item.deleted_run_ids || []).join("、")}\n  未删除源码和产物；当天检查明细仍保留。`);
+      const systemLines = (cleanupRecord?.system_deletions || []).map(item => `[${exactTime(item.timestamp)}] 已删除 ${item.deleted_run_ids?.length || 0} 条旧清理检查记录及对应 GitHub 日志\n  已删除：${(item.deleted_run_ids || []).map(id => { const record = item.deleted_runs?.find(run => Number(run.id) === Number(id)); return record?.run_number ? `#${record.run_number}（ID ${id}）` : `运行 ID ${id}`; }).join("、")}\n  本轮检查 ${item.retained_run_number ? `#${item.retained_run_number}` : `ID ${item.cleanup_run_id}`} 保留至下一次回收。\n  未删除源码和产物；当天检查明细仍保留。`);
       if (systemLines.length && !errorsOnly) result.push(["今日清理检查记录回收", systemLines.join("\n\n")]);
+      const notificationLines = (cleanupRecord?.notification_deletions || []).map(item => `[${exactTime(item.timestamp)}] 已同步清理 ${item.removed?.length || 0} 条 GitHub 构建通知结果\n  对应运行 ID：${[...new Set((item.removed || []).map(record => record.run_id))].join("、")}\n  未删除其他 Issue 或留言；已送达邮箱的邮件不会撤回。`);
+      if (notificationLines.length && !errorsOnly) result.push(["今日通知记录清理", notificationLines.join("\n\n")]);
       const visibleChecks = cleanupChecks().filter(item => !errorsOnly || ["failure", "cancelled", "timed_out", "action_required", "startup_failure"].includes(item.conclusion));
       const checkLines = visibleChecks.map(item => {
         const deletion = actual.find(record => Number(record.cleanup_run_id) === Number(item.id));
         const check = checks.find(record => Number(record.cleanup_run_id) === Number(item.id));
         const resultLabel = item.conclusion === "success"
           ? deletion
-            ? `清理完成（删除 Actions 记录 ${Number(deletion.actions_runs_deleted) || 0} 条、仓库项目 ${Number(deletion.repository_items_deleted) || 0} 项）`
+            ? `清理完成（删除编译任务记录 ${Number(deletion.actions_runs_deleted) || 0} 条、源码／产物 ${Number(deletion.repository_items_deleted) || 0} 项）`
             : reasons[check?.result] || "检查成功（旧记录没有检查明细，请查看 GitHub 原始日志）"
           : item.status !== "completed"
             ? labels[item.status] || item.status || "检查中"
