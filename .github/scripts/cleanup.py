@@ -210,6 +210,7 @@ class GitHubApi:
             raise RuntimeError("IOSFORGE_REPOSITORY must be owner/repository.")
         owner, name = repository.split("/", 1)
         self.base = f"https://api.github.com/repos/{quote(owner, safe='')}/{quote(name, safe='')}"
+        self.repository = repository
         self.token = token
 
     def request(
@@ -329,6 +330,7 @@ def record_build(api: GitHubApi, branch: str, run_id: str) -> None:
     manifest = {
         "version": 1,
         "run_id": int(run_id),
+        "repository": getattr(api, "repository", os.environ.get("IOSFORGE_REPOSITORY", "")),
         "branch": branch,
         "request_id": os.environ.get("IOSFORGE_REQUEST_ID", "").strip(),
         "build_type": os.environ.get("IOSFORGE_BUILD_TYPE", "auto").strip() or "auto",
@@ -463,6 +465,19 @@ def list_manifests(api: GitHubApi, branch: str, ref: str | None = None) -> dict[
         value, _ = load_json(api, ref or branch, path)
         if not isinstance(value, dict) or value.get("run_id") != int(name[:-5]) or value.get("branch") != branch:
             continue
+        repository = getattr(api, "repository", "")
+        if value.get("repository") is not None and not isinstance(value["repository"], str):
+            continue
+        if repository and value.get("repository") and value["repository"].lower() != repository.lower():
+            continue
+        if repository and not value.get("repository"):
+            # An old manifest copied by a fork is not proof of ownership. Adopt
+            # it only if its Actions record actually belongs to this repository.
+            run = api.request("GET", f"/actions/runs/{value['run_id']}", allow_404=True)
+            if not isinstance(run, dict) or run.get("head_branch") != branch:
+                print(f"Skipped unverified legacy metadata for run {value['run_id']}; no source was deleted.")
+                continue
+            value["repository"] = repository
         value["_path"] = path
         manifests[int(name[:-5])] = value
     return manifests

@@ -67,3 +67,9 @@ document.querySelectorAll("[data-copy]").forEach((button) => {
     }
   });
 });
+
+function updateGuideRepository(identity) {
+  if (identity?.repository) document.getElementById("repo-link").href = `https://github.com/${identity.repository}`;
+}
+updateGuideRepository(globalThis.IOSForgeHosting?.defaults());
+globalThis.IOSForgeHosting?.read().then(updateGuideRepository);

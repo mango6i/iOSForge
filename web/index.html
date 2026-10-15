@@ -7,11 +7,12 @@
   <meta name="description" content="iOSForge 编译工作台。在 GitHub 上构建面向 iOS 15+ 的动态库、插件包和应用。" />
   <title>iOSForge · 编译工作台</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=balanced-workbench-1" />
+  <link rel="stylesheet" href="./styles.css?v=balanced-workbench-2" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
+  <script src="./host-context.js?v=own-repository-1" defer></script>
   <script src="./source-upload.js?v=fast-reads-1" defer></script>
     <script src="./build-logs.js?v=balanced-workbench-1" defer></script>
-  <script src="./app.js?v=balanced-workbench-1" defer></script>
+  <script src="./app.js?v=balanced-workbench-2" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">跳到编译工作台</a>
@@ -84,7 +85,7 @@
                 <p id="workspace-status" role="status" data-visibility="unknown">尚未核对账号和仓库。当前默认使用 mango6i/iOSForge。</p>
                 <div class="source-target-card">
                   <div class="source-card-heading"><span>UPLOAD TARGET</span><strong>上传目标仓库</strong></div>
-                  <fieldset class="source-switch"><legend class="sr-only">源码来源</legend><label><input type="radio" name="source_mode" value="repository" checked /><span>使用仓库源码</span></label><label><input type="radio" name="source_mode" value="upload" /><span>上传本地源码</span></label></fieldset>
+                  <fieldset class="source-switch"><legend class="sr-only">源码来源</legend><label><input type="radio" name="source_mode" value="upload" checked /><span>上传本地源码</span></label><label><input type="radio" name="source_mode" value="repository" /><span>使用仓库源码</span></label></fieldset>
                   <div class="source-fields">
                     <label class="field"><span>你自己的 GitHub 仓库</span><span class="input-wrap"><svg class="icon"><use href="#i-repo"/></svg><input id="repo" name="repo" value="mango6i/iOSForge" placeholder="mango6i/iOSForge" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="repository-help" required /></span></label>
                     <label class="field"><span>分支</span><span class="input-wrap"><svg class="icon"><use href="#i-branch"/></svg><input id="branch" name="branch" value="main" placeholder="main" autocomplete="off" autocapitalize="none" spellcheck="false" required /></span></label>

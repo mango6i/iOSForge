@@ -113,6 +113,17 @@ function resetUploadConsent() {
   clearUploadConsentError();
 }
 
+function applyHostingIdentity(identity) {
+  if (!identity || !parseRepo(identity.repository)) return;
+  repoInput.value = identity.repository;
+  repoInput.placeholder = identity.repository;
+  branchInput.value = identity.branch || "main";
+  const help = $("#repository-help"), text = [...help.childNodes].find(node => node.nodeType === 3);
+  if (text) text.textContent = `当前工作台默认使用 ${identity.repository}；请核对账号与仓库权限。需要保护源码时，请先改为 Private 私有仓库。`;
+  $("#workspace-status").textContent = `当前网站对应 ${identity.repository} · ${branchInput.value}。请填写仅授权自己仓库的 Token，并检查仓库。`;
+  updateDestination(); updateLinks(); resetCleanupSettings();
+}
+
 function showUploadConsentDialog(message) {
   uploadConsentDialogDescription.textContent = message;
   if (typeof uploadConsentDialog.showModal === "function") {
@@ -1020,6 +1031,17 @@ function historyMatchesInputs() {
 }
 function selectableRun(run) { return Number.isSafeInteger(run.id) && run.id > 0 && run.status === "completed"; }
 function isBuildRun(run) { return run.path === ".github/workflows/build.yml"; }
+function isPushBuildRun(run) { return isBuildRun(run) && /^iOSForge · auto ·/.test(run.display_title || run.name || ""); }
+function historySummary() {
+  const counts = { builds: 0, checks: 0, pages: 0, other: 0 };
+  for (const run of state.history) {
+    if (isBuildRun(run) && !isPushBuildRun(run)) counts.builds++;
+    else if (run.path === ".github/workflows/cleanup.yml") counts.checks++;
+    else if (run.path === ".github/workflows/pages.yml") counts.pages++;
+    else counts.other++;
+  }
+  return `手动编译 ${counts.builds} 条 · 清理检查 ${counts.checks} 条 · 网页发布 ${counts.pages} 条 · 推送检查／其他 ${counts.other} 条`;
+}
 const historyPageSize = 100;
 function updateHistoryControls() {
   const eligible = state.history.filter(selectableRun);
@@ -1048,10 +1070,11 @@ function renderHistory() {
     const checkbox = element("input", "history-run-check"); checkbox.type = "checkbox"; checkbox.dataset.selectRunId = String(run.id);
     checkbox.setAttribute("aria-label", `选择任务 ${run.name || "GitHub Actions"} #${run.run_number}，${run.status === "completed" ? "已结束" : "进行中，不能删除"}`);
     const info = element("div");
-    const status = run.status === "completed" ? ({ success: "已完成", failure: "失败", cancelled: "已取消", skipped: "已跳过", timed_out: "超时" }[run.conclusion] || "已结束") : run.status === "in_progress" ? "编译中" : "排队中";
+    const status = run.status === "completed" ? ({ success: "已完成", failure: "失败", cancelled: "已取消", skipped: "已跳过", timed_out: "超时" }[run.conclusion] || "已结束") : run.status === "in_progress" ? (isBuildRun(run) ? "编译中" : "执行中") : "排队中";
     info.append(element("strong", "", `${run.name || "GitHub Actions"} #${run.run_number}`), element("span", "", `${run.display_title || "无标题"} · ${status} · ${new Date(run.created_at).toLocaleString("zh-CN")}`));
-    const category = isBuildRun(run) ? "编译任务记录"
-      : run.path === ".github/workflows/cleanup.yml" ? "清理检查记录：不是编译任务，旧检查由下一轮回收"
+    const category = isPushBuildRun(run) ? "推送触发的检查／构建，不是已登记的上传任务；没有源码时可能只检查环境，不生成成品"
+      : isBuildRun(run) ? "编译任务记录"
+      : run.path === ".github/workflows/cleanup.yml" ? "清理器自身的检查记录，不是上传任务。最后一条保留到下次新构建触发回收；空闲时不会为删除自身继续运行。"
       : run.path === ".github/workflows/pages.yml" ? "网页发布记录：不属于编译任务自动清理范围"
       : "其他工作流记录：可在这里手动删除";
     info.append(element("span", "history-category", category));
@@ -1074,7 +1097,7 @@ async function loadHistoryPage(page) {
   records.filter(run => Number.isSafeInteger(run.id) && run.id > 0 && (!run.head_branch || run.head_branch === state.branch)).forEach(run => unique.set(run.id, run));
   state.history = [...unique.values()]; historyPage = page; historyHasMore = records.length === historyPageSize;
   renderHistory();
-  $("#history-message").textContent = state.history.length ? `${state.repo.owner}/${state.repo.name} · ${state.branch} · 已加载 ${state.history.length} 条 Actions 记录（编译、网页发布和环境检查）${historyHasMore ? "，可继续加载更早记录" : ""}` : "这个分支暂无 Actions 记录。源码和配置仍然保留，可按需开始构建。";
+  $("#history-message").textContent = state.history.length ? `${state.repo.owner}/${state.repo.name} · ${state.branch} · ${historySummary()}${historyHasMore ? "，可继续加载更早记录" : ""}` : "这个分支暂无 Actions 记录。源码和配置仍然保留，可按需开始构建。";
 }
 
 $("#refresh-history").addEventListener("click", async () => {
@@ -1304,9 +1327,16 @@ function setupDesktopHelp() {
   });
 }
 setupDesktopHelp();
+applyHostingIdentity(globalThis.IOSForgeHosting?.defaults());
 updateIpaFields();
 updateLinks();
 updateSourceMode();
 resetCleanupSettings();
-globalThis.window?.addEventListener?.("load", () => { pageLoaded = true; loadPublicCleanupSettings(); });
+globalThis.window?.addEventListener?.("load", async () => {
+  pageLoaded = true;
+  const repo = repoInput.value, branch = branchInput.value;
+  const identity = await globalThis.IOSForgeHosting?.read();
+  if (identity && !state.busy && !state.closed && !tokenInput.value && repoInput.value === repo && branchInput.value === branch) applyHostingIdentity(identity);
+  loadPublicCleanupSettings();
+});
 globalThis.window?.addEventListener?.("pagehide", () => { state.closed = true; state.token = ""; tokenInput.value = ""; selectedSource = null; selectedRuns.clear(); invalidateWorkspace(); });

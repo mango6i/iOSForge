@@ -392,7 +392,17 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 .guide-workspace { max-width: 1430px; padding-bottom: 10px; }
 .guide-back { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); font-size: .875rem; white-space: nowrap; }
 .guide-back:hover { text-decoration: underline; text-underline-offset: 4px; }
-.guide-layout { display: grid; grid-template-columns: minmax(0, 1fr) 196px; align-items: start; gap: 30px; }
+.guide-workspace { max-width: 1840px; }
+.guide-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); align-items: start; gap: 24px; }
+.guide-workspace .guide-page-heading { display: grid; grid-template-columns: 220px minmax(0, 1fr); align-items: center; gap: 24px; margin-bottom: 24px; padding-top: 8px; }
+.guide-home-back { justify-self: start; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; background: #ffffffb8; }
+.guide-home-back > .icon { transform: rotate(180deg); }
+.guide-page-heading > .guide-title-group { display: block; min-width: 0; }
+.guide-page-heading .eyebrow { margin: 0 0 8px; }
+.guide-page-heading h1 { display: inline; }
+.guide-page-heading .page-description { display: inline-block; margin: 0 0 0 16px; white-space: normal; }
+.guide-toc { grid-column: 1; grid-row: 1; }
+.guide-paper { grid-column: 2; grid-row: 1; }
 .guide-paper { padding: 32px 36px; }
 .guide-paper.is-paged { padding-top: 0; }
 .guide-paper.is-paged .guide-section { margin-top: 0; padding-top: 25px; border-top: 0; }
@@ -633,11 +643,16 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .delete-dialog { padding: 22px; }
 }
 @media (max-width: 1200px) {
-  .guide-layout { grid-template-columns: minmax(0, 1fr) 174px; gap: 20px; }
+  .guide-layout { grid-template-columns: 190px minmax(0, 1fr); gap: 20px; }
+  .guide-workspace .guide-page-heading { grid-template-columns: 190px minmax(0, 1fr); gap: 20px; }
   .guide-paper { padding: 28px; }
 }
 @media (max-width: 980px) {
   .guide-layout { grid-template-columns: minmax(0, 1fr); }
+  .guide-workspace .guide-page-heading { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .guide-page-heading .page-description { display: block; margin: 10px 0 0; }
+  .guide-paper { grid-column: 1; grid-row: 2; }
+  .guide-toc { grid-column: 1; grid-row: 1; }
   .guide-toc { position: static; grid-row: 1; border: 1px solid var(--border); background: #ffffffba; border-radius: 10px; padding: 18px 20px; }
   .guide-toc > .section-overline, .guide-toc > p, .guide-toc > .guide-back { display: none; }
   .guide-toc h2 { margin-bottom: 9px; }

@@ -7,8 +7,9 @@
   <meta name="description" content="iOSForge 新手使用指南：一步步上传源码、配置 iOS 15+ 工程、获取 Token、编译和下载 dylib、deb 或 IPA。" />
   <title>使用指南 · iOSForge</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=balanced-workbench-1" />
-  <script src="./guide.js?v=beginner-token-1" defer></script>
+  <link rel="stylesheet" href="./styles.css?v=balanced-workbench-2" />
+  <script src="./host-context.js?v=own-repository-1" defer></script>
+  <script src="./guide.js?v=own-repository-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">跳到编译工作台</a>
@@ -49,9 +50,9 @@
     <div class="main-shell">
 
       <main id="workspace" class="workspace guide-workspace">
-        <section class="page-heading" aria-labelledby="page-title">
-          <div><p class="eyebrow">IOSFORGE / FIELD GUIDE</p><h1 id="page-title">使用指南<span class="heading-dot">.</span></h1><p class="page-description">从准备源码到下载产物，一步一步完成你的第一次构建。</p></div>
-          <a class="guide-back" href="./">返回工作台<svg class="icon small-icon"><use href="#i-arrow"/></svg></a>
+        <section class="page-heading guide-page-heading" aria-labelledby="page-title">
+          <a class="guide-back guide-home-back" href="./"><svg class="icon small-icon"><use href="#i-arrow"/></svg>返回工作台</a>
+          <div class="guide-title-group"><p class="eyebrow">IOSFORGE / FIELD GUIDE</p><h1 id="page-title">使用指南<span class="heading-dot">.</span></h1><p class="page-description">从准备源码到下载产物，一步一步完成你的第一次构建。</p></div>
         </section>
         <div class="guide-layout">
           <article class="guide-paper panel" id="guide-reader">
@@ -69,14 +70,14 @@
               </div>
               <p class="guide-note">三种格式对应不同工程类型；选择一种格式不会自动改写你的源码。插件能否在设备上使用还取决于插件加载环境、设备架构和源码兼容性。IPA 可以无证书编译，但安装时仍需要兼容的巨魔环境或后续签名。</p>
               <h3 id="own-repository">第一次使用 · 先建立你自己的私有构建仓库</h3>
-              <p>这个网页是操作面板，不是所有人共用的源码仓库。你的文件、编译任务、日志和产物都放在<strong>你自己的 GitHub 仓库</strong>。网页不再预填作者账号，上传前会用 Token 核对仓库是否确实属于你。</p>
+              <p>这个网页是操作面板，不是所有人共用的源码仓库。你的文件、编译任务、日志和产物都放在<strong>你自己的 GitHub 仓库</strong>。独立部署的网站默认对应自己的仓库；使用共享主站时，请先填写自己的仓库地址。上传前会用 Token 核对仓库是否确实属于你。</p>
               <ol class="guide-steps">
                 <li><strong>下载纯净的编译环境初始化包。</strong><p><a class="guide-start-button" href="./downloads/iosforge-starter.zip" download>下载纯净初始化包 ZIP ↓</a></p><p>只包含 iOSForge 编译工具、工作流和配置，不含网站作者或其他用户的项目源码、历史记录、Token、证书或示例产物。把它<strong>解压</strong>到电脑上的新文件夹；不要直接 Fork 作者的整个项目来获取私密环境。</p></li>
                 <li><strong>登录自己的账号，新建 Private 仓库。</strong><p><a href="https://github.com/new?name=iOSForge-Builds&amp;visibility=private&amp;owner=%40me" target="_blank" rel="noreferrer">打开预填的私有仓库创建页面 ↗</a>。Owner（所属账号）确认是<strong>你自己</strong>；Repository name 可填 <code>iOSForge-Builds</code>；可见性确认选中 <strong>Private（私有）</strong>。可勾选添加 README，然后点 Create repository。预填不等于已经创建，仍需你核对确认；不要选 Public，公开仓库属于自己也仍会公开源码。</p></li>
                 <li><strong>把解压后的环境文件放到这个新仓库最外层。</strong><p>在新仓库点 <strong>Add file → Upload files</strong>，上传初始化包内的全部文件和目录，再点 Commit changes 保存。不要多套一层文件夹。也可用 GitHub Desktop 提交；工作流文件必须包含在提交中。</p><p>最外层应同时看到 <code>.github/</code>、<code>iosforge/</code>、<code>iosforge.toml</code> 和 <code>pyproject.toml</code>。特别注意别漏掉以点开头的 <code>.github</code> 文件夹；Mac 可按 Command + Shift + . 显示隐藏项。<strong>不要把 ZIP 文件本身直接传进仓库。</strong></p></li>
                 <li><strong>确认编译工作流已经出现。</strong><p>打开自己仓库的 <strong>Actions</strong>。应能看到 GitHub Actions（编译）和 Check build environment（环境检查）；如果提示启用工作流，阅读后确认启用。没有时，检查 <code>.github/workflows/build.yml</code> 是否位于仓库根路径。这个私有构建仓库不需要开启 Pages。</p></li>
                 <li><strong>创建只授权这个仓库的 Token。</strong><p>继续看<a href="#token-guide">获取 Token 教程</a>：Resource owner 选自己的账号，Repository access 仅选刚创建的仓库，Actions 和 Contents 都设为 Read and write。不要授权所有仓库，也不需要额外账号权限。</p></li>
-                <li><strong>回工作台，填写真实地址并检查。</strong><p>仓库栏填 <code>你的用户名/iOSForge-Builds</code>，将“你的用户名”换成你的真实 GitHub 用户名。分支填写实际分支（通常 main），粘贴 Token 后点“检查我的仓库”。看到<strong>你自己的账号、正确仓库名、Private 私有</strong>后，再选择源码上传。下次打开仍需重新填写，不会偷偷使用作者仓库。</p></li>
+                <li><strong>回工作台，填写真实地址并检查。</strong><p>仓库栏填 <code>你的用户名/iOSForge-Builds</code>，将“你的用户名”换成你的真实 GitHub 用户名。分支填写实际分支（通常 main），粘贴 Token 后点“检查我的仓库”。看到<strong>你自己的账号、正确仓库名、Private 私有</strong>后，再选择源码上传。每次打开都请核对默认仓库和分支；Token 不会被保存，也不会自动上传文件。</p></li>
               </ol>
               <div class="guide-callout"><strong>私有仓库降低公开风险，不等于绝对不会泄露。</strong><p>GitHub 和获得仓库授权的协作者仍在信任范围内；不可信的源码、依赖、工作流、网页代码、浏览器扩展或泄露的 Token 都可能造成风险。只运行你信任的项目，下载需要的产物后按需清理。此前已经推送到公开仓库的源码，不会因为换用私有仓库而从公开提交历史中自动消失。</p><p><a href="https://docs.github.com/en/pull-requests/reference/forks" target="_blank" rel="noreferrer">公开仓库的 Fork 仍是公开的</a>；要保护自己的新源码，按上面的步骤创建独立 Private 仓库并导入纯净包。私有仓库的 GitHub Actions 使用你自己的额度，macOS 构建可能消耗较多额度，开始前检查自己的用量和支出限制：<a href="https://docs.github.com/en/billing/concepts/product-billing/github-actions" target="_blank" rel="noreferrer">GitHub 官方计费说明 ↗</a>。</p></div>
               <h3>先记住这几个词</h3>
@@ -295,6 +296,9 @@ configuration = "Release"</code></pre></div>
             <section class="guide-section" id="next-time">
               <span class="section-overline">NEXT TIME</span><h2>下次使用，留在这一个网页就好</h2>
               <ol class="guide-steps"><li><strong>粘贴有效 Token，核对仓库与分支。</strong><p>令牌不保存在网页，关闭页面后需要重新填写。</p></li><li><strong>新项目选“上传本地源码”；旧项目选“使用仓库源码”。</strong><p>旧项目填上 <code>sources/你的项目名称</code>。更新同一个项目可以再次上传并确认更新同名文件；想要干净版本时换一个新目录。</p></li><li><strong>选择产物并开始编译。</strong><p>IPA 默认无证书。用“任务记录”回看全部 Actions 状态，成品会按真实文件名直接进入 <code>sources/Download/</code>。</p></li><li><strong>下载留存，再选择清理范围。</strong><p>删产物只删一个真实文件；删任务记录只删 Actions 记录与日志；“删除这个项目”会删除所选项目全部源码，并清空共享的 <code>sources/Download</code> 成品目录。</p></li></ol>
+              <h3>自己的副本怎样跟随主仓库更新？</h3>
+              <p>新版完整副本和初始化包包含 <strong>Update iOSForge tools</strong> 工作流。副本所有者先在 Actions 中启用工作流；之后默认每小时检查主仓库的新版本，也可手动点击 Run workflow 立即检查。只同步工具代码，不带入作者的上传项目、成品、通知记录或个人清理设置。若你修改过同一份工具文件，更新会停止并提示冲突，不会覆盖修改。旧副本需要先导入一次新版更新器与发布基线。</p>
+              <p>普通工具代码更新使用 GitHub 自带令牌；涉及工作流文件的更新，需要在<strong>自己的仓库</strong>配置 <code>IOSFORGE_SYNC_TOKEN</code> Secret，给该仓库 Contents、Actions、Workflows 的读写权限。完整副本启用 GitHub Pages（GitHub Actions 来源）后，更新会请求重新发布自己的网页，默认仓库与分支也会对应自己的部署。共享主站会直接使用主站最新界面。检查时间可能被 GitHub 延迟，不是实时推送；电脑上的本地 Git 克隆仍需自行拉取更新。停用更新工作流即可退出自动更新。</p>
               <p>你也可以把完整源码交给协作助手协助整理和配置。原生工程以外的特殊依赖，仍应按照项目自己的说明准备；网页不会把缺失的工程文件凭空补齐。</p>
               <a class="guide-start-button" href="./">我准备好了，去编译工作台<svg class="icon"><use href="#i-arrow"/></svg></a>
               <p class="guide-note">第三方解压组件：fflate 0.8.2（MIT），已随网站提供，不从第三方 CDN 加载。</p>

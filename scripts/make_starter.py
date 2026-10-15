@@ -1,6 +1,8 @@
 """Build a clean environment ZIP from an explicit allowlist, never user sources."""
 from pathlib import Path
 import zipfile
+import json
+from make_release import release
 
 ROOT = Path(__file__).resolve().parent.parent
 OUTPUT = ROOT / 'web/downloads/iosforge-starter.zip'
@@ -10,6 +12,8 @@ FILES = [
     '.github/actions/setup-ios/action.yml',
     '.github/scripts/publish_outputs.py', '.github/scripts/cleanup.py',
     '.github/iosforge-cleanup.json',
+    '.github/workflows/upstream-sync.yml', '.github/scripts/sync_upstream.py',
+    '.github/scripts/site_config.py', 'scripts/make_starter.py', 'scripts/make_release.py',
 ]
 README = '''# My iOSForge build workspace
 
@@ -23,7 +27,9 @@ This clean package contains only the iOSForge build environment. It does not con
 
 Guide: https://mango6i.github.io/iOSForge/guide.html#own-repository
 
-The web UI uses the GitHub API directly; no personal repository is selected by default. Private repositories reduce public exposure, but do not remove risks from untrusted source, dependencies, workflow code, credentials, collaborators, or browser extensions. GitHub Actions uses your own account's quota.
+Automatic tool updates: after enabling Actions, Update iOSForge tools checks the trusted upstream hourly. This build-only installation updates the build environment; the shared web interface already follows the main website. Sources, products, tokens and personal cleanup settings are excluded. Local tool edits stop an update rather than being overwritten. To allow future workflow-definition updates, add a repository secret IOSFORGE_SYNC_TOKEN for only this repository, with Contents, Actions and Workflows -> Read and write. Without it, ordinary code-only updates work, but workflow updates stop with instructions. Disable this workflow in Actions to opt out. A Git clone on your own computer still needs git pull.
+
+The web UI uses the GitHub API directly. An independently deployed website defaults to its own repository; when using the shared main website, enter and check your own repository. Private repositories reduce public exposure, but do not remove risks from untrusted source, dependencies, workflow code, credentials, collaborators, or browser extensions. GitHub Actions uses your own account's quota.
 
 iOS target: 15.0 or later. IPA defaults to unsigned; Theos outputs dylib/deb. Successful binaries are committed as real files directly under sources/Download/, with no outer ZIP or nested run folder. Failed builds are cleaned after notification; successful builds are retained for one hour by default and checked every ten minutes while managed builds remain. The cleanup timer stops when no managed build remains and the next uploaded build starts it again. Native Xcode projects and Theos projects are supported. Generated projects such as XcodeGen specs require their generation step before normal project discovery; merely including project.yml is not sufficient in this version.
 '''
@@ -43,6 +49,7 @@ def build():
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(OUTPUT, 'w', compression=zipfile.ZIP_DEFLATED) as bundle:
         entries = [('README.md', README.encode('utf-8'))]
+        entries.append(('.github/iosforge-release.json', (json.dumps(release('build-only', files), ensure_ascii=False, indent=2)+'\n').encode('utf-8')))
         for name in files:
             path = ROOT / name
             if path.is_symlink() or not path.is_file() or not path.resolve().is_relative_to(ROOT):
