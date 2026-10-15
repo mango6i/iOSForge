@@ -195,6 +195,18 @@
       });
       return result;
     }
+    function emptyLogMessage(errorsOnly) {
+      if (jobSelect.value !== "cleanup") return errorsOnly ? "当前没有识别到错误，或 GitHub 尚未提供报错正文。" : "等待 GitHub 返回步骤或日志。";
+      if (!context) return "尚未连接仓库。请先填写仓库；私有仓库还需填写 Token 并检查仓库。";
+      if (busy) return "正在读取今天的清理记录…";
+      if (!cleanupWorkflowState) return "清理状态尚未读取，请点击“刷新日志”核对。";
+      const checks = cleanupChecks();
+      if (errorsOnly && checks.some(item => item.status !== "completed")) return "当前有清理检查排队或执行中，暂未记录失败或异常。";
+      if (errorsOnly && checks.length) return "今天没有失败或异常的清理检查。";
+      if (!cleanupEnabled) return "今天暂无清理记录。自动清理规则已关闭，后台不会自动启动。";
+      if (cleanupWorkflowState.startsWith("disabled")) return "今天暂无清理记录。后台已停止，新构建登记后自动启动。";
+      return "今天暂无清理记录。后台定时检查已开启，尚未产生今天的检查结果。";
+    }
     function render() {
       const errorsOnly = q("#logs-errors").getAttribute("aria-pressed") === "true";
       const parts = sections(errorsOnly);
@@ -212,7 +224,7 @@
           output.append(el("pre", body, errorsOnly || errorPattern.test(body) ? "log-error" : ""));
         }
       });
-      if (!parts.length) empty(errorsOnly ? "当前没有识别到错误，或 GitHub 尚未提供报错正文。" : "等待 GitHub 返回步骤或日志。");
+      if (!parts.length) empty(emptyLogMessage(errorsOnly));
       const lineCount = parts.reduce((n, part) => n + part[1].split("\n").length, 0);
       q("#logs-count").textContent = `${lineCount} 行显示内容 · ${jobSelect.value === "cleanup" ? "仅保留今天" : "仅内存"}`;
       q("#logs-copy").disabled = !parts.length; q("#logs-clear").disabled = !parts.length;
@@ -235,6 +247,7 @@
       const generation = epoch, current = { ...context };
       busy = true; cleanupError = ""; q("#logs-refresh").disabled = true;
       notice.textContent = "正在读取今天的自动清理检查和删除明细…";
+      render();
       try {
         const [workflow, first, config] = await Promise.all([
           request(`/actions/workflows/cleanup.yml`, current),
