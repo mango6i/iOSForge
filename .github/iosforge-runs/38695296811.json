@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "run_id": 38695296811,
+  "repository": "mango6i/iOSForge",
+  "branch": "main",
+  "request_id": "b377b14ad96baa6cbc70f206",
+  "build_type": "ipa",
+  "notify_via_github": true,
+  "created_at": "2026-10-15T06:54:50Z",
+  "source": {
+    "path": "sources/AutoTap-iOSForge-IPA-Source-v1.0.3",
+    "sha": "5a8fccace8601810e92cfbb67d68a1229947c8a2"
+  },
+  "outputs": []
+}
