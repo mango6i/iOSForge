@@ -129,5 +129,17 @@
       "retained_run_id": 38695542207,
       "retained_run_number": 37
     }
+  ],
+  "notification_deletions": [
+    {
+      "timestamp": "2026-10-15T14:57:18+08:00",
+      "removed": [
+        {
+          "run_id": 38694641021,
+          "issue_number": 3,
+          "body_reset": true
+        }
+      ]
+    }
   ]
 }
