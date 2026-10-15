@@ -14,6 +14,21 @@
       "removed_paths": [
         "sources/AutoTap-iOSForge-IPA-Source-v1.0.3"
       ]
+    },
+    {
+      "timestamp": "2026-10-15T14:49:29+08:00",
+      "cleanup_run_id": 38694729008,
+      "deleted_run_ids": [
+        38694641021
+      ],
+      "actions_runs_deleted": 1,
+      "repository_items_deleted": 1,
+      "removed_paths": [
+        "sources/AutoTap-iOSForge-IPA-Source-v1.0.3"
+      ],
+      "deleted_run_numbers": {
+        "38694641021": 281
+      }
     }
   ],
   "checks": [
