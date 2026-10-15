@@ -140,6 +140,16 @@
           "body_reset": true
         }
       ]
+    },
+    {
+      "timestamp": "2026-10-15T14:57:28+08:00",
+      "removed": [
+        {
+          "run_id": 38695296811,
+          "comment_id": 6186381630,
+          "issue_number": 3
+        }
+      ]
     }
   ]
 }
