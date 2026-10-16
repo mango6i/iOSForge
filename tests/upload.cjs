@@ -84,6 +84,28 @@ async function main() {
   const denied = mock({ denied: true }); await assert.rejects(U.publish({ ...options, api: denied.api }), /network/);
   const bom = U.prepare([{ path: 'P/BOM.txt', bytes: Uint8Array.from([239, 187, 191, 65]) }]);
   assert.equal(bom.files[0].text.charCodeAt(0), 0xfeff);
+  const recover = mock(); let failures = 2, blobCalls = 0;
+  const recoveringApi = async (path, options) => {
+    if (path.endsWith('/git/blobs')) { blobCalls++; if (failures-- > 0) throw new TypeError('Failed to fetch'); }
+    return recover.api(path, options);
+  };
+  await U.publish({ ...options, base: '/repos/network/recovery', api: recoveringApi });
+  assert.equal(blobCalls, 3, 'Only content-addressed blob preparation is retried twice');
+  assert.equal(recover.calls.filter(c => c.method === 'PATCH').length, 1);
+  const stopped = mock(); let failedCalls = 0;
+  await assert.rejects(U.publish({ ...options, base: '/repos/network/stopped', api: async (path, request) => {
+    if (path.endsWith('/git/blobs')) { failedCalls++; throw new TypeError('Failed to fetch'); }
+    return stopped.api(path, request);
+  } }), /Failed to fetch/);
+  assert.equal(failedCalls, 3);
+  assert(!stopped.calls.some(c => c.method === 'PATCH'), 'Exhausted preparation retries never update the branch');
+  const commitStop = mock(); let commitCalls = 0;
+  await assert.rejects(U.publish({ ...options, base: '/repos/network/commit', api: async (path, request) => {
+    if (path.endsWith('/git/commits') && request?.method === 'POST') { commitCalls++; throw new TypeError('Failed to fetch'); }
+    return commitStop.api(path, request);
+  } }), /Failed to fetch/);
+  assert.equal(commitCalls, 1, 'Commit creation is never automatically retried');
+  console.log('PASS finite safe-object network retry, hard stop after three attempts, no partial branch update, no commit retry');
   console.log('PASS atomic GitHub upload: existing-tree preservation, scoped paths, no force, no deletion, unchanged detection, concurrency refusal, uncertain-result reconciliation, BOM integrity');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

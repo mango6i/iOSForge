@@ -155,6 +155,7 @@
     return [...new Uint8Array(await crypto.subtle.digest("SHA-1", data))].map(n => n.toString(16).padStart(2, "0")).join("");
   }
   const writeTimes = [];
+  const preparedBlobs = new Map();
   async function paceWrites(progress) {
     for (;;) {
       const now = Date.now();
@@ -193,8 +194,21 @@
     }
     if (!changes.length) { progress(100, "源码与仓库一致，将直接启动编译。"); return { sha: original, directory: target, changed: false }; }
     const post = async (path, body) => {
-      await paceWrites((_, copy) => progress(Math.round(done / totalBytes * 85), copy));
-      return api(`${base}${path}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const safeObject = path === "/git/blobs" || path === "/git/trees";
+      for (let attempt = 0; ; attempt++) {
+        await paceWrites((_, copy) => progress(Math.round(done / totalBytes * 85), copy));
+        try {
+          return await api(`${base}${path}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        } catch (error) {
+          const transient = error.network || error.name === "TypeError" || [502, 503, 504].includes(error.status);
+          // Content-addressed blobs/trees can safely be prepared again. Neither
+          // creates a build nor changes the branch; commits/ref/dispatch cannot
+          // use this retry path.
+          if (!safeObject || !transient || attempt >= 2) throw error;
+          progress(Math.round(done / totalBytes * 85), `文件准备网络中断，正在重试 ${attempt + 1} / 2；尚未更新分支或启动编译。`);
+          await new Promise(resolve => setTimeout(resolve, 1500 * (attempt + 1)));
+        }
+      }
     };
     let baseTree = commit.tree.sha, batch = [], size = 0, done = 0, index = 0;
     const totalBytes = Math.max(1, changes.reduce((n, file) => n + fileSize(file), 0));
@@ -205,7 +219,12 @@
       const content = inspect({ ...file, bytes: file.read ? await file.read() : file.bytes });
       if (file.sha && await blobHash(content.bytes) !== file.sha) fail(`文件内容发生变化，已停止提交，请重新选择：${file.path}`);
       if (content.text === null || content.bytes.length > 2 * MB) {
-        entry.sha = (await post("/git/blobs", { content: base64(content.bytes), encoding: "base64" })).sha;
+        const key = `${base}:${file.sha || await blobHash(content.bytes)}`;
+        entry.sha = preparedBlobs.get(key);
+        if (!entry.sha) {
+          entry.sha = (await post("/git/blobs", { content: base64(content.bytes), encoding: "base64" })).sha;
+          preparedBlobs.set(key, entry.sha);
+        }
       } else entry.content = content.text;
       const bytes = encoder.encode(JSON.stringify(entry)).length;
       if (size + bytes > 3 * MB) await flush();

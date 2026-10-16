@@ -926,7 +926,9 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 .app-navigation + .main-shell { flex: 1; min-height: 0; }
 
 @media (min-width: 1350px) {
-  .workspace:not(.guide-workspace) { width: auto; max-width: none; height: calc(100dvh - 58px); padding: 12px 18px; display: flex; flex-direction: column; }
+  :root { --studio-scale: .94; }
+  body:has(.workspace:not(.guide-workspace)) { zoom: var(--studio-scale); }
+  .workspace:not(.guide-workspace) { width: auto; max-width: none; height: calc(100dvh / var(--studio-scale) - 58px); padding: 12px 18px; display: flex; flex-direction: column; }
   .workspace-grid { grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); gap: 16px; align-items: stretch; flex: 1; min-height: 0; }
   .build-panel, .status-panel, .project-manager, .history-panel { padding: 16px; border-radius: 12px; }
   .build-panel { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
@@ -935,7 +937,7 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   h2 { font-size: 1.0625rem; }
   .build-panel > .panel-heading .section-overline { display: none; }
   .build-panel > .panel-heading { flex-shrink: 0; min-height: 32px; }
-  #build-form { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); align-content: start; gap: 12px 18px; padding-bottom: 2px; }
+  #build-form { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); align-content: start; gap: 8px 18px; padding-bottom: 2px; }
   .output-fieldset { position: relative; }
   .output-fieldset > .output-help { position: absolute; right: 0; top: -30px; margin: 0; }
   .output-help > summary { padding: 0; font-size: .75rem; }
@@ -1002,11 +1004,14 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .upload-consent-memory { margin-top: 7px; padding: 5px 7px; font-size: .6875rem; }
   #upload-progress-wrap progress { height: 5px; display: block; margin: 7px 0; }
   #upload-progress-text { margin-top: 6px; }
-  .signing-options { grid-template-columns: minmax(0, 1fr); gap: 7px; margin-bottom: 14px; }
+  .signing-options { grid-template-columns: minmax(0, 1fr); gap: 7px; margin-bottom: 10px; }
   .signing-option { padding: 9px 10px; gap: 8px; }
   .signing-option strong { font-size: .8125rem; line-height: 1.4; }
   .signing-option > span > span { font-size: .75rem; line-height: 1.5; }
-  .ipa-fields .field-row { grid-template-columns: minmax(0, 1fr); gap: 12px; margin-bottom: 12px; }
+  .signing-option:not(:has(input:checked)) > span > span { display: none; }
+  .ipa-fields .field-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; gap: 10px; margin-bottom: 10px; }
+  .ipa-fields #export-options-field { display: grid; grid-template-columns: 76px minmax(0, 1fr); align-items: center; gap: 8px; }
+  .ipa-fields #export-options-field > span { margin: 0; }
   .primary-button { min-height: 44px; padding-block: 9px; font-size: .9375rem; }
   .submit-row { position: sticky; bottom: -2px; z-index: 3; padding-top: 8px; background: linear-gradient(transparent, #fff 8px); }
   .build-help-bar { position: absolute; top: 15px; right: 62px; margin: 0; gap: 9px; }
@@ -1018,7 +1023,7 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
   .activity-column { grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); grid-template-rows: minmax(0, 1fr) 250px; gap: 12px; min-height: 0; overflow: hidden; }
   .activity-column > .status-panel { grid-column: 1 / -1; grid-row: 1; display: grid; grid-template-columns: minmax(0, .78fr) minmax(0, 1.22fr); grid-template-rows: auto minmax(0, 1fr) auto auto; gap: 10px 14px; min-height: 0; overflow: hidden; }
   .status-panel > .panel-heading { grid-column: 1 / -1; grid-row: 1; margin: 0; }
-  .status-overview { grid-column: 1; grid-row: 2 / span 2; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; align-content: start; min-height: 0; overflow: auto; }
+  .status-overview { grid-column: 1; grid-row: 2 / span 2; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; align-content: start; min-height: 0; overflow: auto; }
   .status-card { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 3px 9px; text-align: left; }
   .status-card .status-visual { grid-column: 1; grid-row: 1 / span 2; width: 46px; height: 46px; margin: 0; }
   .status-card > strong, .status-card > p { grid-column: 2; margin: 0; max-width: none; }
@@ -1099,36 +1104,11 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 }
 @media (min-width: 1350px) and (max-width: 1699px) {
   .workspace-grid { grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); }
-  #build-form { grid-template-columns: minmax(0, 1fr); }
-  #build-form > .output-fieldset { grid-column: 1; grid-row: 1; }
-  #build-form > .token-section { grid-column: 1; grid-row: 2; }
-  #build-form > .source-section { grid-column: 1; grid-row: 3; }
-  #build-form > .submit-row { grid-column: 1; grid-row: 4; }
-  #build-form > .source-section:has(input[name="source_mode"][value="upload"]:checked) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .source-section:has(input[name="source_mode"][value="upload"]:checked) > .upload-panel { grid-column: 1 / -1; grid-row: 4; }
-  .source-section:has(input[name="source_mode"][value="upload"]:checked) .upload-details-column { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px 14px; }
-  .source-target-card .source-fields { grid-template-columns: minmax(0, 1fr); }
-  .source-target-card .source-fields > .field:last-child { display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: center; gap: 8px; }
-  .source-target-card .source-fields > .field:last-child > span:first-child { margin: 0; }
-  .activity-column { overflow: auto; grid-template-columns: minmax(0, 1fr); grid-template-rows: max-content max-content max-content; }
-  .activity-column:has(#history-toolbar:not([hidden])) { grid-template-rows: max-content max-content 270px; }
-  .activity-column > .status-panel { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto auto auto; overflow: visible; }
-  .status-overview { grid-column: 1; grid-row: 2; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); overflow: visible; }
-  .status-overview > .status-card { grid-column: 1; grid-row: 1; }
-  .status-overview > .pipeline { grid-column: 1; grid-row: 2; display: block; }
-  .pipeline li { display: flex; padding-bottom: 9px; }
-  .pipeline-marker { float: none; }
-  .pipeline li > div > span { margin-top: 2px; }
-  .pipeline-state { margin: 0; }
-  .status-overview > .cleanup-settings { grid-column: 2; grid-row: 1 / span 2; }
-  .status-panel > .build-logs { grid-column: 1; grid-row: 3; min-height: 300px; }
-  .status-panel > .artifact-list { grid-column: 1; grid-row: 4; }
-  .status-panel > .download-message { grid-column: 1; grid-row: 5; }
-  .activity-column > .project-manager { grid-template-columns: minmax(0, 1fr); }
-  .activity-column > .history-panel { grid-column: 1; grid-row: 3; }
-  .project-manager-controls .field { display: block; }
-  .project-manager-controls .field > span { margin-bottom: 4px; }
 }
+@media (min-width: 1350px) and (max-height: 800px) { :root { --studio-scale: .86; } }
+@media (min-width: 1350px) and (max-height: 740px) { :root { --studio-scale: .8; } }
+@media (min-width: 1350px) and (max-width: 1499px) and (max-height: 850px) { :root { --studio-scale: .8; } }
+@media (min-width: 1350px) and (min-height: 1050px) { :root { --studio-scale: 1; } }
 @media (max-width: 1349px) {
   .app-navigation { flex-wrap: wrap; gap: 8px 16px; padding: 10px 16px; }
   .app-navigation .navigation { order: 3; flex: 1 0 100%; }

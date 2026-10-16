@@ -163,8 +163,9 @@ function encodePath(path) {
   return String(path).split("/").map(segment => encodeURIComponent(segment)).join("/");
 }
 
-async function github(path, options = {}) {
-  const response = await fetch(`https://api.github.com${path}`, {
+async function githubOnce(path, options = {}) {
+  let response;
+  try { response = await fetch(`https://api.github.com${path}`, {
     ...options,
     cache: "no-store",
     headers: {
@@ -173,7 +174,11 @@ async function github(path, options = {}) {
       "X-GitHub-Api-Version": "2022-11-28",
       ...(options.headers || {}),
     },
-  });
+  }); } catch (cause) {
+    const error = new Error("与 GitHub 的网络连接中断或被拦截，请检查网络／代理后重试；这不是源码编译错误。原始提示：" + (cause.message || "Failed to fetch"));
+    error.network = true;
+    throw error;
+  }
   if (!response.ok) {
     const messages = {
       401: "访问令牌无效或已过期，请检查 GitHub Token。",
@@ -187,6 +192,18 @@ async function github(path, options = {}) {
     throw error;
   }
   return response.status === 204 ? null : response.json();
+}
+async function github(path, options = {}) {
+  const readOnly = !options.method || options.method.toUpperCase() === "GET";
+  for (let attempt = 0; ; attempt++) {
+    try { return await githubOnce(path, options); }
+    catch (error) {
+      // Never retry workflow dispatch, commits, deletes or branch updates here.
+      // Their result may be uncertain and a repeated request could duplicate work.
+      if (!readOnly || !error.network || attempt >= 2) throw error;
+      await new Promise(resolve => setTimeout(resolve, 800 * (attempt + 1)));
+    }
+  }
 }
 
 function utf8Base64(value) {
@@ -417,7 +434,8 @@ async function verifyWorkspace({ upload = false, fresh = false } = {}) {
   else if (uploadConsentInput.checked) rememberUploadConsent(visibility, repository.id);
   state.workspace = { id: repository.id, private: repository.private, login: user.login, repository, checkedAt: Date.now() };
   $("#workspace-status").dataset.visibility = repository.private ? "private" : "public";
-  $("#workspace-status").textContent = `已核对账号 ${user.login} · ${repository.full_name} · ${repository.private ? "Private 私有仓库" : "Public 公开仓库，源码所有人可见"}。编译工作流已启用；写入权限仍以实际操作结果为准。`;
+  $("#workspace-status").textContent = `已核对 ${user.login} · ${repository.full_name} · ${repository.private ? "Private 私有" : "Public 公开"} · 编译工作流已启用。`;
+  $("#workspace-status").title = "公开仓库中的源码所有人可见；写入权限仍以实际提交结果为准。完整说明见“仓库与源码隐私说明”。";
   $("#public-upload-warning").hidden = repository.private;
   updateLinks();
   buildLogs?.connect?.({ base, repoName: repository.full_name, branch: state.branch, token: state.token });
@@ -704,6 +722,7 @@ form.addEventListener("submit", async (event) => {
   setBusy(true);
   setStatus("running", "提交中", "正在连接 GitHub", "准备启动本次构建。", "dispatch");
   let dispatched = false;
+  let dispatchRequested = false;
   let uploaded = false;
   try {
     await verifyWorkspace({ upload: uploadMode(), fresh: true });
@@ -711,6 +730,7 @@ form.addEventListener("submit", async (event) => {
       setStatus("running", "上传中", "正在保存源码到 GitHub", "文件会作为一次提交保存；上传完成后自动编译。请保持网页打开。", "dispatch");
       $("#upload-progress-wrap").hidden = false;
       $("#upload-result").hidden = true;
+      $("#upload-selection-status").textContent = "源码检查通过，正在上传…";
       const result = await IOSForgeUpload.publish({ api: github, base: repoBase(), branch, name: $("#upload-project").value.trim(), files: selectedSource.files, replace: $("#upload-replace").checked, progress: (value, copy) => { $("#upload-progress").value = value; $("#upload-progress-text").textContent = copy; } });
       uploaded = true;
       $("#source-directory").value = result.directory;
@@ -730,6 +750,7 @@ form.addEventListener("submit", async (event) => {
     const existing = await github(runsQuery());
     state.knownRuns = new Set((existing.workflow_runs || []).map((run) => run.id));
     state.startedAt = Date.now();
+    dispatchRequested = true;
     const dispatchedRun = await github(`${repoBase()}/actions/workflows/build.yml/dispatches`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -742,7 +763,9 @@ form.addEventListener("submit", async (event) => {
     setStatus("running", "已提交", "构建请求已发送", "正在等待 GitHub 返回本次任务。", "queued");
     await waitForRun();
   } catch (error) {
-    setStatus("error", dispatched ? "刷新中断" : "提交失败", dispatched ? "构建状态暂时无法刷新" : uploaded ? "源码已保存，编译未能启动" : "暂时无法提交构建", dispatched ? "构建可能仍在进行，请刷新最近构建确认状态，不要重复提交。" : `${uploaded ? "无需重新上传。先刷新最近构建，确认没有新任务后可再次点击开始构建。" : ""}${error.message || "请检查网络连接后重试。"}`, "error");
+    if (uploadMode() && !uploaded) $("#upload-selection-status").textContent = "上传已停止，所选文件仍保留。";
+    const uncertainDispatch = dispatchRequested && !dispatched && error.network;
+    setStatus("error", uncertainDispatch ? "结果待确认" : dispatched ? "刷新中断" : "提交失败", uncertainDispatch ? "构建提交结果暂时无法确认" : dispatched ? "构建状态暂时无法刷新" : uploaded ? "源码已保存，编译未能启动" : "暂时无法提交构建", uncertainDispatch ? "请求发出后网络中断，GitHub 可能已创建构建任务。请刷新任务记录确认，不要重复点击构建；已保存的源码不必重新上传。" : dispatched ? "构建可能仍在进行，请刷新最近构建确认状态，不要重复提交。" : `${uploaded ? "无需重新上传。先刷新最近构建，确认没有新任务后可再次点击开始构建。" : ""}${error.message || "请检查网络连接后重试。"}`, "error");
   } finally {
     setBusy(false);
   }

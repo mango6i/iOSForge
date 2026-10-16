@@ -7,12 +7,12 @@
   <meta name="description" content="iOSForge 编译工作台。在 GitHub 上构建面向 iOS 15+ 的动态库、插件包和应用。" />
   <title>iOSForge · 编译工作台</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=bundle-upload-500-1" />
+  <link rel="stylesheet" href="./styles.css?v=studio-fit-500-2" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
   <script src="./host-context.js?v=own-repository-1" defer></script>
-  <script src="./source-upload.js?v=upload-500-1" defer></script>
+  <script src="./source-upload.js?v=upload-500-2" defer></script>
   <script src="./build-logs.js?v=read-recovery-1" defer></script>
-  <script src="./app.js?v=bundle-upload-500-1" defer></script>
+  <script src="./app.js?v=studio-fit-500-2" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">跳到编译工作台</a>
@@ -129,12 +129,12 @@
                     <label class="signing-option"><input type="radio" name="ipa_signing" value="signed" /><span><strong>证书导出</strong><span>已配置 Apple 签名环境</span></span></label>
                   </fieldset>
                   <div class="field-row">
-                    <label class="field"><span>Xcode 工程路径 · 可选</span><input id="xcode-project" placeholder="留空自动识别工程" autocomplete="off" spellcheck="false" /></label>
-                    <label class="field"><span>Scheme · 可选</span><input id="xcode-scheme" placeholder="留空自动识别方案" autocomplete="off" spellcheck="false" /></label>
+                    <label class="field"><span>Xcode 工程路径 · 可选</span><input id="xcode-project" placeholder="留空自动识别" autocomplete="off" spellcheck="false" /></label>
+                    <label class="field"><span>Scheme · 可选</span><input id="xcode-scheme" placeholder="留空自动识别" autocomplete="off" spellcheck="false" /></label>
                   </div>
-                  <label class="field bundle-id-field"><span>包名（Bundle ID）· 可选</span><input id="bundle-id" placeholder="留空使用工程默认包名" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="255" aria-describedby="bundle-id-hint" /><small id="bundle-id-hint" class="field-hint">例如 com.example.myapp；填写后用于本次 IPA 打包，不改变应用显示名称。证书导出需匹配新包名的签名配置。</small></label>
+                  <label class="field bundle-id-field"><span>包名（Bundle ID）· 可选</span><input id="bundle-id" placeholder="留空使用工程默认包名" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="255" aria-describedby="bundle-id-hint" /><small id="bundle-id-hint" class="field-hint">例如 com.example.myapp，留空默认。</small></label>
                   <label id="export-options-field" class="field" hidden><span>导出配置文件</span><input id="export-options" value="ExportOptions.plist" autocomplete="off" spellcheck="false" /></label>
-                  <details class="inline-help" data-desktop-dialog><summary>编译模式与安装说明</summary><div class="help-content"><p id="signing-hint" class="field-hint">输出未签名 IPA，无需 Apple 证书。普通设备需后续自签；巨魔需设备与系统兼容。</p><a class="ipa-guide-link" href="./guide.html#ipa-config">不知道怎么选？查看 IPA 准备与安装说明 ↗</a><p class="field-hint">单个工程可直接留空；多个工程或方案时再指定。常见 CocoaPods 与 Swift Package 依赖会在云端处理。</p></div></details>
+                  <details class="inline-help" data-desktop-dialog><summary>编译模式与安装说明</summary><div class="help-content"><p id="signing-hint" class="field-hint">输出未签名 IPA，无需 Apple 证书。普通设备需后续自签；巨魔需设备与系统兼容。</p><p class="field-hint">包名（Bundle ID）填写后仅用于本次 IPA 打包，不改变应用显示名称。留空沿用工程设置；证书导出需匹配新包名的签名配置、描述文件和权限。</p><a class="ipa-guide-link" href="./guide.html#ipa-config">不知道怎么选？查看 IPA 准备与安装说明 ↗</a><p class="field-hint">单个工程可直接留空；多个工程或方案时再指定。常见 CocoaPods 与 Swift Package 依赖会在云端处理。</p></div></details>
                 </div>
               </div>
 
@@ -166,9 +166,9 @@
               </div>
 
               <ol class="pipeline" aria-label="构建流程">
-                <li data-step="submit"><span class="pipeline-marker">1</span><div><strong>提交任务</strong><span>连接 GitHub Actions</span></div><span class="pipeline-state">等待</span></li>
-                <li data-step="build"><span class="pipeline-marker">2</span><div><strong>云端编译</strong><span>在 macOS 上处理源码</span></div><span class="pipeline-state">等待</span></li>
-                <li data-step="artifacts"><span class="pipeline-marker">3</span><div><strong>保存产物</strong><span>写入 sources/Download</span></div><span class="pipeline-state">等待</span></li>
+                <li data-step="submit"><span class="pipeline-marker">1</span><div><strong>提交任务</strong><span title="连接 GitHub Actions">GitHub Actions</span></div><span class="pipeline-state">等待</span></li>
+                <li data-step="build"><span class="pipeline-marker">2</span><div><strong>云端编译</strong><span title="在 macOS 上处理源码">macOS 编译</span></div><span class="pipeline-state">等待</span></li>
+                <li data-step="artifacts"><span class="pipeline-marker">3</span><div><strong>保存产物</strong><span title="写入 sources/Download">仓库 Download</span></div><span class="pipeline-state">等待</span></li>
               </ol>
               <section id="cleanup-settings" class="cleanup-settings" aria-labelledby="cleanup-heading"><div class="cleanup-heading"><div><span class="section-overline">AUTO CLEANUP</span><h3 id="cleanup-heading">自动清理</h3></div><span id="cleanup-state" class="cleanup-state">未读取</span></div><p id="cleanup-runtime" class="cleanup-runtime" role="status">后台：状态待核对</p><div class="cleanup-controls"><label class="cleanup-switch"><input id="cleanup-enabled" type="checkbox" checked /><span>启用后台定时清理</span></label><label class="cleanup-switch"><input id="cleanup-failed" type="checkbox" checked /><span>失败／取消任务完成后清理</span></label><label class="cleanup-switch"><input id="cleanup-notify" type="checkbox" checked /><span>通过 GitHub 通知成功／失败结果</span></label><div class="cleanup-retention"><label id="cleanup-retention-label" for="cleanup-value">成功任务保留：1 小时</label><input id="cleanup-value" type="number" min="1" max="525600" step="1" value="1" inputmode="numeric" aria-label="成功任务保留数值" /><div class="cleanup-unit-options" role="radiogroup" aria-label="成功任务保留单位"><label><input type="radio" name="cleanup-unit" value="immediate" /><span>立即</span></label><label><input type="radio" name="cleanup-unit" value="minute" /><span>分钟</span></label><label><input type="radio" name="cleanup-unit" value="hour" checked /><span>小时</span></label><label><input type="radio" name="cleanup-unit" value="day" /><span>天</span></label></div></div></div><button id="save-cleanup" class="secondary-button cleanup-save" type="button">保存后台规则</button><details class="cleanup-feedback inline-help" data-desktop-dialog><summary id="cleanup-feedback-label">后台规则说明与保存结果</summary><div class="help-content"><p id="cleanup-message" class="field-hint" role="status">独立于上传和编译，可随时设置。没有任务时后台保持空闲；检测到新构建后自动执行。</p></div></details></section>
 

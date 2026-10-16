@@ -19,16 +19,20 @@ async function main() {
   let blob;
   try {
     const size = 50 * MB - 2048;
-    const crc = U.crc32(new Uint8Array(size));
+    const payload = new Uint8Array(size), crcs = [];
     let position = 0;
     const central = [];
     for (let n = 0; n < 10; n++) {
+      payload[0] = n;
+      const crc = U.crc32(payload);
+      crcs.push(crc);
       const name = Buffer.from(`Project/asset-${n}.bin`), offset = position;
       const header = Buffer.alloc(30);
       header.writeUInt32LE(0x04034b50); header.writeUInt16LE(20, 4);
       header.writeUInt32LE(crc, 14); header.writeUInt32LE(size, 18); header.writeUInt32LE(size, 22); header.writeUInt16LE(name.length, 26);
       fs.writeSync(handle, header, 0, header.length, position); position += header.length;
-      fs.writeSync(handle, name, 0, name.length, position); position += name.length + size;
+      fs.writeSync(handle, name, 0, name.length, position); position += name.length;
+      fs.writeSync(handle, Buffer.from([n]), 0, 1, position); position += size;
       const record = Buffer.alloc(46);
       record.writeUInt32LE(0x02014b50); record.writeUInt16LE(0x314, 4); record.writeUInt16LE(20, 6);
       record.writeUInt32LE(crc, 16); record.writeUInt32LE(size, 20); record.writeUInt32LE(size, 24); record.writeUInt16LE(name.length, 28);
@@ -64,7 +68,7 @@ async function main() {
       if (url.endsWith('/git/blobs')) {
         const bytes = Buffer.from(body.content, 'base64');
         assert.equal(bytes.length, size);
-        assert.equal(U.crc32(bytes), crc);
+        assert.equal(U.crc32(bytes), crcs[uploads]);
         uploads++; uploadedBytes += bytes.length;
         return { sha: createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex') };
       }
