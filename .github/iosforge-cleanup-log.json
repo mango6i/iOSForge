@@ -3,5 +3,22 @@
   "date": "2026-10-16",
   "timezone": "Asia/Shanghai",
   "entries": [],
-  "checks": []
+  "checks": [],
+  "system_deletions": [
+    {
+      "timestamp": "2026-10-16T18:33:58+08:00",
+      "cleanup_run_id": 38888047152,
+      "deleted_run_ids": [
+        38695655483
+      ],
+      "deleted_runs": [
+        {
+          "id": 38695655483,
+          "run_number": 39
+        }
+      ],
+      "retained_run_id": 38888047152,
+      "retained_run_number": 40
+    }
+  ]
 }
