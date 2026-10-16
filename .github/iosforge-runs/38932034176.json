@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "run_id": 38932034176,
+  "repository": "mango6i/iOSForge",
+  "branch": "main",
+  "request_id": "6b9437c54185de27fe2ef1cf",
+  "build_type": "ipa",
+  "notify_via_github": true,
+  "created_at": "2026-10-16T16:27:11Z",
+  "source": null,
+  "outputs": []
+}
