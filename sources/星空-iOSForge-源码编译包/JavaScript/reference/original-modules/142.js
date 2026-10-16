@@ -1,1 +1,0 @@
-__d(142,function(e,t,n,s){"use strict";var u=t(31).Networking,l=function(){function e(){babelHelpers.classCallCheck(this,e)}return babelHelpers.createClass(e,null,[{key:"sendRequest",value:function(e,t){u.sendRequest(e,t)}},{key:"abortRequest",value:function(e){u.cancelRequest(e)}}]),e}();n.exports=l});

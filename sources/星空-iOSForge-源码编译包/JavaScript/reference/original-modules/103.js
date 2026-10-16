@@ -1,1 +1,0 @@
-__d(103,function(n,e,r,o){"use strict";var t=e(380),i=!1,u={unmountIDFromEnvironment:null,replaceNodeWithMarkup:null,processChildrenUpdates:null,injection:{injectEnvironment:function(n){i?t(!1):void 0,u.unmountIDFromEnvironment=n.unmountIDFromEnvironment,u.replaceNodeWithMarkup=n.replaceNodeWithMarkup,u.processChildrenUpdates=n.processChildrenUpdates,i=!0}}};r.exports=u});

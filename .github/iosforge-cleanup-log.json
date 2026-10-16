@@ -2,7 +2,23 @@
   "version": 1,
   "date": "2026-10-17",
   "timezone": "Asia/Shanghai",
-  "entries": [],
+  "entries": [
+    {
+      "timestamp": "2026-10-17T00:01:02+08:00",
+      "cleanup_run_id": 38928513922,
+      "deleted_run_ids": [
+        38928359858
+      ],
+      "actions_runs_deleted": 1,
+      "repository_items_deleted": 1,
+      "removed_paths": [
+        "sources/星空-iOSForge-源码编译包"
+      ],
+      "deleted_run_numbers": {
+        "38928359858": 288
+      }
+    }
+  ],
   "checks": [],
   "system_deletions": [
     {

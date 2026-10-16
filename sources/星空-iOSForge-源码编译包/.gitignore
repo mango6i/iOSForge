@@ -1,7 +1,0 @@
-build/
-JavaScript/node_modules/
-JavaScript/dist/
-*.xcuserstate
-xcuserdata/
-.DS_Store
-__pycache__/

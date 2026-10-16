@@ -1,1 +1,0 @@
-__d(236,function(e,n,s,t){"use strict";var a=n(380),o=function(e){a(!(e.delayPressIn<0||e.delayPressOut<0||e.delayLongPress<0),"Touchable components cannot have negative delay properties")};s.exports=o});

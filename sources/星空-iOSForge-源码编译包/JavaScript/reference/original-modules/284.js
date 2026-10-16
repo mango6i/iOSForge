@@ -1,1 +1,0 @@
-__d(284,function(e,t,s,n){"use strict";var i=function(){function e(t,s){babelHelpers.classCallCheck(this,e),this._value=t,this._token=t.addListener(s)}return babelHelpers.createClass(e,[{key:"remove",value:function(){this._value.removeListener(this._token)}}]),e}();s.exports=i});

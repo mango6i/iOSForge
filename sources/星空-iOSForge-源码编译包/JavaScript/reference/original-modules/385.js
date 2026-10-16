@@ -1,1 +1,0 @@
-__d(385,function(e,s,a,t){a.exports=s(118).registerAsset({__packager_asset:!0,fileSystemLocation:"/Users/nary/Downloads/ncode/eggf/image",httpServerLocation:"/assets/image",width:568,height:569,scales:[1],files:["/Users/nary/Downloads/ncode/eggf/image/female.png"],hash:"7a3b6f6606090f4f3597bbd948507fc9",name:"female",type:"png"})});

@@ -1,1 +1,0 @@
-__d(181,function(t,n,r,o){"use strict";function s(t){return"normal"===t?t=.998:"fast"===t&&(t=.99),t}r.exports=s});

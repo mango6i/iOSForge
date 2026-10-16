@@ -1,1 +1,0 @@
-__d(401,function(e,s,a,o){a.exports=s(118).registerAsset({__packager_asset:!0,fileSystemLocation:"/Users/nary/Downloads/ncode/eggf/image",httpServerLocation:"/assets/image",width:22,height:34,scales:[1],files:["/Users/nary/Downloads/ncode/eggf/image/right_voice_one.png"],hash:"49c44f15603ca2f0781f0fe431bcf5f8",name:"right_voice_one",type:"png"})});

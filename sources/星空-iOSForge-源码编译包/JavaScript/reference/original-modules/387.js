@@ -1,1 +1,0 @@
-__d(387,function(e,s,a,t){a.exports=s(118).registerAsset({__packager_asset:!0,fileSystemLocation:"/Users/nary/Downloads/ncode/eggf/image",httpServerLocation:"/assets/image",width:256,height:256,scales:[1],files:["/Users/nary/Downloads/ncode/eggf/image/quest.png"],hash:"c721967145545d146c5698e4bcab9f55",name:"quest",type:"png"})});

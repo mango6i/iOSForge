@@ -1,1 +1,0 @@
-__d(392,function(e,s,t,a){t.exports=s(118).registerAsset({__packager_asset:!0,fileSystemLocation:"/Users/nary/Downloads/ncode/eggf/image",httpServerLocation:"/assets/image",width:22,height:34,scales:[1],files:["/Users/nary/Downloads/ncode/eggf/image/left_voice_one_white.png"],hash:"4d900837c5852fd2f2edfbf13e13251d",name:"left_voice_one_white",type:"png"})});
