@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from .bundle_id import override_bundle_id, validate_bundle_id, verify_app_bundle_id, verify_ipa_bundle_id
 
 from .ipa import copy_exported_ipa, package_ipa
 from .manifest import Manifest
@@ -14,7 +15,9 @@ def build_app(
     export_options: Path | None = None,
     *,
     unsigned: bool = False,
+    bundle_id: str = "",
 ) -> list[Path]:
+    bundle_id = validate_bundle_id(bundle_id)
     if manifest.app_project is None or not manifest.app_scheme:
         raise BuildError("App project and scheme are required")
     if not manifest.app_project.is_dir() or manifest.app_project.suffix not in {".xcodeproj", ".xcworkspace"}:
@@ -55,7 +58,13 @@ def build_app(
                 "PROVISIONING_PROFILE_SPECIFIER=",
                 "PROVISIONING_PROFILE=",
             ])
-        run(command, cwd=manifest.path.parent)
+        with override_bundle_id(manifest, command, bundle_id):
+            run(command, cwd=manifest.path.parent)
+        if bundle_id:
+            apps = [path for path in (archive_path / "Products" / "Applications").glob("*.app") if path.is_dir()]
+            if len(apps) != 1:
+                raise BuildError("Expected exactly one archived app when using a custom Bundle ID.")
+            verify_app_bundle_id(apps[0], bundle_id)
         if unsigned:
             applications = archive_path / "Products" / "Applications"
             apps = [path for path in applications.glob("*.app") if path.is_dir()]
@@ -77,4 +86,8 @@ def build_app(
             ],
             cwd=manifest.path.parent,
         )
+        # Verify before copying into dist, where publish_outputs discovers files.
+        if bundle_id:
+            for candidate in export_dir.glob("*.ipa"):
+                verify_ipa_bundle_id(candidate, bundle_id)
         return [copy_exported_ipa(export_dir, output_dir)]

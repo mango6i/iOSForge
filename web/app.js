@@ -7,6 +7,7 @@ const tokenInput = $("#token");
 const ipaFields = $("#ipa-fields");
 const projectInput = $("#xcode-project");
 const schemeInput = $("#xcode-scheme");
+const bundleIdInput = $("#bundle-id");
 const exportOptionsInput = $("#export-options");
 const ipaSigningInput = $("#ipa-signing");
 const submitButton = $("#submit-button");
@@ -671,6 +672,11 @@ form.addEventListener("submit", async (event) => {
   if (buildTypeInput.value === "ipa" && ipaSigningInput.value === "signed" && !exportOptionsInput.value.trim()) {
     return setStatus("error", "检查输入", "请填写导出配置", "证书导出模式需要 ExportOptions.plist 的真实路径；无证书模式不需要。");
   }
+  const bundleId = buildTypeInput.value === "ipa" ? bundleIdInput.value.trim() : "";
+  if (bundleId && (bundleId.length > 255 || !/^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*$/.test(bundleId))) {
+    bundleIdInput.focus();
+    return setStatus("error", "检查包名", "包名格式不正确", "请填写 com.example.myapp 这样的 Bundle ID，仅使用英文字母、数字、短横线和点；留空沿用工程默认包名。");
+  }
 
   state.token = token;
   state.closed = false;
@@ -691,6 +697,7 @@ form.addEventListener("submit", async (event) => {
   if (buildTypeInput.value === "ipa") {
     inputs.xcode_project = projectInput.value.trim();
     inputs.xcode_scheme = schemeInput.value.trim();
+    if (bundleId) inputs.bundle_id = bundleId;
     inputs.ipa_signing = ipaSigningInput.value;
     if (inputs.ipa_signing === "signed") inputs.export_options = exportOptionsInput.value.trim();
   }
@@ -799,9 +806,10 @@ async function selectSource(files, folder) {
   $("#upload-selection-status").textContent = "正在本地检查文件结构和常见敏感内容，尚未上传…";
   try {
     if (!folder && (files.length !== 1 || !/\.zip$/i.test(files[0].name))) throw new Error("请一次选择一个 ZIP；文件夹请点击“选择文件夹”。");
-    selectedSource = await (folder ? IOSForgeUpload.readFolder(files) : IOSForgeUpload.readZip(files[0]));
+    const onInspect = (done, total, path) => { $("#upload-selection-status").textContent = `正在本地检查 ${done} / ${total}：${path}；尚未上传。大工程会逐文件读取，请保持网页打开。`; };
+    selectedSource = await (folder ? IOSForgeUpload.readFolder(files, onInspect) : IOSForgeUpload.readZip(files[0], onInspect));
     $("#upload-project").value = selectedSource.suggestedName;
-    $("#upload-file-count").textContent = `${selectedSource.files.length} 个文件 · ${formatSize(selectedSource.files.reduce((n, file) => n + file.bytes.length, 0))}`;
+    $("#upload-file-count").textContent = `${selectedSource.files.length} 个文件 · ${formatSize(selectedSource.files.reduce((n, file) => n + (file.size ?? file.bytes.length), 0))}`;
     const list = $("#upload-file-list"); list.replaceChildren();
     selectedSource.files.slice(0, 100).forEach(file => list.append(element("li", "", file.path)));
     if (selectedSource.files.length > 100) list.append(element("li", "", `另有 ${selectedSource.files.length - 100} 个文件；清单仅预览前 100 个。`));
@@ -921,7 +929,7 @@ $("#save-cleanup").addEventListener("click", async () => {
     $("#cleanup-runtime").textContent = config.enabled ? "后台：已请求检查，等待结果" : "后台：已停用";
     buildLogs?.connect?.({ base, repoName: `${repo.owner}/${repo.name}`, branch, token });
     const notification = config.notify_via_github ? "成功和失败会写入 GitHub 通知 Issue；账户启用 Email 后由 GitHub 发信。" : "GitHub 结果通知已关闭。";
-    const schedule = config.enabled ? `有待管理构建时每 10 分钟检查${dispatched ? "，并已立即检查一次" : ""}` : "后台自动清理已停用";
+    const schedule = config.enabled ? `构建结束触发检查，短保留时间等到期后复查；每 10 分钟巡检兜底${dispatched ? "，并已提交检查" : ""}。GitHub 排队可能延迟，并非精确到秒的定时器` : "后台自动清理已停用";
     const idle = config.enabled ? "没有待管理构建时定时器会停止；下一次构建会自动开启。" : "";
     setCleanupState(config.enabled ? "success" : "", config.enabled ? "规则已启用" : "已停用", `${schedule}；${idle}失败任务${config.delete_failed_runs ? "完成后立即清理" : "保留"}；成功任务保留 ${cleanupRetentionLabel(minutes)}。${notification}`);
   } catch (error) {

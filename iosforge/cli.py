@@ -36,6 +36,7 @@ def parser() -> argparse.ArgumentParser:
     app = commands.add_parser("build-app", help="archive and export an Xcode app into an IPA")
     app.add_argument("--project", type=Path, help="override [app].project")
     app.add_argument("--scheme", help="override [app].scheme")
+    app.add_argument("--bundle-id", default="", help="override the IPA bundle identifier; empty keeps the project default")
     app.add_argument("--unsigned", action="store_true", help="package an unsigned IPA without Apple certificates or export options")
     app.add_argument("--export-options", type=Path, help="required only for signed export")
     app.add_argument("--output-dir", type=Path, default=Path("dist"))
@@ -79,7 +80,7 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"Created {path}")
         elif args.command == "build-app":
             export_options = args.export_options.resolve() if args.export_options else None
-            for path in build_app(manifest, args.output_dir, export_options, unsigned=args.unsigned):
+            for path in build_app(manifest, args.output_dir, export_options, unsigned=args.unsigned, bundle_id=args.bundle_id):
                 print(f"Created {path}")
         return 0
     except (ManifestError, BuildError, ValueError, FileNotFoundError) as exc:

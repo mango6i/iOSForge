@@ -129,6 +129,8 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 .signing-option > span > span { display: block; margin-top: 3px; color: var(--muted); font-size: .75rem; line-height: 1.6; }
 .ipa-guide-link { display: inline-block; margin-top: 9px; color: #1d5fc6; font-size: .75rem; text-underline-offset: 3px; }
 .field-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 12px; margin-bottom: 13px; }
+.bundle-id-field { margin-bottom: 12px; }
+.bundle-id-field > .field-hint { display: block; margin-top: 6px; font-size: .75rem; line-height: 1.55; }
 .token-section { margin-top: 22px; }
 .token-label { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 7px; font-size: .875rem; }
 .token-label > span { display: inline-flex; align-items: center; gap: 5px; color: var(--subtle); font-size: .75rem; }

@@ -933,6 +933,28 @@ def clean_registered(api: GitHubApi, repository: str, branch: str, current_run_i
 def clean(api: GitHubApi, repository: str, branch: str, current_run_id: str) -> None:
     try:
         clean_registered(api, repository, branch, current_run_id)
+        # workflow_run often starts just before a short retention period expires.
+        # Do not return and force a one-minute rule to wait for the next cron.
+        # The overall wait is bounded; long retention still uses the timer.
+        if os.environ.get("IOSFORGE_WAIT_FOR_RETENTION") == "true":
+            deadline = time.monotonic() + 125
+            for _ in range(3):
+                config_value, _ = load_json(api, branch, CONFIG_PATH)
+                config = validated_config(config_value)
+                if not config["enabled"]:
+                    break
+                manifests = list_manifests(api, branch)
+                if not manifests:
+                    break
+                delay = next_retention_delay(list_runs(api, branch), config, manifests, utc_now())
+                if delay is None or delay > deadline - time.monotonic():
+                    break
+                print(f"A completed build reaches its retention deadline in {delay:.0f} second(s). Waiting, then checking again instead of waiting for the next scheduled sweep.", flush=True)
+                if delay > 0:
+                    time.sleep(delay)
+                # Re-read everything: a newer build/source update or a disabled
+                # rule must never be deleted using the earlier snapshot.
+                clean_registered(api, repository, branch, current_run_id)
     except Exception as error:
         if current_run_id.isdecimal():
             try:
@@ -940,6 +962,18 @@ def clean(api: GitHubApi, repository: str, branch: str, current_run_id: str) -> 
             except Exception as log_error:
                 print(f"Unable to save cleanup failure details: {log_error}", file=os.sys.stderr)
         raise
+
+
+def next_retention_delay(runs: list[dict], config: dict, manifests: dict, now: datetime) -> float | None:
+    delays = []
+    for run in runs:
+        if run.get("id") not in manifests or run.get("path") != ".github/workflows/build.yml" or run.get("status") != "completed" or run.get("conclusion") != "success":
+            continue
+        completed = parse_time(run.get("completed_at") or run.get("updated_at"))
+        if completed:
+            due = completed + timedelta(minutes=config["success_retention_minutes"])
+            delays.append(max(0.0, (due - now).total_seconds()) + 1)
+    return min(delays) if delays else None
 
 
 def main() -> int:

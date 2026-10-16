@@ -7,12 +7,12 @@
   <meta name="description" content="iOSForge 编译工作台。在 GitHub 上构建面向 iOS 15+ 的动态库、插件包和应用。" />
   <title>iOSForge · 编译工作台</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=upload-fit-5" />
+  <link rel="stylesheet" href="./styles.css?v=bundle-upload-500-1" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
   <script src="./host-context.js?v=own-repository-1" defer></script>
-  <script src="./source-upload.js?v=fast-reads-1" defer></script>
+  <script src="./source-upload.js?v=upload-500-1" defer></script>
   <script src="./build-logs.js?v=read-recovery-1" defer></script>
-  <script src="./app.js?v=upload-fit-5" defer></script>
+  <script src="./app.js?v=bundle-upload-500-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">跳到编译工作台</a>
@@ -98,7 +98,7 @@
                         <svg class="icon"><use href="#i-package"/></svg><strong>把源码 ZIP 拖到这里</strong><p>也可以选择一个完整工程文件夹</p>
                         <div class="upload-pickers"><button id="pick-zip" type="button" class="secondary-button">选择 ZIP</button><button id="pick-folder" type="button" class="secondary-button">选择文件夹</button></div>
                         <input id="zip-input" type="file" accept=".zip,application/zip" hidden /><input id="folder-input" type="file" webkitdirectory multiple hidden />
-                        <span class="upload-limits">ZIP ≤ 25 MB · 解压后 ≤ 50 MB · 最多 1000 个文件</span>
+                        <span class="upload-limits">ZIP ≤ 500 MB · 解压后 ≤ 2 GB · 单文件 ≤ 100 MB</span>
                       </div>
                       <p id="upload-selection-status" class="field-hint" role="status" aria-live="polite">文件先在浏览器中检查，点击“上传并编译”后才会提交。</p>
                       <div id="upload-preview" class="upload-preview" hidden><div class="upload-preview-heading"><button id="clear-upload" class="copy-button" type="button">清除选择</button></div><details><summary><strong id="upload-file-count">查看待上传文件</strong></summary><ul id="upload-file-list"></ul></details></div>
@@ -116,7 +116,7 @@
                     <div id="public-upload-warning" class="public-upload-warning" hidden><strong>当前仓库是公开的：上传后所有人可见。</strong><details class="inline-help" data-desktop-dialog><summary>公开上传注意事项</summary><div class="help-content"><p>如果源码不应公开，请停止上传，换成自己的 Private 私有仓库。删除当前文件也无法自动清除提交历史。私有仓库可降低公开泄露风险，但不能保证绝对安全。上方“确认提交”是唯一需要勾选的上传确认。</p></div></details></div>
                     <label class="upload-consent"><input id="upload-replace" type="checkbox" /><span>如果目录已存在，允许更新本次同名文件；未上传的旧文件不会删除。</span></label>
                     <label class="upload-consent build-notify-option"><input id="build-notify" type="checkbox" checked /><span><strong>构建完成后发送邮件通知</strong><small>成功／失败均通知，需启用 GitHub Email。</small></span></label>
-                    <details class="inline-help" data-desktop-dialog><summary>支持的文件与上传限制</summary><div class="help-content"><p class="field-hint">支持完整 Theos / Xcode 源码，不是现成 IPA、deb 或 dylib。单个文件上限 10 MB。<a href="./guide.html#upload">查看上传说明 ↗</a></p></div></details>
+                    <details class="inline-help" data-desktop-dialog><summary>支持的文件与上传限制</summary><div class="help-content"><p class="field-hint">支持完整 Theos / Xcode 源码，不是现成 IPA、deb 或 dylib。ZIP 上限 500 MB，解压后 / 文件夹上限 2 GB、10000 个文件，单文件上限 100 MB。大工程逐文件检查与上传，请保持网页打开；遇到 GitHub 限流会等待。<a href="./guide.html#upload">查看上传说明 ↗</a></p></div></details>
                   </div>
 
                 </div>
@@ -132,6 +132,7 @@
                     <label class="field"><span>Xcode 工程路径 · 可选</span><input id="xcode-project" placeholder="留空自动识别工程" autocomplete="off" spellcheck="false" /></label>
                     <label class="field"><span>Scheme · 可选</span><input id="xcode-scheme" placeholder="留空自动识别方案" autocomplete="off" spellcheck="false" /></label>
                   </div>
+                  <label class="field bundle-id-field"><span>包名（Bundle ID）· 可选</span><input id="bundle-id" placeholder="留空使用工程默认包名" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="255" aria-describedby="bundle-id-hint" /><small id="bundle-id-hint" class="field-hint">例如 com.example.myapp；填写后用于本次 IPA 打包，不改变应用显示名称。证书导出需匹配新包名的签名配置。</small></label>
                   <label id="export-options-field" class="field" hidden><span>导出配置文件</span><input id="export-options" value="ExportOptions.plist" autocomplete="off" spellcheck="false" /></label>
                   <details class="inline-help" data-desktop-dialog><summary>编译模式与安装说明</summary><div class="help-content"><p id="signing-hint" class="field-hint">输出未签名 IPA，无需 Apple 证书。普通设备需后续自签；巨魔需设备与系统兼容。</p><a class="ipa-guide-link" href="./guide.html#ipa-config">不知道怎么选？查看 IPA 准备与安装说明 ↗</a><p class="field-hint">单个工程可直接留空；多个工程或方案时再指定。常见 CocoaPods 与 Swift Package 依赖会在云端处理。</p></div></details>
                 </div>

@@ -43,6 +43,10 @@ on:
         description: Scheme（唯一共享应用方案可留空）
         type: string
         default: ''
+      bundle_id:
+        description: IPA 包名 Bundle ID（留空沿用工程设置）
+        type: string
+        default: ''
       ipa_signing:
         description: unsigned 无证书（巨魔/后续自签）；signed 证书导出
         type: choice
@@ -161,6 +165,7 @@ jobs:
           SOURCE_DIRECTORY: ${{ inputs.source_directory }}
           XCODE_PROJECT: ${{ inputs.xcode_project }}
           XCODE_SCHEME: ${{ inputs.xcode_scheme }}
+          BUNDLE_ID: ${{ inputs.bundle_id }}
           EXPORT_OPTIONS: ${{ inputs.export_options || 'ExportOptions.plist' }}
           IPA_SIGNING: ${{ inputs.ipa_signing || 'unsigned' }}
         shell: bash
@@ -169,6 +174,7 @@ jobs:
           args=(--output-dir dist)
           if [ -n "$XCODE_PROJECT" ]; then args+=(--project "$XCODE_PROJECT"); fi
           if [ -n "$XCODE_SCHEME" ]; then args+=(--scheme "$XCODE_SCHEME"); fi
+          if [ -n "$BUNDLE_ID" ]; then args+=(--bundle-id "$BUNDLE_ID"); fi
           case "$IPA_SIGNING" in
             unsigned) args+=(--unsigned) ;;
             signed) args+=(--export-options "$EXPORT_OPTIONS") ;;

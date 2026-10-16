@@ -1,0 +1,46 @@
+name: Verify IPA identifiers and large uploads
+on:
+  push:
+    paths:
+      - 'iosforge/**'
+      - 'tests/**'
+      - 'web/source-upload.js'
+      - '.github/scripts/cleanup.py'
+      - '.github/workflows/feature-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: python -m unittest discover -s tests -v
+      - run: node tests/upload.cjs
+      - run: node tests/large-upload.cjs
+  real-ipa:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Select Xcode and install test project generator
+        run: |
+          sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
+          brew install xcodegen
+          python -m pip install -e .
+      - name: Build and inspect actual default and custom IPA with extension
+        run: python tests/macos_bundle.py

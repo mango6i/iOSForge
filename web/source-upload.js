@@ -2,7 +2,8 @@
 (() => {
   "use strict";
   const MB = 1024 * 1024;
-  const limits = Object.freeze({ archive: 25 * MB, total: 50 * MB, file: 10 * MB, count: 1000 });
+  const limits = Object.freeze({ archive: 500 * MB, total: 2 * 1024 * MB, file: 100 * MB, count: 10000 });
+  const limitMessage = "超过限制：ZIP 500 MB、解压后/文件夹 2 GB、单文件 100 MB、10000 个文件。单文件更大请使用 Git LFS 等专用方式。";
   const encoder = new TextEncoder();
   const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
   const fail = (message) => { throw new Error(message); };
@@ -14,7 +15,7 @@
   function ignored(path) { return path.split("/").some(p => [".git", "__MACOSX", ".DS_Store"].includes(p) || p.startsWith("._")); }
   function textOf(bytes) { try { return bytes.includes(0) ? null : decoder.decode(bytes); } catch { return null; } }
   function inspect(file) {
-    if (file.bytes.length > limits.file) fail(`单个文件超过 10 MB：${file.path}`);
+    if (file.bytes.length > limits.file) fail(`单个文件超过 100 MB（GitHub 普通仓库文件上限）：${file.path}`);
     const name = file.path.split("/").pop();
     if (/\.(p12|pfx|pem|p8|key|mobileprovision)$/i.test(name) || /^(\.env($|\.)|\.npmrc$|\.netrc$|id_rsa$|id_ed25519$|credentials($|\.))/i.test(name) && !/\.(example|sample|template)$/i.test(name)) fail(`疑似凭据文件，已阻止上传：${file.path}。请移除密钥，使用仓库 Secrets。`);
     file.text = textOf(file.bytes);
@@ -23,10 +24,11 @@
     if (file.mode !== "100755") file.mode = file.text?.startsWith("#!") || /\.(sh|command)$/.test(name) ? "100755" : "100644";
     return file;
   }
-  function prepare(entries, suggestedName) {
+  const fileSize = file => file.size ?? file.bytes.length;
+  function normalize(entries, suggestedName) {
     let files = entries.filter(file => !ignored(validPath(file.path)));
     if (!files.length) fail("没有找到可上传的文件。");
-    if (files.length > limits.count || files.reduce((n, file) => n + file.bytes.length, 0) > limits.total) fail("源码超过 1000 个文件或解压后 50 MB，请精简依赖/缓存，或使用 Git 客户端上传。");
+    if (files.length > limits.count || files.some(file => fileSize(file) > limits.file) || files.reduce((n, file) => n + fileSize(file), 0) > limits.total) fail(limitMessage);
     const wrapper = files[0].path.split("/")[0];
     if (!/\.(xcodeproj|xcworkspace)$/.test(wrapper) && files.every(file => file.path.startsWith(wrapper + "/"))) {
       files = files.map(file => ({ ...file, path: file.path.slice(wrapper.length + 1) }));
@@ -37,7 +39,6 @@
       const normalized = key(file.path);
       if (paths.has(normalized)) fail(`存在重复或大小写冲突的文件：${file.path}`);
       paths.add(normalized);
-      inspect(file);
     });
     files.forEach(file => {
       const parts = file.path.split("/");
@@ -45,20 +46,46 @@
     });
     return { files: files.sort((a, b) => a.path.localeCompare(b.path)), suggestedName: (suggestedName || "MyProject").replace(/[^\p{L}\p{N}._-]/gu, "-").replace(/^[._-]+/, "").slice(0, 64) || "MyProject" };
   }
+  function prepare(entries, suggestedName) {
+    const source = normalize(entries, suggestedName);
+    source.files.forEach(inspect);
+    return source;
+  }
+  async function inspectSource(entries, suggestedName, progress) {
+    const source = normalize(entries, suggestedName);
+    for (const [i, file] of source.files.entries()) {
+      progress(i + 1, source.files.length, file.path);
+      // Keep only immutable File/ZIP references and metadata, never the complete
+      // expanded archive. At most one source file is inspected at a time.
+      const checked = inspect({ path: file.path, mode: file.mode, bytes: await file.read() });
+      if (checked.bytes.length !== file.size) fail(`文件大小发生变化，请重新选择：${file.path}`);
+      file.mode = checked.mode;
+      file.sha = await blobHash(checked.bytes);
+      file.useBlob = checked.text === null || file.size > 2 * MB;
+      await new Promise(resolve => setTimeout(resolve, 0));
+    }
+    return source;
+  }
   const crcTable = Uint32Array.from({ length: 256 }, (_, n) => { for (let k = 0; k < 8; k++) n = n & 1 ? 0xedb88320 ^ (n >>> 1) : n >>> 1; return n >>> 0; });
   function crc32(bytes) { let crc = -1; for (const byte of bytes) crc = crcTable[(crc ^ byte) & 255] ^ (crc >>> 8); return (crc ^ -1) >>> 0; }
-  async function readZip(file) {
-    if (file.size > limits.archive) fail("ZIP 超过 25 MB，请精简后重试，或使用 Git 客户端。");
-    const bytes = new Uint8Array(await file.arrayBuffer());
+  async function readZip(file, progress = () => {}) {
+    if (file.size > limits.archive) fail("ZIP 超过 500 MB，请精简后重试，或使用 Git 客户端。");
+    if (file.size < 22) fail("不是完整的 ZIP 文件，请重新压缩源码。");
+    const tailStart = Math.max(0, file.size - 65557);
+    const tail = new Uint8Array(await file.slice(tailStart).arrayBuffer());
+    const tailView = new DataView(tail.buffer, tail.byteOffset, tail.byteLength);
+    let end = -1;
+    for (let n = tail.length - 22; n >= 0; n--) if (tailView.getUint32(n, true) === 0x06054b50 && n + 22 + tailView.getUint16(n + 20, true) === tail.length) { end = n; break; }
+    if (end < 0) fail("不是完整的 ZIP 文件，请重新压缩源码。");
+    const e16 = n => tailView.getUint16(end + n, true), e32 = n => tailView.getUint32(end + n, true);
+    if (e16(4) || e16(6) || e16(8) !== e16(10) || e16(10) === 65535 || [e32(12), e32(16)].includes(0xffffffff)) fail("不支持分卷或 ZIP64，请使用普通 ZIP。");
+    const centralStart = e32(16), centralSize = e32(12), count = e16(10);
+    if (count > 40000 || centralSize > 16 * MB || centralStart + centralSize > tailStart + end) fail("ZIP 文件目录过大或损坏。");
+    const bytes = new Uint8Array(await file.slice(centralStart, centralStart + centralSize).arrayBuffer());
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     const u16 = n => view.getUint16(n, true), u32 = n => view.getUint32(n, true);
-    let end = -1;
-    for (let n = bytes.length - 22; n >= Math.max(0, bytes.length - 65557); n--) if (u32(n) === 0x06054b50 && n + 22 + u16(n + 20) === bytes.length) { end = n; break; }
-    if (end < 0) fail("不是完整的 ZIP 文件，请重新压缩源码。");
-    if (u16(end + 4) || u16(end + 6) || u16(end + 8) !== u16(end + 10) || u16(end + 10) === 65535) fail("不支持分卷或 ZIP64，请使用普通 ZIP。");
-    let cursor = u32(end + 16), total = 0;
-    const centralEnd = cursor + u32(end + 12), count = u16(end + 10), records = [];
-    if (count > 4000 || centralEnd > end) fail("ZIP 文件目录过大或损坏。");
+    let cursor = 0, total = 0;
+    const centralEnd = bytes.length, records = [];
     for (let i = 0; i < count; i++) {
       if (cursor + 46 > centralEnd || u32(cursor) !== 0x02014b50) fail("ZIP 文件目录损坏。");
       const flags = u16(cursor + 8), method = u16(cursor + 10), crc = u32(cursor + 16), size = u32(cursor + 24), packed = u32(cursor + 20), offset = u32(cursor + 42);
@@ -72,19 +99,28 @@
       if ((mode & 0xf000) === 0xa000) fail(`ZIP 包含符号链接：${name}。请使用 Git 客户端上传，保留链接语义。`);
       if (name.endsWith("/") || ignored(name)) continue;
       total += size;
-      if (size > limits.file || total > limits.total || records.length >= limits.count) fail("超过限制：单文件 10 MB、解压后 50 MB、1000 个文件。");
-      if (offset + 30 > u32(end + 16) || u32(offset) !== 0x04034b50 || u16(offset + 8) !== method || u16(offset + 6) !== flags) fail("ZIP 数据头损坏。");
-      const start = offset + 30 + u16(offset + 26) + u16(offset + 28);
-      if (start + packed > u32(end + 16)) fail("ZIP 文件内容不完整。");
-      records.push({ path: name, method, crc, size, packed, start, mode: mode & 0o111 ? "100755" : "100644" });
+      if (size > limits.file || total > limits.total || records.length >= limits.count) fail(limitMessage);
+      // Bound compressed allocation too, including malformed archives.
+      if (packed > limits.file + MB || offset + 30 + packed > centralStart) fail("ZIP 文件内容不完整或单文件过大。");
+      const header = new Uint8Array(await file.slice(offset, offset + 30).arrayBuffer());
+      const h = new DataView(header.buffer, header.byteOffset, header.byteLength);
+      if (header.length !== 30 || h.getUint32(0, true) !== 0x04034b50 || h.getUint16(8, true) !== method || h.getUint16(6, true) !== flags) fail("ZIP 数据头损坏。");
+      const localNameSize = h.getUint16(26, true), start = offset + 30 + localNameSize + h.getUint16(28, true);
+      if (start + packed > centralStart) fail("ZIP 文件内容不完整。");
+      const localName = new Uint8Array(await file.slice(offset + 30, offset + 30 + localNameSize).arrayBuffer());
+      if (decoder.decode(localName) !== name) fail("ZIP 数据头文件名与目录不一致。");
+      const record = { path: name, method, crc, size, packed, start, mode: mode & 0o111 ? "100755" : "100644" };
+      record.read = () => readZipEntry(file, record);
+      records.push(record);
     }
     if (cursor !== centralEnd) fail("ZIP 目录长度不匹配。");
-    const files = [];
-    for (const record of records) {
-      const compressed = bytes.subarray(record.start, record.start + record.packed);
+    return inspectSource(records, file.name.replace(/\.zip$/i, ""), progress);
+  }
+  async function readZipEntry(file, record) {
+      const compressed = new Uint8Array(await file.slice(record.start, record.start + record.packed).arrayBuffer());
       let content;
       try {
-        if (record.method === 0) content = compressed.slice();
+        if (record.method === 0) content = compressed;
         else {
           content = new Uint8Array(record.size);
           let written = 0;
@@ -101,17 +137,11 @@
         }
       } catch { fail(`ZIP 解压失败或实际大小不符：${record.path}`); }
       if (content.length !== record.size || crc32(content) !== record.crc) fail(`ZIP 内容校验失败：${record.path}`);
-      files.push({ path: record.path, bytes: content, mode: record.mode });
-      if (files.length % 30 === 0) await new Promise(resolve => setTimeout(resolve, 0));
-    }
-    return prepare(files, file.name.replace(/\.zip$/i, ""));
+      return content;
   }
-  async function readFolder(list) {
+  async function readFolder(list, progress = () => {}) {
     const files = [...list].filter(file => !ignored(validPath(file.webkitRelativePath || file.name)));
-    if (files.length > limits.count || files.some(file => file.size > limits.file) || files.reduce((n, file) => n + file.size, 0) > limits.total) fail("超过限制：单文件 10 MB、总计 50 MB、1000 个文件。");
-    const entries = [];
-    for (const file of files) entries.push({ path: file.webkitRelativePath || file.name, bytes: new Uint8Array(await file.arrayBuffer()) });
-    return prepare(entries, "MyProject");
+    return inspectSource(files.map(file => ({ path: file.webkitRelativePath || file.name, size: file.size, read: async () => new Uint8Array(await file.arrayBuffer()) })), "MyProject", progress);
   }
   function destination(name) {
     if (!/^[\p{L}\p{N}][\p{L}\p{N}._-]{0,63}$/u.test(name) || /[.]$/.test(name)) fail("项目名称请用字母、汉字或数字开头，后接字母、数字、点、短横线或下划线，最多 64 字。");
@@ -123,6 +153,20 @@
     const header = encoder.encode(`blob ${bytes.length}\0`), data = new Uint8Array(header.length + bytes.length);
     data.set(header); data.set(bytes, header.length);
     return [...new Uint8Array(await crypto.subtle.digest("SHA-1", data))].map(n => n.toString(16).padStart(2, "0")).join("");
+  }
+  const writeTimes = [];
+  async function paceWrites(progress) {
+    for (;;) {
+      const now = Date.now();
+      while (writeTimes.length && writeTimes[0] <= now - 3600000) writeTimes.shift();
+      const recent = writeTimes.filter(time => time > now - 60000);
+      const delay = Math.max(0, (writeTimes.at(-1) || 0) + 1100 - now,
+        recent.length >= 75 ? recent[0] + 60000 - now : 0,
+        writeTimes.length >= 450 ? writeTimes[0] + 3600000 - now : 0);
+      if (!delay) { writeTimes.push(now); return; }
+      if (delay > 3000) progress(null, `GitHub 写入频率保护：约 ${Math.ceil(delay / 1000)} 秒后继续。已准备的文件不会重复提交，请保持网页打开。`);
+      await new Promise(resolve => setTimeout(resolve, Math.min(delay, 1000)));
+    }
   }
   async function publish({ api, base, branch, name, files, replace = false, progress = () => {} }) {
     const target = destination(name);
@@ -144,26 +188,30 @@
         if (old && (old.path !== part || old.type !== (n === parts.length ? "blob" : "tree") || old.mode === "120000")) fail(`仓库存在大小写、链接或文件/目录冲突：${part}`);
       }
       const old = current.get(key(path));
-      if (old?.mode === file.mode && old.sha === await blobHash(file.bytes)) continue;
+      if (old?.mode === file.mode && old.sha === (file.sha || await blobHash(file.bytes))) continue;
       changes.push({ ...file, path });
     }
     if (!changes.length) { progress(100, "源码与仓库一致，将直接启动编译。"); return { sha: original, directory: target, changed: false }; }
-    const binaries = changes.filter(file => file.text === null || file.bytes.length > 2 * MB);
-    if (binaries.length > 150) fail("本次需要上传的二进制/大文件超过 150 个，可能触发 GitHub 限流。请使用 Git 客户端上传。");
-    const post = (path, body) => api(`${base}${path}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-    let baseTree = commit.tree.sha, batch = [], size = 0, done = 0;
-    const pace = () => new Promise(resolve => setTimeout(resolve, 1100));
-    async function flush() { if (batch.length) { baseTree = (await post("/git/trees", { base_tree: baseTree, tree: batch })).sha; batch = []; size = 0; await pace(); } }
+    const post = async (path, body) => {
+      await paceWrites((_, copy) => progress(Math.round(done / totalBytes * 85), copy));
+      return api(`${base}${path}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    };
+    let baseTree = commit.tree.sha, batch = [], size = 0, done = 0, index = 0;
+    const totalBytes = Math.max(1, changes.reduce((n, file) => n + fileSize(file), 0));
+    async function flush() { if (batch.length) { baseTree = (await post("/git/trees", { base_tree: baseTree, tree: batch })).sha; batch = []; size = 0; } }
     for (const file of changes) {
       const entry = { path: file.path, mode: file.mode, type: "blob" };
-      if (file.text === null || file.bytes.length > 2 * MB) {
-        entry.sha = (await post("/git/blobs", { content: base64(file.bytes), encoding: "base64" })).sha;
-        await pace();
-      } else entry.content = file.text;
+      progress(Math.round(done / totalBytes * 85), `正在读取并准备文件 ${++index} / ${changes.length}：${file.path}`);
+      const content = inspect({ ...file, bytes: file.read ? await file.read() : file.bytes });
+      if (file.sha && await blobHash(content.bytes) !== file.sha) fail(`文件内容发生变化，已停止提交，请重新选择：${file.path}`);
+      if (content.text === null || content.bytes.length > 2 * MB) {
+        entry.sha = (await post("/git/blobs", { content: base64(content.bytes), encoding: "base64" })).sha;
+      } else entry.content = content.text;
       const bytes = encoder.encode(JSON.stringify(entry)).length;
       if (size + bytes > 3 * MB) await flush();
       batch.push(entry); size += bytes;
-      progress(Math.round(++done / changes.length * 85), `准备文件 ${done} / ${changes.length}；完成后统一提交，不会留下半个工程。`);
+      done += fileSize(file);
+      progress(Math.round(done / totalBytes * 85), `准备文件 ${index} / ${changes.length}；完成后统一提交，不会留下半个工程。`);
     }
     await flush();
     progress(90, "文件已准备，正在安全提交源码…");
