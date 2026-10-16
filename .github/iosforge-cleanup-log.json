@@ -2,7 +2,24 @@
   "version": 1,
   "date": "2026-10-16",
   "timezone": "Asia/Shanghai",
-  "entries": [],
+  "entries": [
+    {
+      "timestamp": "2026-10-16T18:48:51+08:00",
+      "cleanup_run_id": 38889648661,
+      "deleted_run_ids": [
+        38887883302
+      ],
+      "actions_runs_deleted": 1,
+      "repository_items_deleted": 2,
+      "removed_paths": [
+        "sources/Download/iPlayer-unsigned.ipa",
+        "sources/iPlayer-iOSForge-工程包"
+      ],
+      "deleted_run_numbers": {
+        "38887883302": 284
+      }
+    }
+  ],
   "checks": [
     {
       "timestamp": "2026-10-16T18:34:05+08:00",
