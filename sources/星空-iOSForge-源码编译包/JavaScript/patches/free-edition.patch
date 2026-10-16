@@ -1,0 +1,1389 @@
+--- a/src/app/Main.js
++++ b/src/app/Main.js
+@@ -1,4 +1,6 @@
++// Free maintenance changes; original factory retained under reference/original-modules/310.js.
+ __d(310, function (e, t, a, i) {
++  var __recoveryFreePolicy = t(9000);
+   Object.defineProperty(i, "__esModule", {
+     value: !0
+   });
+@@ -98,7 +100,7 @@
+         }
+       },
+       componentWillUnmount: function () {
+-        r.apps.unon("appLaunchEnd"), r.apps.unon("closeModelView"), s.AppState.removeEventListener("change", this.handleAppStateChange), "ios" === s.Platform.OS && (this.iapEsub.remove(), this.iapSub.remove());
++        r.apps.unon("appLaunchEnd"), r.apps.unon("closeModelView"), s.AppState.removeEventListener("change", this.handleAppStateChange);
+       },
+       componentDidMount: function () {
+         var e = this;
+@@ -126,27 +128,7 @@
+       lazy_componentWillMount: function () {
+         r.fs.firstLoadSuccessful(), s.AppState.addEventListener("change", this.handleAppStateChange), s.AppState.addEventListener("memoryWarning", function () {
+           r.apps.showCmdBall && r.apps.tip("Memory running low !!!");
+-        }), "ios" === s.Platform.OS && s.NativeModules.RNIapIos && (this.iapSub = r.RNIap.purchaseUpdatedListener(function (e) {
+-          var t = function a() {
+-            if (r.apps.userid) {
+-              r.apps.purchaseActionLog("purchaseAction verify");
+-              var t = new Date(e.transactionDate).getTime();
+-              isNaN(t) && (t = Date.now()), 1e10 > t && (t *= 1e3);
+-              var i = t < (r.apps.lastPurchaseTime || 0) - 5e3;
+-              if (r.apps.isPurchasing || !i) r.apps.verifyPurchase(e, 2, i);else {
+-                var n = r.apps.purchaseTrans.findIndex(function (t) {
+-                  return t.transactionId === e.transactionId;
+-                });
+-                -1 === n && (r.apps.purchaseTrans.push(e), r.apps.emit("selectViewLoaded_contactsBoard", !0), r.dbs.setUserProfileK("purchaseTrans")["catch"](function (t) {
+-                  return (0, r.tlog)("error", "purchaseUpdatedListener setK", e, t);
+-                }));
+-              }
+-            } else setTimeout(a, 3e3);
+-          };
+-          t();
+-        }), this.iapEsub = r.RNIap.purchaseErrorListener(function (e) {
+-          "E_USER_CANCELLED" !== e.code && (r.apps.purchaseActionLog("error", "purchaseAction eventErr", e), r.apps.popTip((0, r.tr)("Purchase request failed. Try again."))), delete r.apps.isPurchasing;
+-        })), s.NetInfo.fetch().then(function (e) {
++        }), s.NetInfo.fetch().then(function (e) {
+           e = e.toLowerCase(), r.apps.prevNetworkType = e, r.apps.isWifi = !1, r.apps.isNetworkConnected = "none" !== e && "unknown" !== e, (0, r.tlog)("netInfo fetch", e, r.apps.prevNetworkType, r.apps.isNetworkConnected, r.apps.fnow());
+           var t = function (e) {
+             e = e.toLowerCase(), r.apps.isWifi = !1, r.apps.isNetworkConnected = "none" !== e && "unknown" !== e, (0, r.tlog)("netInfo fetch", e, r.apps.prevNetworkType, r.apps.isNetworkConnected, r.apps.fnow()), "none" === e && (0, r.tlog)("error", "netchange none"), r.apps.prevNetworkType = e;
+@@ -230,7 +212,7 @@
+       },
+       handleAppStateChange: function (e) {
+         var t = Date.now();
+-        return (0, r.tlog)("Change appstate", e, r.apps.fnow()), "iosWillBg" === e ? void (r.apps.isPurchasing && r.apps.purchaseActionLog("purchaseAction iosWillBg")) : "iosDidActive" === e ? void (r.apps.isPurchasing && r.apps.purchaseActionLog("purchaseAction iosDidActive")) : (r.apps.appState = e, delete r.apps.lastPickOk, "in" === r.apps.tmpAppStateChange ? void (r.apps.tmpAppStateChange = "out") : "out" === r.apps.tmpAppStateChange ? void delete r.apps.tmpAppStateChange : ("iosBg" === e && (r.apps.iosBg = 1, r.apps.lastChangeToBackgroundTime = t, r.apps.isPurchasing && r.apps.purchaseActionLog("purchaseAction iosBg")), void ("active" === e ? ((0, r.tlog)("appState", e, this.state.rootNavigator), "/a/d22.jpg" !== r.apps.customBg && r.apps.reloadHvdown(), r.apps.clearDeletedShares(), r.apps.showCmdBall && r.apps.checkOtherDataCenter(), r.apps.checkPermissions(), r.apps.iosBg = 0, setTimeout(function () {
++        return (0, r.tlog)("Change appstate", e, r.apps.fnow()), "iosWillBg" === e ? void (r.apps.isPurchasing && void 0) : "iosDidActive" === e ? void (r.apps.isPurchasing && void 0) : (r.apps.appState = e, delete r.apps.lastPickOk, "in" === r.apps.tmpAppStateChange ? void (r.apps.tmpAppStateChange = "out") : "out" === r.apps.tmpAppStateChange ? void delete r.apps.tmpAppStateChange : ("iosBg" === e && (r.apps.iosBg = 1, r.apps.lastChangeToBackgroundTime = t, r.apps.isPurchasing && void 0), void ("active" === e ? ((0, r.tlog)("appState", e, this.state.rootNavigator), "/a/d22.jpg" !== r.apps.customBg && r.apps.reloadHvdown(), r.apps.clearDeletedShares(), r.apps.showCmdBall && r.apps.checkOtherDataCenter(), r.apps.checkPermissions(), r.apps.iosBg = 0, setTimeout(function () {
+           delete r.apps.goCheckingRun;
+         }, 7e3), "ios" === s.Platform.OS ? (s.StatusBarIOS.setHidden(!1), r.apps.pushNotification.setApplicationIconBadgeNumber(0)) : r.PushNotificationAndroid.clearAll(), r.apps.isFetchingUnread = !1, r.apps.deletedShareId = {}, r.apps.restartBottleResLoop(), r.apps.handleUreadCallbacks.length && (r.apps.runUreadCallbacks = r.apps.handleUreadCallbacks, r.apps.handleUreadCallbacks = []), "welcome" !== this.state.rootNavigator && r.apps.launchConnect("active")) : (r.apps.emitOnce("stopAudioPlay"), r.apps.emit("stopAudioRecord"), r.apps.pickStoryTimeIntv = 1e3, r.dbs.clearOldLog(), "background" === e && ("android" === s.Platform.OS && (r.apps.lastChangeToBackgroundTime = t, /xiaomi/i.test(r.apps.deviceFrom) && r.EggNetService.clearXiaomiNotification()), (0, r.tlog)("appState", e, r.apps.lastChangeToBackgroundTime), r.apps.msgerUrlsIsNew = !1, r.apps.importantSync = !1, r.apps.emit("toggleEmo", !1), r.apps.isSendUriVideo = {}, clearTimeout(r.apps.onCloseReconnectTimer), r.apps.webServiceGifData.length > 200 && (r.apps.webServiceGifData = [], r.apps.webServiceGifPos = "", r.apps.webServiceGifSearchKey = ""))))));
+       },
+--- a/src/services/apps.js
++++ b/src/services/apps.js
+@@ -1,4 +1,6 @@
++// Free maintenance changes; original factory retained under reference/original-modules/316.js.
+ __d(316, function (global, require, module, exports) {
++  var __recoveryFreePolicy = require(9000);
+   Object.defineProperty(exports, "__esModule", {
+     value: !0
+   });
+@@ -1180,6 +1182,9 @@
+       apps.checkForHvdown(1);
+     })["catch"]((0, _requireConfig.errCb)("setHvdown"));
+   }, apps.checkForHvdown = function (e) {
++    if (!__recoveryFreePolicy.allowRemoteHotUpdates) return Promise.resolve({
++      updatesDisabledForMaintenance: true
++    });
+     if (!apps.verifyVurlsFinished) return void apps.verifyVurlsFinishedCbs.push(function () {
+       return apps.checkForHvdown();
+     });
+--- a/src/services/sync-purchase-shadow-mixin.js
++++ b/src/services/sync-purchase-shadow-mixin.js
+@@ -1,4 +1,6 @@
++// Free maintenance changes; original factory retained under reference/original-modules/318.js.
+ __d(318, function (e, t, n, r) {
++  var __recoveryFreePolicy = t(9000);
+   var i = t(311),
+     o = babelHelpers.interopRequireDefault(i),
+     a = t(312),
+@@ -309,13 +311,6 @@
+           }
+         }, {
+           type: "bar"
+-        }, {
+-          type: "btn",
+-          label: (0, s.tr)("My Stars"),
+-          value: e.stars || 0,
+-          onPress: function () {
+-            return e.buyStars();
+-          }
+         }, {
+           type: "bar"
+         }, {
+@@ -1596,277 +1591,31 @@
+         });
+       });
+     }, e.getPendingPurchasesIOS = function () {
+-      return new Promise(function (e, t) {
+-        "ios" === a.Platform.OS && a.NativeModules.RNIapIos ? s.RNIap.getPendingPurchasesIOS().then(function (t) {
+-          (0, s.tlog)("getPendingPurchasesIOS", t), e(t);
+-        })["catch"](function (e) {
+-          (0, s.tlog)("error", "getPendingPurchasesIOS", e), t(e);
+-        }) : e([]);
+-      });
++      return Promise.resolve([]);
+     }, e.verifyPurchase = function (t, n, r) {
+-      if (!t || !t.transactionId) return (0, s.tlog)("error", "verifyPurchase invalid purchase", t), void (r || (delete e.isPurchasing, e.popClose()));
+-      if (e.verifyingIds && e.verifyingIds.includes(t.transactionId)) return void (0, s.tlog)("warn", "verifyPurchase duplicate", t.transactionId);
+-      e.verifyingIds || (e.verifyingIds = []), e.verifyingIds.push(t.transactionId);
+-      var i = function a() {
+-          r || e.popSpin((0, s.tr)("Verifying Purchase..."), function () {
+-            return !0;
+-          });
+-          var i = e.getUserShadowId(e.userid),
+-            o = i.userid;
+-          s.fs.greetings(o + "_" + t.transactionId).then(function (r) {
+-            return e.send("verifyPurchase", {
+-              purchase: t,
+-              verifyId: r,
+-              repur: n
+-            });
+-          }).then(function (n) {
+-            var i = e.verifyingIds.indexOf(t.transactionId);
+-            if (-1 !== i && e.verifyingIds.splice(i, 1), void 0 === n.stars && !n.shaExp) return Promise.reject(n);
+-            var o = e.purchaseTrans.findIndex(function (e) {
+-              return e.transactionId === t.transactionId;
+-            });
+-            if (-1 !== o && (e.purchaseTrans.splice(o, 1), s.dbs.setUserProfileK("purchaseTrans")["catch"](function (e) {
+-              return (0, s.tlog)("error", "verifyPurchase setK", t, e);
+-            })), s.RNIap.finishTransaction(t), e.purchaseCnt -= 1, n.alreadyVerified && r || (delete e.isPurchasing, e.popClose()), !r) if (n.alreadyVerified) {
+-              var a = function () {
+-                return setTimeout(function () {
+-                  return e.popClose();
+-                }, 2e3);
+-              };
+-              e.popTip((0, s.tr)("Purchase already verified"), null, a);
+-            } else {
+-              var u = (0, s.tr)("Purchase Ok");
+-              if (void 0 !== n.stars && n.stars > e.stars) u = (0, s.tr)("Your stars increased from ## to ##", e.stars, n.stars), e.popClose(function () {
+-                return e.diag({
+-                  header: (0, s.tr)("Purchase Successful"),
+-                  content: u,
+-                  buttons: [{
+-                    text: (0, s.tr)("OK"),
+-                    onPress: function () {
+-                      return e.closeDiag();
+-                    }
+-                  }]
+-                });
+-              });else {
+-                var a = function () {
+-                  return setTimeout(function () {
+-                    return e.popClose();
+-                  }, 2e3);
+-                };
+-                e.popTip(u, null, a);
+-              }
+-            }
+-            void 0 !== n.stars && (e.stars = n.stars, s.dbs.setUserProfile({
+-              stars: n.stars
+-            })["catch"](function (e) {
+-              return (0, s.tlog)("error", "verifyPurchase setUserProfile", e);
+-            })), n.shaExp && (s.dbs.delUserProfile("shadowExpired")["catch"](function (e) {
+-              return (0, s.tlog)("error", "verifyPurchase del shadowExpired", t, e);
+-            }), s.dbs.setUserProfile({
+-              shaExp: n.shaExp
+-            })["catch"](function (e) {
+-              return (0, s.tlog)("error", "verifyPurchase shaExp", t, e);
+-            }), s.dbs.delUserProfile("vipExpD")["catch"](function (e) {
+-              return (0, s.tlog)("error", "verifyPurchase del vipExpD", t, e);
+-            }), s.dbs.delUserProfile("vipExp")["catch"](function (e) {
+-              return (0, s.tlog)("error", "verifyPurchase del vipExp", t, e);
+-            })), e.emit("userChanged"), e.emit("selectViewLoaded_contactsBoard", !0);
+-          })["catch"](function (n) {
+-            var i = e.verifyingIds.indexOf(t.transactionId);
+-            -1 !== i && e.verifyingIds.splice(i, 1), (0, s.tlog)("error", "Verify purchase failed", n), r || (delete e.isPurchasing, e.popClose(function () {
+-              return e.diag({
+-                header: (0, s.tr)("Verify Failed"),
+-                content: (0, s.tr)("Your purchase verification failed. Tap verify button to try again."),
+-                buttons: [{
+-                  text: (0, s.tr)("Later"),
+-                  onPress: function () {
+-                    return e.closeDiag(function () {
+-                      return e.emit("selectViewLoaded_contactsBoard", !0);
+-                    });
+-                  }
+-                }, {
+-                  text: (0, s.tr)("Verify"),
+-                  onPress: function () {
+-                    return e.closeDiag(function () {
+-                      return a();
+-                    });
+-                  }
+-                }]
+-              });
+-            }));
+-          });
+-        },
+-        o = e.purchaseTrans.findIndex(function (e) {
+-          return e.transactionId === t.transactionId;
+-        });
+-      -1 === o ? (e.purchaseTrans.push(t), s.dbs.setUserProfileK("purchaseTrans").then(i)["catch"](function (e) {
+-        return (0, s.tlog)("error", "main mount iap", t, e);
+-      })) : i();
++      return Promise.resolve({
++        purchasesDisabled: true
++      });
+     }, e.purchaseActionLog = function () {
+-      for (var t = arguments.length, n = Array(t), r = 0; t > r; r++) n[r] = arguments[r];
+-      n.unshift(new Date(e.now()).toLocaleString());
+-      var i = s.tlog.apply(void 0, n);
+-      e.send("purchaseAction", {
+-        act: i
+-      })["catch"](function (e) {
+-        return (0, s.tlog)("error", "purchaseActionLog", e);
+-      });
++      return void 0;
+     }, e.purchase = function (t) {
+-      if (e.isPurchasing && Date.now() - (e.lastPurchaseTime || 0) < 3e4) return void (0, s.tlog)("warn", "purchase already in progress", t, Date.now() - e.lastPurchaseTime);
+-      e.popSpin((0, s.tr)("Purchasing.."), function () {
+-        return !0;
+-      }), e.isPurchasing = !0, e.lastPurchaseTime = Date.now(), e.purchaseActionLog("purchaseAction start " + t), e.purchaseCnt += 1;
+-      var n = setTimeout(function () {
+-        e.isPurchasing && ((0, s.tlog)("warn", "purchase safety timeout"), delete e.isPurchasing, e.popClose());
+-      }, 3e4);
+-      s.RNIap.initConnection().then(function (r) {
+-        return (0, s.tlog)("purchase initConnection ok", r), r ? Promise.resolve().then(function () {
+-          return (0, s.tlog)("purchase getProducts", t), s.RNIap.getProducts([t]);
+-        }).then(function (e) {
+-          return (0, s.tlog)("purchase getProducts ok", e && e.length), s.RNIap.requestPurchase(t, !1);
+-        }).then(function (e) {
+-          (0, s.tlog)("purchase requestPurchase ok", e);
+-        }) : (clearTimeout(n), delete e.isPurchasing, e.purchaseActionLog("purchaseAction disabled " + t), e.popClose(function () {
+-          e.tip((0, s.tr)("You disabled In-app purchase"));
+-        }), void 0);
+-      })["catch"](function (r) {
+-        clearTimeout(n), delete e.isPurchasing, e.purchaseCnt -= 1, "E_USER_CANCELLED" === r.code ? (e.purchaseActionLog("purchaseAction canceled " + t), e.popTip((0, s.tr)("You canceled purchase"))) : "E_DEVELOPER_ERROR" === r.code ? (e.purchaseActionLog("error", "purchaseAction callbackErr", r), e.tip((0, s.tr)("Region not supported"))) : (e.purchaseActionLog("error", "purchaseAction callbackErr", r), e.popTip((0, s.tr)("Purchase request failed. Try again.")));
+-      });
++      return __recoveryFreePolicy.notifyBackendRequired(e);
+     }, e.buy30dayVIP = function () {
+-      e.purchase("co.whou.pick.vip30days");
++      return __recoveryFreePolicy.notifyBackendRequired(e);
+     }, e.buyStars = function () {
+-      e.purchase("stars_100");
++      return __recoveryFreePolicy.notifyBackendRequired(e);
+     }, e.sendStar = function (t, n) {
+-      e.popSpin((0, s.tr)("Sending...")), e.send("sendStar", {
+-        friendId: t,
+-        amount: n
+-      }).then(function (n) {
+-        setTimeout(function () {
+-          if (e.popClose(), n.err) "Insufficient stars" === n.err ? e.diag({
+-            header: (0, s.tr)("Tip"),
+-            content: (0, s.tr)("Insufficient stars. Do you want to buy 100 stars?") + "\n" + (0, s.tr)("Current stars: ##", e.stars || 0),
+-            buttons: [{
+-              text: (0, s.tr)("Cancel"),
+-              onPress: function () {
+-                return e.closeDiag(function () {
+-                  return e.onStarButtonPress(t);
+-                });
+-              }
+-            }, {
+-              text: (0, s.tr)("Buy"),
+-              onPress: function () {
+-                return e.closeDiag(function () {
+-                  return e.buyStars();
+-                });
+-              }
+-            }]
+-          }) : e.tip((0, s.tr)(n.err));else if (e.diag({
+-            header: (0, s.tr)("Tip"),
+-            content: (0, s.tr)("Sent successfully") + "\n" + (0, s.tr)("\u5269\u4f59\u5c0f\u661f\u661f\uff1a##", void 0 !== n.stars ? n.stars : e.stars || 0),
+-            buttons: [{
+-              text: (0, s.tr)("Ok"),
+-              onPress: function () {
+-                return e.closeDiag();
+-              }
+-            }]
+-          }), void 0 !== n.stars && (e.stars = n.stars, s.dbs.setUserProfile({
+-            stars: n.stars
+-          })["catch"](function (e) {
+-            return (0, s.tlog)("error", "sendStar setUserProfile", e);
+-          }), e.emit("userChanged")), n.msg) {
+-            s.dbs.insertFetchedMsgs([n.msg]);
+-            var r = e.getFid(n.msg.toId, n.msg.fromId, n.msg.shareId);
+-            e.msgsData[r] && (e.msgsData[r] = [n.msg].concat(e.msgsData[r]), e.emit("rerenderMsgsData_" + r, 1));
+-          }
+-        }, 1e3);
+-      })["catch"](function (n) {
+-        e.popClose(), "Insufficient stars" === n || "Insufficient stars" === n.message || n.err && "Insufficient stars" === n.err ? e.diag({
+-          header: (0, s.tr)("Tip"),
+-          content: (0, s.tr)("Insufficient stars. Do you want to buy 100 stars?") + "\n" + (0, s.tr)("Current stars: ##", e.stars || 0),
+-          buttons: [{
+-            text: (0, s.tr)("Cancel"),
+-            onPress: function () {
+-              return e.closeDiag(function () {
+-                return e.onStarButtonPress(t);
+-              });
+-            }
+-          }, {
+-            text: (0, s.tr)("Buy"),
+-            onPress: function () {
+-              return e.closeDiag(function () {
+-                return e.buyStars();
+-              });
+-            }
+-          }]
+-        }) : ((0, s.tlog)("error", "sendStar", n), e.tip((0, s.tr)("Send failed")));
+-      });
++      return __recoveryFreePolicy.notifyBackendRequired(e);
+     }, e.onStarButtonPress = function (t) {
+-      e.diag({
+-        header: (0, s.tr)("Send Stars"),
+-        content: (0, s.tr)("Do you want to send stars to this user?") + "\n" + (0, s.tr)("Current stars: ##", e.stars || 0),
+-        textInputs: [{
+-          placeholder: (0, s.tr)("Enter amount"),
+-          keyboardType: "numeric",
+-          value: ""
+-        }],
+-        buttons: [{
+-          text: (0, s.tr)("Cancel"),
+-          onPress: function () {
+-            return e.closeDiag();
+-          }
+-        }, {
+-          text: (0, s.tr)("Send Star"),
+-          onPress: function (n) {
+-            var r = n.state.textInputs[0].value;
+-            e.closeDiag(function () {
+-              return r ? void e.sendStar(t, r) : void e.tip((0, s.tr)("Please enter the number of stars"));
+-            });
+-          }
+-        }]
+-      });
++      return __recoveryFreePolicy.notifyBackendRequired(e);
+     }, e.shadowPurchaseMenu = function () {
+-      e.emit("contextMenu", [[(0, s.tr)("1 months (\xa528)"), function () {
+-        e.emit("closeContextMenu", function () {
+-          e.purchase("co.whou.pick.shadow1month");
+-        });
+-      }], [(0, s.tr)("3 months (\xa578)"), function () {
+-        e.emit("closeContextMenu", function () {
+-          e.purchase("co.whou.pick.shadow3month");
+-        });
+-      }], [(0, s.tr)("6 months (\xa5153)"), function () {
+-        e.emit("closeContextMenu", function () {
+-          e.purchase("co.whou.pick.shadow6month");
+-        });
+-      }]]);
++      return __recoveryFreePolicy.notifyBackendRequired(e);
+     }, e.runPurchase = function () {
+-      return e.forbidExp || e.isForbided ? void e.forbidTip() : void ("ios" === a.Platform.OS ? e.purchase("co.whou.pick.shadow1month") : a.NativeModules.EggNetService);
++      return __recoveryFreePolicy.notifyBackendRequired(e);
+     }, e.popPurchaseShadowDiag = function (t) {
+-      return e.forbidExp || e.isForbided ? void e.forbidTip() : void Promise.resolve([]).then(function (n) {
+-        n && n.length > 0 ? (e.purchaseActionLog("popPurchaseShadowDiag pendingPurchase verify"), delete e.isPurchasing, n.forEach(function (t) {
+-          return e.verifyPurchase(t, 3);
+-        })) : e.diag({
+-          header: (0, s.tr)("Charge Remind"),
+-          content: 2 === t ? (0, s.tr)("You need to subscribe for the shadow function") : (0, s.tr)("Your shadow has expired"),
+-          buttons: [{
+-            text: (0, s.tr)("Cancel"),
+-            onPress: function () {
+-              return e.clearUnreadDiag();
+-            }
+-          }, {
+-            text: (0, s.tr)("Next"),
+-            onPress: function () {
+-              return e.closeDiag(function () {
+-                return e.runPurchase();
+-              });
+-            }
+-          }]
+-        });
+-      })["catch"](function (e) {
+-        (0, s.tlog)("error", "popPurchaseShadowDiag", e);
+-      });
++      return __recoveryFreePolicy.notifyBackendRequired(e);
+     }, e._switchShadow = function (t, n) {
+       if (!e.switchingShadow) {
+-        if (t && e.isTempUserid()) return void e.popPurchaseShadowDiag(t);
+         if (e.switchingShadow = !0, e.shaM) var r = e.shaM;
+         s.dbs.delUserProfiles(["shaM", "shaMClear", "disableShadowRemind"]).then(function () {
+           var t = e.mpasswd,
+@@ -1978,7 +1727,6 @@
+         t && t.progressing(!1), (0, s.tlog)("error", "switchShadow2", e);
+       });
+     }, e.switchShadow = function (t, n) {
+-      if ("ios" === a.Platform.OS && !a.NativeModules.RNIapIos) return void e.tip((0, s.tr)("This function need to update in App Store."));
+       if (e.tpwd && "^1" !== e.userid.slice(-2)) return void e.tip((0, s.tr)("Shadow cannot be used in teenager mode"));
+       if (e.shadowId) e._switchShadow(e.shadowExpired);else {
+         if (e.forbidExp || e.isForbided) return void e.forbidTip();
+@@ -2904,47 +2652,7 @@
+         });
+       }
+     }, e.shaMMDiag = function () {
+-      return e.shadowExpired ? (e.send("shaMM", {
+-        shaMM: e.shaMM
+-      }).then(function () {
+-        e.shadowDb().then(function (t) {
+-          return t.executeSql("INSERT OR REPLACE INTO UserProfile (k, v) VALUES (?, ?)", ["shaM", JSON.stringify(e.shaMM)]);
+-        })["catch"](function (e) {
+-          (0, s.tlog)("error", "shaMMDiag open database", e);
+-        }), 1 === e.shadowExpired ? e.diag({
+-          header: (0, s.tr)("Renew"),
+-          content: (0, s.tr)("Your shadow has expired"),
+-          buttons: [{
+-            text: (0, s.tr)("Switch Realbody"),
+-            onPress: function () {
+-              return e._switchShadow(null);
+-            }
+-          }, {
+-            text: (0, s.tr)("Renew"),
+-            onPress: function () {
+-              return e._switchShadow(null, 1);
+-            }
+-          }]
+-        }) : e.diag({
+-          header: (0, s.tr)("Subscribe VIP"),
+-          content: (0, s.tr)("Shadow is VIP function"),
+-          buttons: [{
+-            text: (0, s.tr)("Switch Realbody"),
+-            onPress: function () {
+-              return e._switchShadow(null);
+-            }
+-          }, {
+-            text: (0, s.tr)("Subscribe"),
+-            onPress: function () {
+-              return e._switchShadow(null, 1);
+-            }
+-          }]
+-        });
+-      })["catch"](function (e) {
+-        (0, s.tlog)("error", "shaMMDiag", e);
+-      }), !0) : void s.dbs.delUserProfile("shaMM")["catch"](function (e) {
+-        return (0, s.tlog)("error", "shaMMDiag shaMM", e);
+-      });
++      return void 0;
+     }, e.renderSpinner = function () {
+       return "android" === a.Platform.OS ? o["default"].createElement(a.ProgressBarAndroid, {
+         style: {
+--- a/src/services/business-mixin.js
++++ b/src/services/business-mixin.js
+@@ -1,4 +1,6 @@
++// Free maintenance changes; original factory retained under reference/original-modules/320.js.
+ __d(320, function (e, t, n, r) {
++  var __recoveryFreePolicy = t(9000);
+   var i = t(311),
+     o = (babelHelpers.interopRequireDefault(i), t(312)),
+     s = t(314);
+@@ -598,19 +600,12 @@
+         })["catch"](function (e) {
+           return (0, s.tlog)("error", "pickupBottle setUserProfile", e);
+         }), e.emit("userChanged")), t.insufficientStars) return e.popClose(), void e.diag({
+-          header: (0, s.tr)("Tip"),
+-          content: (0, s.tr)("Insufficient stars"),
++          header: "提示",
++          content: __recoveryFreePolicy.unavailableMessage,
+           buttons: [{
+             text: (0, s.tr)("Cancel"),
+             onPress: function () {
+               return e.closeDiag();
+-            }
+-          }, {
+-            text: (0, s.tr)("Buy Stars"),
+-            onPress: function () {
+-              return e.closeDiag(function () {
+-                return e.buyStars();
+-              });
+             }
+           }]
+         });
+@@ -694,19 +689,12 @@
+             });
+           })["catch"](function (r) {
+             "needVip" == r ? e.diag({
+-              header: (0, s.tr)("Buy VIP"),
+-              content: (0, s.tr)("You need to buy VIP to use this function"),
++              header: "提示",
++              content: __recoveryFreePolicy.unavailableMessage,
+               buttons: [{
+                 text: (0, s.tr)("Cancel"),
+                 onPress: function () {
+                   return e.closeDiag();
+-                }
+-              }, {
+-                text: (0, s.tr)("Buy"),
+-                onPress: function () {
+-                  return e.closeDiag(function () {
+-                    return e.runPurchase();
+-                  });
+                 }
+               }]
+             }) : (t.progressing(!1), (0, s.tlog)("error", "setPickup", n, r), t.setState({
+@@ -799,17 +787,13 @@
+         time: Date.now(),
+         listSections: ["Circle", "Myself"]
+       }, e.shouldShowShadow && (ret.listSections.unshift("Options"), ret.listData.Options = [{
+-        name: e.isTempUserid() ? "\u5207\u6362\u5206\u8eab\uff08\u4ed8\u8d39\u4f1a\u5458\uff09" : "Switch Shadow",
++        name: "Switch Shadow",
+         type: -103,
+         friendId: "-103:"
+       }]), e.firstNotiTouched || (ret.listSections.unshift("NotiEn"), ret.listData.NotiEn = [{
+         name: "ios" === o.Platform.OS ? "Notification disabled" : "Notification Alert",
+         type: -102,
+         friendId: "-102:"
+-      }]), e.purchaseTrans.length && (ret.listSections.unshift("UnPurchase"), ret.listData.UnPurchase = [{
+-        name: "Purchase unfinished",
+-        type: e.CONS_SEL_UNPURCHASE,
+-        friendId: e.CONS_SEL_UNPURCHASE + ":"
+       }]), e.showCmdBall, ret;
+     }, e.addNewFriendDiag = function (t) {
+       if (e.forbidExp || e.isForbided) return void e.forbidTip();
+@@ -2458,23 +2442,7 @@
+         (0, s.tlog)("error", "vipExpCheck", t, e);
+       });
+     }, e.vipExpDiag = function () {
+-      e.diag({
+-        header: (0, s.tr)("Buy VIP"),
+-        content: (0, s.tr)("You need to buy VIP"),
+-        buttons: [{
+-          text: (0, s.tr)("Cancel"),
+-          onPress: function () {
+-            return e.closeDiag();
+-          }
+-        }, {
+-          text: (0, s.tr)("Buy"),
+-          onPress: function () {
+-            return e.closeDiag(function () {
+-              return e.runPurchase();
+-            });
+-          }
+-        }]
+-      });
++      return __recoveryFreePolicy.notifyBackendRequired(e);
+     }, e.teenagerMode = function () {
+       var t,
+         n = 0,
+--- a/src/modules/module-329.js
++++ b/src/modules/module-329.js
+@@ -1,4 +1,6 @@
++// Free maintenance changes; original factory retained under reference/original-modules/329.js.
+ __d(329, function (t, e, n, i) {
++  var __recoveryFreePolicy = e(9000);
+   var o = e(311),
+     s = babelHelpers.interopRequireDefault(o),
+     a = e(312),
+@@ -202,15 +204,6 @@
+             })["catch"](function (t) {
+               (0, p.tlog)("error", "ios-folder-open-outline", i, t);
+             });
+-          }
+-        }, {
+-          ionicons: "ios-star-outline",
+-          size: 26,
+-          color: p.theme.deep9,
+-          onPress: function (t, e) {
+-            var n = p.apps.currentRoutes[p.apps.currentNavi],
+-              i = p.apps.atFriendId || n.userid;
+-            p.apps.onStarButtonPress(i);
+           }
+         }, {
+           ionicons: "ios-microphone-outline",
+--- a/src/navigation/FriendsNavigator.js
++++ b/src/navigation/FriendsNavigator.js
+@@ -1,4 +1,6 @@
++// Free maintenance changes; original factory retained under reference/original-modules/342.js.
+ __d(342, function (e, t, r, a) {
++  var __recoveryFreePolicy = t(9000);
+   Object.defineProperty(a, "__esModule", {
+     value: !0
+   }), a.FriendsNavigator = void 0;
+@@ -314,7 +316,7 @@
+       },
+       onFriendsTabPressed: function () {
+         var e = this;
+-        if (!this.isFoucusing && "friends" === o.apps.currentNavi && !(o.apps.vipExpD || o.apps.isForbided || o.apps.forbidExp)) {
++        if (!this.isFoucusing && "friends" === o.apps.currentNavi && !(o.apps.isForbided || o.apps.forbidExp)) {
+           if (o.apps.bottleResponseMap.cnt) return void o.apps.navToBottleRes();
+           var t, r;
+           if ("friends" === o.apps.currentRoutes.friends.name) {
+@@ -505,7 +507,7 @@
+                 return (0, o.tlog)("error", "quickLaunch normalLaunch", e);
+               }), o.apps.bottleResLoop(), o.apps.shaSS && (o.dbs.delUserProfile("shaSS")["catch"](function (e) {
+                 return (0, o.tlog)("error", "run shaSS", e);
+-              }), o.apps.runPurchase()), o.apps.emit("launchMySpaceNav"), o.apps.launchMySpaceNavEmitted = !0, o.apps.loadAboutMeFirst ? (o.apps.delSharedParas("loadAboutMeFirst")["catch"](function (e) {
++              }), void 0), o.apps.emit("launchMySpaceNav"), o.apps.launchMySpaceNavEmitted = !0, o.apps.loadAboutMeFirst ? (o.apps.delSharedParas("loadAboutMeFirst")["catch"](function (e) {
+                 return (0, o.tlog)("error", "del loadAboutMeFirst", e);
+               }), o.apps.curNavigator = o.apps.aboutMeNavigator, o.apps.emit("switchMainTab", {
+                 friendsNavFlex: 0,
+--- a/src/navigation/MySpaceNavigator.js
++++ b/src/navigation/MySpaceNavigator.js
+@@ -1,4 +1,6 @@
++// Free maintenance changes; original factory retained under reference/original-modules/344.js.
+ __d(344, function (e, t, a, r) {
++  var __recoveryFreePolicy = t(9000);
+   Object.defineProperty(r, "__esModule", {
+     value: !0
+   }), r.MySpaceNavigator = void 0;
+@@ -791,24 +793,9 @@
+                     });
+                     a.routes.navi.navForward(r);
+                   } else o.apps.noCircleTip();
+-                } else if (3 === t.type) a.routes.navi.navForward(a.routes.bottleFriends);else if (t.type === o.apps.CONS_SEL_UNPURCHASE) o.apps.diag({
+-                  header: (0, o.tr)("Purchase Verify"),
+-                  content: (0, o.tr)("The apple purchase server is in America and sometimes not so steady."),
+-                  buttons: [{
+-                    text: (0, o.tr)("Later"),
+-                    onPress: function () {
+-                      return o.apps.closeDiag();
+-                    }
+-                  }, {
+-                    text: (0, o.tr)("Verify"),
+-                    onPress: function () {
+-                      return o.apps.closeDiag(function () {
+-                        var e = o.apps.purchaseTrans.pop();
+-                        e && o.apps.verifyPurchase(e, 1);
+-                      });
+-                    }
+-                  }]
+-                });else {
++                } else if (3 === t.type) a.routes.navi.navForward(a.routes.bottleFriends);else if (t.type === o.apps.CONS_SEL_UNPURCHASE) {
++                  return __recoveryFreePolicy.notifyBackendRequired(o.apps);
++                } else {
+                   var n = t.friendId;
+                   a.routes.navi.navForward(o.apps.newRoute(a.routes, "about_", {
+                     friendId: n,
+--- a/src/modules/module-363.js
++++ b/src/modules/module-363.js
+@@ -1,4 +1,6 @@
++// Free maintenance changes; original factory retained under reference/original-modules/363.js.
+ __d(363, function (e, t, a, s) {
++  var __recoveryFreePolicy = t(9000);
+   var n = t(311),
+     i = babelHelpers.interopRequireDefault(n),
+     r = t(312),
+@@ -38,7 +40,7 @@
+           t = this.props.data,
+           a = t.type,
+           s = t.friendId;
+-        return o.apps.isIn(a, 3, 8, -103, -104) || s === o.apps.userid ? (-103 !== a || o.apps.disableShadowRemind ? 8 === a ? e = o.apps.circleMsgUnreadList.length + o.apps.circleShareUnreadList.length : 3 === a || o.apps.newFollowers.cnt || -104 === a && (e = o.apps.purchaseTrans.length) : o.apps.shaM && o.apps.shaM !== o.apps.shaMClear && (e = o.apps.shaM.split(",").pop()), e ? i["default"].createElement(r.View, {
++        return o.apps.isIn(a, 3, 8, -103, -104) || s === o.apps.userid ? (-103 !== a || o.apps.disableShadowRemind ? 8 === a ? e = o.apps.circleMsgUnreadList.length + o.apps.circleShareUnreadList.length : 3 === a || o.apps.newFollowers.cnt || false : o.apps.shaM && o.apps.shaM !== o.apps.shaMClear && (e = o.apps.shaM.split(",").pop()), e ? i["default"].createElement(r.View, {
+           style: {
+             backgroundColor: o.theme.warn,
+             marginLeft: 8,
+--- a/src/components/ChatBubbleView.js
++++ b/src/components/ChatBubbleView.js
+@@ -1,4 +1,6 @@
++// Free maintenance changes; original factory retained under reference/original-modules/370.js.
+ __d(370, function (e, t, a, i) {
++  var __recoveryFreePolicy = t(9000);
+   var r = t(311),
+     s = babelHelpers.interopRequireDefault(r),
+     o = t(312),
+@@ -879,6 +881,10 @@
+                 o = function () {
+                   n.apps.snapDes(s, f);
+                 };
++              if (__recoveryFreePolicy.freeEdition && __recoveryFreePolicy.localSnapPreview) {
++                r();
++                return;
++              }
+               k ? r() : e.data.fromId === n.apps.userid ? r() : e.data.isnew ? n.apps.diag({
+                 header: (0, n.tr)("Tip"),
+                 content: (0, n.tr)("Viewing this image costs 1 star. Continue?"),
+@@ -901,19 +907,12 @@
+                         }), n.apps.emit("userChanged")), r(), o();
+                       })["catch"](function (e) {
+                         "Insufficient stars" === e || e.err && "Insufficient stars" === e.err ? n.apps.diag({
+-                          header: (0, n.tr)("Tip"),
+-                          content: (0, n.tr)("Insufficient stars. Do you want to buy 100 stars?") + "\n" + (0, n.tr)("Current stars: ##", n.apps.stars || 0),
++                          header: "提示",
++                          content: __recoveryFreePolicy.unavailableMessage,
+                           buttons: [{
+                             text: (0, n.tr)("Cancel"),
+                             onPress: function () {
+                               return n.apps.closeDiag();
+-                            }
+-                          }, {
+-                            text: (0, n.tr)("Buy"),
+-                            onPress: function () {
+-                              return n.apps.closeDiag(function () {
+-                                return n.apps.buyStars();
+-                              });
+                             }
+                           }]
+                         }) : n.apps.tip((0, n.tr)("Failed to view"));
+--- a/src/native-bridges/in-app-purchase.js
++++ b/src/native-bridges/in-app-purchase.js
+@@ -1,663 +1,34 @@
+-__d(638, function (e, r, t, n) {
+-  function u() {
+-    return i ? void 0 : Promise.reject(new Error(d.E_IAP_NOT_AVAILABLE));
++// Compatibility adapter for the free maintenance build; never calls native billing.
++__d(638, function (global, require, module, exports) {
++  "use strict";
++  Object.defineProperty(exports, "__esModule", {value:true});
++  function list() { return Promise.resolve([]); }
++  function disabled() {
++    var error = new Error("In-app purchases are disabled in the free maintenance edition");
++    error.code = "IAP_DISABLED_FREE_EDITION";
++    return Promise.reject(error);
+   }
+-  function a() {
+-    return c ? void 0 : Promise.reject(new Error(d.E_IAP_NOT_AVAILABLE));
+-  }
+-  Object.defineProperty(n, "__esModule", {
+-    value: !0
+-  }), n.getPendingPurchasesIOS = n.getReceiptIOS = n.purchaseErrorListener = n.purchaseUpdatedListener = n.validateReceiptAndroid = n.validateReceiptIos = n.requestPurchaseWithOfferIOS = n.buyPromotedProductIOS = n.getPromotedProductIOS = n.consumePurchaseAndroid = n.acknowledgePurchaseAndroid = n.clearProductsIOS = n.clearTransactionIOS = n.finishTransaction = n.finishTransactionIOS = n.requestPurchaseWithQuantityIOS = n.requestSubscription = n.requestPurchase = n.getAvailablePurchases = n.getPurchaseHistory = n.getSubscriptions = n.getProducts = n.consumeAllItemsAndroid = n.endConnectionAndroid = n.initConnection = n.PROMOTED_PRODUCT = n.PurchaseStateAndroid = n.IAPErrorCode = void 0;
+-  var o = this,
+-    s = r(312),
+-    c = s.NativeModules.RNIapIos,
+-    i = s.NativeModules.RNIapModule,
+-    d = n.IAPErrorCode = void 0;
+-  !function (e) {
+-    e.E_IAP_NOT_AVAILABLE = "E_IAP_NOT_AVAILABLE", e.E_UNKNOWN = "E_UNKNOWN", e.E_USER_CANCELLED = "E_USER_CANCELLED", e.E_USER_ERROR = "E_USER_ERROR", e.E_ITEM_UNAVAILABLE = "E_ITEM_UNAVAILABLE", e.E_REMOTE_ERROR = "E_REMOTE_ERROR", e.E_NETWORK_ERROR = "E_NETWORK_ERROR", e.E_SERVICE_ERROR = "E_SERVICE_ERROR", e.E_RECEIPT_FAILED = "E_RECEIPT_FAILED", e.E_RECEIPT_FINISHED_FAILED = "E_RECEIPT_FINISHED_FAILED", e.E_NOT_PREPARED = "E_NOT_PREPARED", e.E_NOT_ENDED = "E_NOT_ENDED", e.E_ALREADY_OWNED = "E_ALREADY_OWNED", e.E_DEVELOPER_ERROR = "E_DEVELOPER_ERROR", e.E_BILLING_RESPONSE_JSON_PARSE_ERROR = "E_BILLING_RESPONSE_JSON_PARSE_ERROR";
+-  }(d || (n.IAPErrorCode = d = {}));
+-  var l = n.PurchaseStateAndroid = void 0;
+-  !function (e) {
+-    e[e.UNSPECIFIED_STATE = 0] = "UNSPECIFIED_STATE", e[e.PURCHASED = 1] = "PURCHASED", e[e.PENDING = 2] = "PENDING";
+-  }(l || (n.PurchaseStateAndroid = l = {}));
+-  var f = "subs",
+-    p = "inapp",
+-    E = (n.PROMOTED_PRODUCT = "iap-promoted-product", n.initConnection = function () {
+-      return s.Platform.select({
+-        ios: function () {
+-          return regeneratorRuntime.async(function (e) {
+-            for (;;) switch (e.prev = e.next) {
+-              case 0:
+-                if (c) {
+-                  e.next = 2;
+-                  break;
+-                }
+-                return e.abrupt("return", Promise.resolve());
+-              case 2:
+-                return e.abrupt("return", c.canMakePayments());
+-              case 3:
+-              case "end":
+-                return e.stop();
+-            }
+-          }, null, o);
+-        },
+-        android: function () {
+-          return regeneratorRuntime.async(function (e) {
+-            for (;;) switch (e.prev = e.next) {
+-              case 0:
+-                if (i) {
+-                  e.next = 2;
+-                  break;
+-                }
+-                return e.abrupt("return", Promise.resolve());
+-              case 2:
+-                return e.abrupt("return", i.initConnection());
+-              case 3:
+-              case "end":
+-                return e.stop();
+-            }
+-          }, null, o);
+-        }
+-      })();
+-    }),
+-    h = n.endConnectionAndroid = function () {
+-      return s.Platform.select({
+-        ios: function () {
+-          return regeneratorRuntime.async(function (e) {
+-            for (;;) switch (e.prev = e.next) {
+-              case 0:
+-                return e.abrupt("return", Promise.resolve());
+-              case 1:
+-              case "end":
+-                return e.stop();
+-            }
+-          }, null, o);
+-        },
+-        android: function () {
+-          return regeneratorRuntime.async(function (e) {
+-            for (;;) switch (e.prev = e.next) {
+-              case 0:
+-                if (i) {
+-                  e.next = 2;
+-                  break;
+-                }
+-                return e.abrupt("return", Promise.resolve());
+-              case 2:
+-                return e.abrupt("return", i.endConnection());
+-              case 3:
+-              case "end":
+-                return e.stop();
+-            }
+-          }, null, o);
+-        }
+-      })();
+-    },
+-    P = n.consumeAllItemsAndroid = function () {
+-      return s.Platform.select({
+-        ios: function () {
+-          return regeneratorRuntime.async(function (e) {
+-            for (;;) switch (e.prev = e.next) {
+-              case 0:
+-                return e.abrupt("return", Promise.resolve());
+-              case 1:
+-              case "end":
+-                return e.stop();
+-            }
+-          }, null, o);
+-        },
+-        android: function () {
+-          return regeneratorRuntime.async(function (e) {
+-            for (;;) switch (e.prev = e.next) {
+-              case 0:
+-                return u(), e.abrupt("return", i.refreshItems());
+-              case 2:
+-              case "end":
+-                return e.stop();
+-            }
+-          }, null, o);
+-        }
+-      })();
+-    },
+-    m = n.getProducts = function (e) {
+-      return s.Platform.select({
+-        ios: function () {
+-          return regeneratorRuntime.async(function (r) {
+-            for (;;) switch (r.prev = r.next) {
+-              case 0:
+-                if (c) {
+-                  r.next = 2;
+-                  break;
+-                }
+-                return r.abrupt("return", []);
+-              case 2:
+-                return r.abrupt("return", c.getItems(e).then(function (e) {
+-                  return e.filter(function (e) {
+-                    return e.productId;
+-                  });
+-                }));
+-              case 3:
+-              case "end":
+-                return r.stop();
+-            }
+-          }, null, o);
+-        },
+-        android: function () {
+-          return regeneratorRuntime.async(function (r) {
+-            for (;;) switch (r.prev = r.next) {
+-              case 0:
+-                if (i) {
+-                  r.next = 2;
+-                  break;
+-                }
+-                return r.abrupt("return", []);
+-              case 2:
+-                return r.abrupt("return", i.getItemsByType(p, e));
+-              case 3:
+-              case "end":
+-                return r.stop();
+-            }
+-          }, null, o);
+-        }
+-      })();
+-    },
+-    R = n.getSubscriptions = function (e) {
+-      return s.Platform.select({
+-        ios: function () {
+-          return regeneratorRuntime.async(function (r) {
+-            for (;;) switch (r.prev = r.next) {
+-              case 0:
+-                return a(), r.abrupt("return", c.getItems(e).then(function (r) {
+-                  return r.filter(function (r) {
+-                    return e.includes(r.productId);
+-                  });
+-                }));
+-              case 2:
+-              case "end":
+-                return r.stop();
+-            }
+-          }, null, o);
+-        },
+-        android: function () {
+-          return regeneratorRuntime.async(function (r) {
+-            for (;;) switch (r.prev = r.next) {
+-              case 0:
+-                return u(), r.abrupt("return", i.getItemsByType(f, e));
+-              case 2:
+-              case "end":
+-                return r.stop();
+-            }
+-          }, null, o);
+-        }
+-      })();
+-    },
+-    v = n.getPurchaseHistory = function () {
+-      return s.Platform.select({
+-        ios: function () {
+-          return regeneratorRuntime.async(function (e) {
+-            for (;;) switch (e.prev = e.next) {
+-              case 0:
+-                return a(), e.abrupt("return", c.getAvailableItems());
+-              case 2:
+-              case "end":
+-                return e.stop();
+-            }
+-          }, null, o);
+-        },
+-        android: function () {
+-          var e, r;
+-          return regeneratorRuntime.async(function (t) {
+-            for (;;) switch (t.prev = t.next) {
+-              case 0:
+-                return u(), t.next = 3, regeneratorRuntime.awrap(i.getPurchaseHistoryByType(p));
+-              case 3:
+-                return e = t.sent, t.next = 6, regeneratorRuntime.awrap(i.getPurchaseHistoryByType(f));
+-              case 6:
+-                return r = t.sent, t.abrupt("return", e.concat(r));
+-              case 8:
+-              case "end":
+-                return t.stop();
+-            }
+-          }, null, o);
+-        }
+-      })();
+-    },
+-    g = n.getAvailablePurchases = function () {
+-      return s.Platform.select({
+-        ios: function () {
+-          return regeneratorRuntime.async(function (e) {
+-            for (;;) switch (e.prev = e.next) {
+-              case 0:
+-                return a(), e.abrupt("return", c.getAvailableItems());
+-              case 2:
+-              case "end":
+-                return e.stop();
+-            }
+-          }, null, o);
+-        },
+-        android: function () {
+-          var e, r;
+-          return regeneratorRuntime.async(function (t) {
+-            for (;;) switch (t.prev = t.next) {
+-              case 0:
+-                return u(), t.next = 3, regeneratorRuntime.awrap(i.getAvailableItemsByType(p));
+-              case 3:
+-                return e = t.sent, t.next = 6, regeneratorRuntime.awrap(i.getAvailableItemsByType(f));
+-              case 6:
+-                return r = t.sent, t.abrupt("return", e.concat(r));
+-              case 8:
+-              case "end":
+-                return t.stop();
+-            }
+-          }, null, o);
+-        }
+-      })();
+-    },
+-    y = n.requestPurchase = function (e, r, t, n) {
+-      return s.Platform.select({
+-        ios: function () {
+-          return regeneratorRuntime.async(function (t) {
+-            for (;;) switch (t.prev = t.next) {
+-              case 0:
+-                return r = void 0 === r ? !0 : r, r && console.warn("You are dangerously allowing react-native-iap to finish your transaction automatically. You should set andDangerouslyFinishTransactionAutomatically to false when calling requestPurchase and call finishTransaction manually when you have delivered the purchased goods to the user. It defaults to true to provide backwards compatibility. Will default to false in version 4.0.0."), a(), t.abrupt("return", c.buyProduct(e, r));
+-              case 4:
+-              case "end":
+-                return t.stop();
+-            }
+-          }, null, o);
+-        },
+-        android: function () {
+-          return regeneratorRuntime.async(function (r) {
+-            for (;;) switch (r.prev = r.next) {
+-              case 0:
+-                return u(), r.abrupt("return", i.buyItemByType(p, e, null, 0, t, n));
+-              case 2:
+-              case "end":
+-                return r.stop();
+-            }
+-          }, null, o);
+-        }
+-      })();
+-    },
+-    b = n.requestSubscription = function (e, r, t, n, d, l) {
+-      return s.Platform.select({
+-        ios: function () {
+-          return regeneratorRuntime.async(function (t) {
+-            for (;;) switch (t.prev = t.next) {
+-              case 0:
+-                return r = void 0 === r ? !0 : r, r && console.warn("You are dangerously allowing react-native-iap to finish your transaction automatically. You should set andDangerouslyFinishTransactionAutomatically to false when calling requestPurchase and call finishTransaction manually when you have delivered the purchased goods to the user. It defaults to true to provide backwards compatibility. Will default to false in version 4.0.0."), a(), t.abrupt("return", c.buyProduct(e, r));
+-              case 4:
+-              case "end":
+-                return t.stop();
+-            }
+-          }, null, o);
+-        },
+-        android: function () {
+-          return regeneratorRuntime.async(function (r) {
+-            for (;;) switch (r.prev = r.next) {
+-              case 0:
+-                return u(), n || (n = -1), r.abrupt("return", i.buyItemByType(f, e, t, n, d, l));
+-              case 3:
+-              case "end":
+-                return r.stop();
+-            }
+-          }, null, o);
+-        }
+-      })();
+-    },
+-    I = n.requestPurchaseWithQuantityIOS = function (e, r) {
+-      return s.Platform.select({
+-        ios: function () {
+-          return regeneratorRuntime.async(function (t) {
+-            for (;;) switch (t.prev = t.next) {
+-              case 0:
+-                return a(), t.abrupt("return", c.buyProductWithQuantityIOS(e, r));
+-              case 2:
+-              case "end":
+-                return t.stop();
+-            }
+-          }, null, o);
+-        }
+-      })();
+-    },
+-    _ = n.finishTransactionIOS = function (e) {
+-      return s.Platform.select({
+-        ios: function () {
+-          return regeneratorRuntime.async(function (r) {
+-            for (;;) switch (r.prev = r.next) {
+-              case 0:
+-                return a(), r.abrupt("return", c.finishTransaction(e));
+-              case 2:
+-              case "end":
+-                return r.stop();
+-            }
+-          }, null, o);
+-        }
+-      })();
+-    },
+-    A = n.finishTransaction = function (e, r, t) {
+-      return s.Platform.select({
+-        ios: function () {
+-          return regeneratorRuntime.async(function (r) {
+-            for (;;) switch (r.prev = r.next) {
+-              case 0:
+-                return a(), r.abrupt("return", c.finishTransaction(e.transactionId));
+-              case 2:
+-              case "end":
+-                return r.stop();
+-            }
+-          }, null, o);
+-        },
+-        android: function () {
+-          return regeneratorRuntime.async(function (n) {
+-            for (;;) switch (n.prev = n.next) {
+-              case 0:
+-                if (!e) {
+-                  n.next = 12;
+-                  break;
+-                }
+-                if (!r) {
+-                  n.next = 5;
+-                  break;
+-                }
+-                return n.abrupt("return", i.consumeProduct(e.purchaseToken, t));
+-              case 5:
+-                if (e.isAcknowledgedAndroid || e.purchaseStateAndroid !== l.PURCHASED) {
+-                  n.next = 9;
+-                  break;
+-                }
+-                return n.abrupt("return", i.acknowledgePurchase(e.purchaseToken, t));
+-              case 9:
+-                throw new Error("purchase is not suitable to be purchased");
+-              case 10:
+-                n.next = 13;
+-                break;
+-              case 12:
+-                throw new Error("purchase is not assigned");
+-              case 13:
+-              case "end":
+-                return n.stop();
+-            }
+-          }, null, o);
+-        }
+-      })();
+-    },
+-    O = n.clearTransactionIOS = function () {
+-      return console.warn("The `clearTransactionIOS` method is deprecated."), s.Platform.select({
+-        ios: function () {
+-          return regeneratorRuntime.async(function (e) {
+-            for (;;) switch (e.prev = e.next) {
+-              case 0:
+-                return a(), e.abrupt("return", c.clearTransaction());
+-              case 2:
+-              case "end":
+-                return e.stop();
+-            }
+-          }, null, o);
+-        },
+-        android: function () {
+-          return regeneratorRuntime.async(function (e) {
+-            for (;;) switch (e.prev = e.next) {
+-              case 0:
+-                return e.abrupt("return", Promise.resolve());
+-              case 1:
+-              case "end":
+-                return e.stop();
+-            }
+-          }, null, o);
+-        }
+-      })();
+-    },
+-    w = n.clearProductsIOS = function () {
+-      return s.Platform.select({
+-        ios: function () {
+-          return a(), c.clearProducts();
+-        },
+-        android: function () {
+-          return regeneratorRuntime.async(function (e) {
+-            for (;;) switch (e.prev = e.next) {
+-              case 0:
+-                return e.abrupt("return", Promise.resolve);
+-              case 1:
+-              case "end":
+-                return e.stop();
+-            }
+-          }, null, o);
+-        }
+-      })();
+-    },
+-    S = n.acknowledgePurchaseAndroid = function (e, r) {
+-      return s.Platform.select({
+-        ios: function () {
+-          return regeneratorRuntime.async(function (e) {
+-            for (;;) switch (e.prev = e.next) {
+-              case 0:
+-                return e.abrupt("return", Promise.resolve());
+-              case 1:
+-              case "end":
+-                return e.stop();
+-            }
+-          }, null, o);
+-        },
+-        android: function () {
+-          return regeneratorRuntime.async(function (t) {
+-            for (;;) switch (t.prev = t.next) {
+-              case 0:
+-                return u(), t.abrupt("return", i.acknowledgePurchase(e, r));
+-              case 2:
+-              case "end":
+-                return t.stop();
+-            }
+-          }, null, o);
+-        }
+-      })();
+-    },
+-    T = n.consumePurchaseAndroid = function (e, r) {
+-      return s.Platform.select({
+-        ios: function () {
+-          return regeneratorRuntime.async(function (e) {
+-            for (;;) switch (e.prev = e.next) {
+-              case 0:
+-                return e.abrupt("return", Promise.resolve());
+-              case 1:
+-              case "end":
+-                return e.stop();
+-            }
+-          }, null, o);
+-        },
+-        android: function () {
+-          return regeneratorRuntime.async(function (t) {
+-            for (;;) switch (t.prev = t.next) {
+-              case 0:
+-                return u(), t.abrupt("return", i.consumeProduct(e, r));
+-              case 2:
+-              case "end":
+-                return t.stop();
+-            }
+-          }, null, o);
+-        }
+-      })();
+-    },
+-    x = n.getPromotedProductIOS = function () {
+-      return s.Platform.select({
+-        ios: function () {
+-          return regeneratorRuntime.async(function (e) {
+-            for (;;) switch (e.prev = e.next) {
+-              case 0:
+-                return a(), e.abrupt("return", c.promotedProduct());
+-              case 2:
+-              case "end":
+-                return e.stop();
+-            }
+-          }, null, o);
+-        },
+-        android: function () {
+-          return regeneratorRuntime.async(function (e) {
+-            for (;;) switch (e.prev = e.next) {
+-              case 0:
+-                return e.abrupt("return", Promise.resolve());
+-              case 1:
+-              case "end":
+-                return e.stop();
+-            }
+-          }, null, o);
+-        }
+-      })();
+-    },
+-    N = n.buyPromotedProductIOS = function () {
+-      return s.Platform.select({
+-        ios: function () {
+-          return regeneratorRuntime.async(function (e) {
+-            for (;;) switch (e.prev = e.next) {
+-              case 0:
+-                return a(), e.abrupt("return", c.buyPromotedProduct());
+-              case 2:
+-              case "end":
+-                return e.stop();
+-            }
+-          }, null, o);
+-        },
+-        android: function () {
+-          return regeneratorRuntime.async(function (e) {
+-            for (;;) switch (e.prev = e.next) {
+-              case 0:
+-                return e.abrupt("return", Promise.resolve());
+-              case 1:
+-              case "end":
+-                return e.stop();
+-            }
+-          }, null, o);
+-        }
+-      })();
+-    },
+-    L = (n.requestPurchaseWithOfferIOS = function (e, r, t) {
+-      return s.Platform.select({
+-        ios: function () {
+-          return regeneratorRuntime.async(function (n) {
+-            for (;;) switch (n.prev = n.next) {
+-              case 0:
+-                return a(), n.abrupt("return", c.buyProductWithOffer(e, r, t));
+-              case 2:
+-              case "end":
+-                return n.stop();
+-            }
+-          }, null, o);
+-        },
+-        android: function () {
+-          return regeneratorRuntime.async(function (e) {
+-            for (;;) switch (e.prev = e.next) {
+-              case 0:
+-                return e.abrupt("return", Promise.resolve());
+-              case 1:
+-              case "end":
+-                return e.stop();
+-            }
+-          }, null, o);
+-        }
+-      })();
+-    }, n.validateReceiptIos = function (e, r) {
+-      var t, n;
+-      return regeneratorRuntime.async(function (u) {
+-        for (;;) switch (u.prev = u.next) {
+-          case 0:
+-            return t = r ? "https://sandbox.itunes.apple.com/verifyReceipt" : "https://buy.itunes.apple.com/verifyReceipt", u.next = 3, regeneratorRuntime.awrap(fetch(t, {
+-              method: "POST",
+-              headers: new Headers({
+-                Accept: "application/json",
+-                "Content-Type": "application/json"
+-              }),
+-              body: JSON.stringify(e)
+-            }));
+-          case 3:
+-            if (n = u.sent, n.ok) {
+-              u.next = 6;
+-              break;
+-            }
+-            throw babelHelpers["extends"](new Error(n.statusText), {
+-              statusCode: n.status
+-            });
+-          case 6:
+-            return u.abrupt("return", n.json());
+-          case 7:
+-          case "end":
+-            return u.stop();
+-        }
+-      }, null, o);
+-    }),
+-    D = n.validateReceiptAndroid = function (e, r, t, n, u) {
+-      var a, s, c;
+-      return regeneratorRuntime.async(function (o) {
+-        for (;;) switch (o.prev = o.next) {
+-          case 0:
+-            return a = u ? "subscriptions" : "products", s = "https://www.googleapis.com/androidpublisher/v3/applications" + ("/" + e + "/purchases/" + a + "/" + r) + ("/tokens/" + t + "?access_token=" + n), o.next = 4, regeneratorRuntime.awrap(fetch(s, {
+-              method: "GET",
+-              headers: new Headers({
+-                Accept: "application/json"
+-              })
+-            }));
+-          case 4:
+-            if (c = o.sent, c.ok) {
+-              o.next = 7;
+-              break;
+-            }
+-            throw babelHelpers["extends"](new Error(c.statusText), {
+-              statusCode: c.status
+-            });
+-          case 7:
+-            return o.abrupt("return", c.json());
+-          case 8:
+-          case "end":
+-            return o.stop();
+-        }
+-      }, null, o);
+-    },
+-    C = n.purchaseUpdatedListener = function (e) {
+-      if ("ios" === s.Platform.OS) {
+-        a();
+-        var r = new s.NativeEventEmitter(c);
+-        return r.addListener("purchase-updated", e);
+-      }
+-      var t = s.DeviceEventEmitter.addListener("purchase-updated", e);
+-      return i.startListening(), t;
+-    },
+-    k = n.purchaseErrorListener = function (e) {
+-      if ("ios" === s.Platform.OS) {
+-        a();
+-        var r = new s.NativeEventEmitter(c);
+-        return r.addListener("purchase-error", e);
+-      }
+-      return s.DeviceEventEmitter.addListener("purchase-error", e);
+-    },
+-    U = n.getReceiptIOS = function () {
+-      return "ios" === s.Platform.OS ? (a(), c.requestReceipt()) : void 0;
+-    },
+-    B = n.getPendingPurchasesIOS = function () {
+-      return "ios" === s.Platform.OS ? (a(), c.getPendingTransactions()) : void 0;
+-    };
+-  n["default"] = {
+-    IAPErrorCode: d,
+-    initConnection: E,
+-    endConnectionAndroid: h,
+-    getProducts: m,
+-    getSubscriptions: R,
+-    getPurchaseHistory: v,
+-    getAvailablePurchases: g,
+-    getPendingPurchasesIOS: B,
+-    consumeAllItemsAndroid: P,
+-    clearProductsIOS: w,
+-    clearTransactionIOS: O,
+-    acknowledgePurchaseAndroid: S,
+-    consumePurchaseAndroid: T,
+-    validateReceiptIos: L,
+-    validateReceiptAndroid: D,
+-    requestPurchase: y,
+-    requestPurchaseWithQuantityIOS: I,
+-    finishTransactionIOS: _,
+-    finishTransaction: A,
+-    requestSubscription: b,
+-    purchaseUpdatedListener: C,
+-    purchaseErrorListener: k,
+-    getReceiptIOS: U,
+-    getPromotedProductIOS: x,
+-    buyPromotedProductIOS: N
++  function listener() { return {remove:function () {}}; }
++  var api = {
++    initConnection:function () {return Promise.resolve(false);},
++    endConnectionAndroid:function () {return Promise.resolve();},
++    getProducts:list, getSubscriptions:list, getAvailablePurchases:list,
++    getPurchaseHistory:list, getPendingPurchasesIOS:list,
++    purchaseUpdatedListener:listener, purchaseErrorListener:listener,
++    requestPurchase:disabled, requestSubscription:disabled,
++    requestPurchaseWithQuantityIOS:disabled, requestPurchaseWithOfferIOS:disabled,
++    buyPromotedProductIOS:disabled, finishTransaction:disabled,
++    finishTransactionIOS:disabled, consumePurchaseAndroid:disabled,
++    consumeAllItemsAndroid:disabled, acknowledgePurchaseAndroid:disabled,
++    validateReceiptIos:disabled, validateReceiptAndroid:disabled,
++    getReceiptIOS:function () {return Promise.resolve(null);},
++    getPromotedProductIOS:function () {return Promise.resolve(null);},
++    clearProductsIOS:function () {return Promise.resolve();},
++    clearTransactionIOS:function () {return Promise.resolve();},
++    IAPErrorCode:{E_IAP_NOT_AVAILABLE:"IAP_DISABLED_FREE_EDITION"},
++    PurchaseStateAndroid:{UNSPECIFIED_STATE:0,PURCHASED:1,PENDING:2,0:"UNSPECIFIED_STATE",1:"PURCHASED",2:"PENDING"},
++    PROMOTED_PRODUCT:"iap-promoted-product"
+   };
++  Object.keys(api).forEach(function (key) {exports[key]=api[key];});
++  exports.default=api;
+ });

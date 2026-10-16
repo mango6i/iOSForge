@@ -1,0 +1,1 @@
+__d(614,function(e,t,u,a){"use strict";Object.defineProperty(a,"__esModule",{value:!0});var d=t(312);a["default"]=d.NativeModules.SplashScreen});

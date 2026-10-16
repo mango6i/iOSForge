@@ -1,0 +1,1 @@
+__d(81,function(e,t,r,i){"use strict";var n=t(1),s=t(43),l=n.createClass({displayName:"UnimplementedView",setNativeProps:function(){},render:function(){var e=t(67);return n.createElement(e,{style:[a.unimplementedView,this.props.style]},this.props.children)}}),a=s.create({unimplementedView:{borderWidth:1,borderColor:"red",alignSelf:"flex-start"}});r.exports=l});

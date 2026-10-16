@@ -1,0 +1,1 @@
+__d(604,function(t,n,o,r){o.exports=function(t){return!(null==t||!t.constructor||"function"!=typeof t.constructor.isBuffer||!t.constructor.isBuffer(t))}});

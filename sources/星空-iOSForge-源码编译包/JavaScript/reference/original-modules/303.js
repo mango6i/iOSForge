@@ -1,0 +1,1 @@
+__d(303,function(t,i,r,n){"use strict";var o=i(31).Vibration,a=i(380),e={vibrate:function(){a(void 0===arguments[0],"Vibration patterns not supported."),o.vibrate()}};r.exports=e});

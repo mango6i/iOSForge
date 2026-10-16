@@ -1,0 +1,22 @@
+{
+  "pbx_objects": 75,
+  "referenced_files_present": 30,
+  "shared_app_schemes": 1,
+  "minimum_ios": "15.0",
+  "device_architectures": [
+    "arm64"
+  ],
+  "javascript_modules": 631,
+  "runtime_reproducible": true,
+  "runtime_fixup_equivalence": true,
+  "native_sources": 2,
+  "xcodebuild_run": false,
+  "ios_runtime_tested": false,
+  "backend_free_rules_verified": false,
+  "independent_macholib_parse": true,
+  "native_conversion_tests_passed": 3,
+  "javascript_tests_passed": 8,
+  "iosforge_manifest_validated": true,
+  "iosforge_shared_scheme_discovery": true,
+  "runtime_loaded_on_ios": false
+}

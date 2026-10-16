@@ -1,0 +1,1 @@
+__d(0,function(e,t,r,n){"use strict";var i=t(310),u=babelHelpers.interopRequireDefault(i),f=t(312),o=f.AppRegistry;o.registerComponent("eggf",function(){return u["default"]})});

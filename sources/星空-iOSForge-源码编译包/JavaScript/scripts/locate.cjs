@@ -1,0 +1,14 @@
+const fs=require('fs'),path=require('path');
+const {pathToFileURL,fileURLToPath}=require('url');
+const {AnyMap,originalPositionFor}=require('@jridgewell/trace-mapping');
+const {root}=require('./lib.cjs');
+const line=Number(process.argv[2]),column=Number(process.argv[3]??0);
+if(!Number.isInteger(line)||line<1||!Number.isInteger(column)||column<0)throw Error('Usage: npm run locate -- <bundle line> [zero-based column]');
+const mapFile=path.join(root,'dist/free/main.jsbundle.map');
+const map=AnyMap(JSON.parse(fs.readFileSync(mapFile,'utf8')),pathToFileURL(mapFile).href);
+const result=originalPositionFor(map,{line,column});
+if(!result.source)throw Error('No source mapping at that position');
+const sourcePath=result.source.startsWith('file:')?fileURLToPath(result.source):result.source;
+console.log(sourcePath+':'+result.line+':'+result.column);
+const content=fs.readFileSync(sourcePath,'utf8').split('\n');
+for(let i=Math.max(0,result.line-3);i<Math.min(content.length,result.line+2);i++)console.log((i+1===result.line?'> ':'  ')+(i+1)+' '+content[i]);

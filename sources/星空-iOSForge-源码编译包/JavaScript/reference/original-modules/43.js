@@ -1,0 +1,1 @@
+__d(43,function(e,t,r,i){"use strict";var a=t(44),n=t(25),o=t(58),l=t(27),s=a.roundToNearestPixel(.4);0===s&&(s=1/a.get()),r.exports={hairlineWidth:s,flatten:l,create:function(e){var t={};for(var r in e)o.validateStyle(r,e),t[r]=n.register(e[r]);return t}}});

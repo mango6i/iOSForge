@@ -1,0 +1,1 @@
+__d(41,function(e,r,t,n){"use strict";function o(e){if(null==e)return null;if("number"==typeof e)return e;var r=e,t=u.get(r);if(t)return t.getNativeNode();var n=r._rootNodeID;return n?n:("object"==typeof r&&"_rootNodeID"in r||null!=r.render&&"function"==typeof r.render?void 0:i(!1),void i(!1))}var u=(r(5),r(42)),i=r(380);r(381);t.exports=o});

@@ -1,0 +1,1 @@
+__d(265,function(t,e,r,i){"use strict";var n=e(31).Clipboard,s=e(266);r.exports={getString:function(){return s(n.getString(),Array.prototype.slice.call(arguments),"success-first","Clipboard.getString(callback) is deprecated. Use the returned Promise instead")},setString:function(t){n.setString(t)}}});

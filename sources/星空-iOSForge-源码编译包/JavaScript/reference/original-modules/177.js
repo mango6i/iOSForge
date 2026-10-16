@@ -1,0 +1,1 @@
+__d(177,function(r,e,n,t){"use strict";var u=e(19),s=e(69),b=s({x:u.number,y:u.number});n.exports=b});

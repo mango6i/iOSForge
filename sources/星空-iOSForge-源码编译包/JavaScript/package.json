@@ -1,0 +1,19 @@
+{
+  "name": "xingkong-recovered-maintenance",
+  "version": "2.2.1163-recovery.1",
+  "private": true,
+  "description": "Recovered editable JavaScript factories for the supplied Xingkong IPA; not the original Xcode project",
+  "scripts": {
+    "build": "node scripts/build.cjs",
+    "build:original": "node scripts/build.cjs --original",
+    "verify": "node scripts/verify.cjs",
+    "locate": "node scripts/locate.cjs",
+    "test": "node --test tests/*.test.cjs"
+  },
+  "engines": { "node": ">=24.15.0" },
+  "devDependencies": {
+    "@babel/generator": "8.0.6",
+    "@babel/parser": "8.0.7",
+    "@jridgewell/trace-mapping": "0.3.31"
+  }
+}

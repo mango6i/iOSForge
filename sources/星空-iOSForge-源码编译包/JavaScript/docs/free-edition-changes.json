@@ -1,0 +1,170 @@
+{
+  "profile": "free-maintenance",
+  "modified_module_ids": [
+    310,
+    316,
+    318,
+    320,
+    329,
+    342,
+    344,
+    363,
+    370,
+    638
+  ],
+  "changes": [
+    {
+      "module": 310,
+      "change": "remove payment lifecycle lazy_componentWillMount",
+      "matches": 1
+    },
+    {
+      "module": 310,
+      "change": "remove payment lifecycle componentWillUnmount",
+      "matches": 1
+    },
+    {
+      "module": 310,
+      "change": "remove payment-only AppState logs",
+      "matches": 3
+    },
+    {
+      "module": 318,
+      "change": "replace getPendingPurchasesIOS",
+      "matches": 1
+    },
+    {
+      "module": 318,
+      "change": "replace verifyPurchase",
+      "matches": 1
+    },
+    {
+      "module": 318,
+      "change": "replace purchaseActionLog",
+      "matches": 1
+    },
+    {
+      "module": 318,
+      "change": "replace purchase",
+      "matches": 1
+    },
+    {
+      "module": 318,
+      "change": "replace buy30dayVIP",
+      "matches": 1
+    },
+    {
+      "module": 318,
+      "change": "replace buyStars",
+      "matches": 1
+    },
+    {
+      "module": 318,
+      "change": "replace shadowPurchaseMenu",
+      "matches": 1
+    },
+    {
+      "module": 318,
+      "change": "replace runPurchase",
+      "matches": 1
+    },
+    {
+      "module": 318,
+      "change": "replace popPurchaseShadowDiag",
+      "matches": 1
+    },
+    {
+      "module": 318,
+      "change": "replace sendStar",
+      "matches": 1
+    },
+    {
+      "module": 318,
+      "change": "replace onStarButtonPress",
+      "matches": 1
+    },
+    {
+      "module": 318,
+      "change": "replace shaMMDiag",
+      "matches": 1
+    },
+    {
+      "module": 318,
+      "change": "remove local shadow subscription gate",
+      "matches": 1
+    },
+    {
+      "module": 318,
+      "change": "remove shadow dependency on StoreKit bridge",
+      "matches": 1
+    },
+    {
+      "module": 318,
+      "change": "remove My Stars recharge row",
+      "matches": 1
+    },
+    {
+      "module": 329,
+      "change": "remove virtual-currency gifting input action",
+      "matches": 1
+    },
+    {
+      "module": 320,
+      "change": "remove unfinished transaction group",
+      "matches": 1
+    },
+    {
+      "module": 320,
+      "change": "replace vipExpDiag",
+      "matches": 1
+    },
+    {
+      "module": 320,
+      "change": "remove server-error purchase buttons",
+      "matches": 2
+    },
+    {
+      "module": 370,
+      "change": "remove server-error purchase buttons",
+      "matches": 1
+    },
+    {
+      "module": 342,
+      "change": "remove only vipExpD tab gate, preserve account bans",
+      "matches": 1
+    },
+    {
+      "module": 342,
+      "change": "remove automatic shaSS purchase",
+      "matches": 1
+    },
+    {
+      "module": 344,
+      "change": "disable legacy transaction verification route",
+      "matches": 1
+    },
+    {
+      "module": 363,
+      "change": "remove unfinished transaction badge",
+      "matches": 1
+    },
+    {
+      "module": 370,
+      "change": "local image preview without billed viewSnap or fabricated read state",
+      "matches": 1
+    },
+    {
+      "module": 316,
+      "change": "avoid remote bundle overwriting maintenance source",
+      "matches": 1
+    },
+    {
+      "module": 638,
+      "change": "replace native IAP adapter with disabled implementation",
+      "matches": 1
+    }
+  ],
+  "server_entitlements_fabricated": false,
+  "native_binary_relinked": false,
+  "ios_runtime_tested": false
+}

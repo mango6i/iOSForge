@@ -1,0 +1,1 @@
+__d(182,function(e,r,s,t){"use strict";var n=r(1),o=n.createClass({displayName:"StaticRenderer",propTypes:{shouldUpdate:n.PropTypes.bool.isRequired,render:n.PropTypes.func.isRequired},shouldComponentUpdate:function(e){return e.shouldUpdate},render:function(){return this.props.render()}});s.exports=o});

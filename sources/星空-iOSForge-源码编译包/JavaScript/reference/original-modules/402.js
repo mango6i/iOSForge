@@ -1,0 +1,1 @@
+__d(402,function(e,s,a,t){a.exports=s(118).registerAsset({__packager_asset:!0,fileSystemLocation:"/Users/nary/Downloads/ncode/eggf/image",httpServerLocation:"/assets/image",width:720,height:1280,scales:[1],files:["/Users/nary/Downloads/ncode/eggf/image/light_chat_bg.jpg"],hash:"4d900837c5852fd2f2edfbf13e13251d",name:"light_chat_bg",type:"jpg"})});

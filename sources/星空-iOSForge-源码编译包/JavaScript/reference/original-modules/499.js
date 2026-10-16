@@ -1,0 +1,1 @@
+__d(499,function(e,t,r,l){function c(e){return n(e)&&p.call(e,"callee")&&(!s.call(e,"callee")||u.call(e)==o)}var n=t(500),o="[object Arguments]",a=Object.prototype,p=a.hasOwnProperty,u=a.toString,s=a.propertyIsEnumerable;r.exports=c});
