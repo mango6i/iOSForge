@@ -11,5 +11,8 @@
     "path": "sources/星空-iOSForge-源码编译包",
     "sha": "f9e03a1a3e1b19d312210c45b059aa87dd9827eb"
   },
-  "outputs": []
+  "outputs": [],
+  "cleanup_pending": {
+    "actions_record": true
+  }
 }
