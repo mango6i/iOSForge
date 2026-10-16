@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "run_id": 38928359858,
+  "repository": "mango6i/iOSForge",
+  "branch": "main",
+  "request_id": "f53a81c0c0d186ea5fe3072d",
+  "build_type": "ipa",
+  "notify_via_github": true,
+  "created_at": "2026-10-16T15:59:39Z",
+  "source": {
+    "path": "sources/星空-iOSForge-源码编译包",
+    "sha": "f9e03a1a3e1b19d312210c45b059aa87dd9827eb"
+  },
+  "outputs": []
+}
