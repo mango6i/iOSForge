@@ -17,6 +17,22 @@
       "deleted_run_numbers": {
         "38928359858": 288
       }
+    },
+    {
+      "timestamp": "2026-10-17T00:17:29+08:00",
+      "cleanup_run_id": 38930628321,
+      "deleted_run_ids": [
+        38930450896
+      ],
+      "actions_runs_deleted": 1,
+      "repository_items_deleted": 2,
+      "removed_paths": [
+        "sources/Download/iPlayer-unsigned.ipa",
+        "sources/iPlayer-维护工程-Windows入口26"
+      ],
+      "deleted_run_numbers": {
+        "38930450896": 289
+      }
     }
   ],
   "checks": [
