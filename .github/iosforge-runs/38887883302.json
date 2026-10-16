@@ -11,5 +11,12 @@
     "path": "sources/iPlayer-iOSForge-工程包",
     "sha": "f14682b4a0a8a0c07eb5fdf4319ad8adfb7f5a9b"
   },
-  "outputs": []
+  "outputs": [
+    {
+      "path": "sources/Download/iPlayer-unsigned.ipa",
+      "sha": "9acc2d97940ce9305405ddf46fa2c86f711be5c9"
+    }
+  ],
+  "status": "success",
+  "completed_at": "2026-10-16T10:33:33Z"
 }
