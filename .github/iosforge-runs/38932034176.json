@@ -8,5 +8,8 @@
   "notify_via_github": true,
   "created_at": "2026-10-16T16:27:11Z",
   "source": null,
-  "outputs": []
+  "outputs": [],
+  "cleanup_pending": {
+    "actions_record": true
+  }
 }
