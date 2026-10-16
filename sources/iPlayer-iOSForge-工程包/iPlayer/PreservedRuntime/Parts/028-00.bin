@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="color-scheme" content="light dark">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>自动续费服务规则</title>
+    <style type="text/css">
+        :root {
+            --text-color: #333333;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --text-color: #EBEBEB;
+            }
+        }
+
+        body {
+            background-color: transparent;
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        p {
+            margin-bottom: 16px;
+            text-align: justify;
+        }
+
+        .contact {
+            margin-top: 30px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <h1>《自动续费服务规则》</h1>
+    
+    <p>您好！欢迎您使用iPlayer应用。</p>
+    
+    <p>本规则是《iPlayer服务及隐私协议》的补充协议，为不可分割的组成部分，具有同等法律效力。请您在开通自动续费订阅服务前，仔细阅读本规则全部条款。您开通服务的行为，即视为已充分理解并同意本规则所有内容。</p>
+    
+    <p>1. 服务说明：本自动续费订阅服务，用于解锁iPlayer指定付费增值功能权限，**无任何云端服务、无内容提供、无数据上传**。订阅服务由苹果App Store官方提供自动扣费支持，您授权苹果公司在订阅周期到期前24小时，自动从您的iTunes/Apple ID账户扣除下一个周期的费用。</p>
+    
+    <p>2. 订阅周期与续费：订阅周期包括1个月、1年、2年、3年（以App内实际展示为准），扣费成功后，订阅有效期自动延长对应时长；若账户余额不足导致续费失败，订阅权益将自动失效，相关风险由用户自行承担。</p>
+    
+    <p>3. 取消订阅方式：如需取消订阅，请手动打开苹果手机「设置」→ 点击「Apple ID」→ 选择「订阅」→ 找到iPlayer订阅项目，点击「取消订阅」即可。你可能需要向下滚动，才能找到“取消订阅”按钮。如果没有“取消”按钮，或者你看到以红色文本显示的到期信息，则表示相应订阅已被取消。请您至少在订阅到期前24小时完成取消操作，未按时取消将视为同意继续订阅，系统会自动续订。</p>
+    
+    <p>4. 退款规则：所有订阅费用均由苹果App Store收取，退款申请、退款规则均遵循苹果官方政策，应用开发者不直接处理退款事宜。</p>
+    
+    <p>5. 其他：本订阅服务仅限个人合法使用，订阅权益绑定Apple ID，仅可在个人设备上使用。</p>
+    
+    <p class="contact">客服邮箱：iPlayerSupport@126.com</p>
+</body>
+</html>
