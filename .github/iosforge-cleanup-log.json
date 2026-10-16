@@ -20,5 +20,17 @@
       "retained_run_id": 38928513922,
       "retained_run_number": 42
     }
+  ],
+  "notification_deletions": [
+    {
+      "timestamp": "2026-10-17T00:01:00+08:00",
+      "removed": [
+        {
+          "run_id": 38928359858,
+          "comment_id": 6219443389,
+          "issue_number": 3
+        }
+      ]
+    }
   ]
 }
