@@ -5,6 +5,7 @@ on:
       - 'iosforge/**'
       - 'tests/**'
       - 'web/source-upload.js'
+      - 'web/app.js'
       - '.github/scripts/cleanup.py'
       - '.github/workflows/feature-checks.yml'
   workflow_dispatch:
@@ -26,6 +27,8 @@ jobs:
           node-version: '24'
       - run: python -m unittest discover -s tests -v
       - run: node tests/upload.cjs
+      - run: node tests/upload-concurrency.cjs
+      - run: node tests/xcode-detect.cjs
       - run: node tests/large-upload.cjs
   real-ipa:
     runs-on: macos-15

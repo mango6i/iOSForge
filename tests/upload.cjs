@@ -16,7 +16,7 @@ function mock({ tree = [], moved = false, uncertain = false, denied = false, tru
   async function api(path, options = {}) {
     const body = options.body && JSON.parse(options.body); calls.push({ path, ...options, body });
     if (path.includes('/git/ref/heads/')) { reads++; return { object: { sha: moved && reads > 1 ? 'someone-else' : head } }; }
-    if (path.endsWith('/git/commits/original')) return { tree: { sha: 'base-tree' } };
+    if (path.endsWith('/git/commits/original') || path.endsWith('/git/commits/someone-else')) return { tree: { sha: path.endsWith('/original') ? 'base-tree' : 'latest-tree' } };
     if (path.includes('?recursive=1')) return { tree, truncated };
     if (path.endsWith('/git/blobs')) return { sha: 'blob-' + ++writes };
     if (path.endsWith('/git/trees')) return { sha: 'tree-' + ++writes };
@@ -79,7 +79,9 @@ async function main() {
   }
   const equal = mock({ tree: source.files.map(f => ({ path: 'sources/Project/' + f.path, type: 'blob', mode: f.mode, sha: f.sha })) });
   const same = await U.publish({ ...options, replace: true, api: equal.api }); assert.equal(same.changed, false); assert(!equal.calls.some(c => c.method));
-  const moved = mock({ moved: true }); await assert.rejects(U.publish({ ...options, api: moved.api }), /新提交/); assert(!moved.calls.some(c => c.method === 'PATCH'));
+  const moved = mock({ moved: true }); await U.publish({ ...options, api: moved.api });
+  assert.equal(moved.calls.find(c => c.path.endsWith('/git/commits') && c.method === 'POST').body.parents[0], 'someone-else');
+  assert(moved.calls.some(c => c.path.endsWith('/git/trees') && c.body.base_tree === 'latest-tree'));
   const uncertain = mock({ uncertain: true }); assert.equal((await U.publish({ ...options, api: uncertain.api })).sha, 'new-commit');
   const denied = mock({ denied: true }); await assert.rejects(U.publish({ ...options, api: denied.api }), /network/);
   const bom = U.prepare([{ path: 'P/BOM.txt', bytes: Uint8Array.from([239, 187, 191, 65]) }]);
@@ -106,6 +108,6 @@ async function main() {
   } }), /Failed to fetch/);
   assert.equal(commitCalls, 1, 'Commit creation is never automatically retried');
   console.log('PASS finite safe-object network retry, hard stop after three attempts, no partial branch update, no commit retry');
-  console.log('PASS atomic GitHub upload: existing-tree preservation, scoped paths, no force, no deletion, unchanged detection, concurrency refusal, uncertain-result reconciliation, BOM integrity');
+  console.log('PASS atomic GitHub upload: existing-tree preservation, scoped paths, no force, no deletion, unchanged detection, unrelated-update rebase, uncertain-result reconciliation, BOM integrity');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

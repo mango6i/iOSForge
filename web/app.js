@@ -36,6 +36,7 @@ const state = { token: "", repo: null, branch: "main", runId: null, busy: false,
 const selectedRuns = new Set();
 let historyPage = 0, historyHasMore = false;
 let selectedSource = null;
+let sourceIdentification = null, identificationSequence = 0;
 let pageLoaded = false, cleanupPreviewTimer = 0, cleanupPreviewSequence = 0;
 const uploadMode = () => !!$('input[name="source_mode"][value="upload"]').checked;
 const hints = {
@@ -819,10 +820,41 @@ function updateSourceMode() {
 function updateDestination() {
   $("#upload-destination").textContent = `提交位置：${repoInput.value.trim()} · ${branchInput.value.trim() || "main"} → sources/${$("#upload-project").value.trim() || "项目名称"}`;
   resetUploadConsent();
+  refreshXcodePreview();
 }
+function showXcodePreview(preview, directory = `sources/${$("#upload-project").value.trim() || "项目名称"}`) {
+  const fields = [
+    [projectInput, preview?.project ? `${directory}/${preview.project}` : preview?.projectHint || "选择源码后识别工程"],
+    [schemeInput, preview?.scheme || preview?.schemeHint || "选择源码后识别 Scheme"],
+    [bundleIdInput, preview?.bundleId || preview?.bundleIdHint || "选择源码后显示原包名"],
+  ];
+  for (const [input, hint] of fields) {
+    input.placeholder = hint;
+    input.title = preview ? `${hint}。本地识别预览；手动填写优先，未填写时由 Xcode 最终解析。` : hint;
+  }
+}
+async function refreshXcodePreview() {
+  const sequence = ++identificationSequence, source = selectedSource;
+  if (!source || !uploadMode()) {
+    const saved = sourceIdentification;
+    const matches = saved && saved.directory === $("#source-directory").value.trim() && saved.repo === currentRepoKey() && saved.branch === (branchInput.value.trim() || "main") && saved.project === projectInput.value.trim() && saved.scheme === schemeInput.value.trim();
+    showXcodePreview(matches ? saved.preview : null, matches ? saved.directory : undefined);
+    return;
+  }
+  const directory = `sources/${$("#upload-project").value.trim()}`;
+  const project = projectInput.value.trim(), scheme = schemeInput.value.trim();
+  try {
+    const preview = await IOSForgeUpload.identifyXcode(source.files, { project: project.startsWith(directory + "/") ? project.slice(directory.length + 1) : project, scheme });
+    if (sequence !== identificationSequence || source !== selectedSource) return;
+    sourceIdentification = { preview, directory, repo: currentRepoKey(), branch: branchInput.value.trim() || "main", project, scheme };
+    showXcodePreview(preview);
+  } catch { if (sequence === identificationSequence) showXcodePreview(null); }
+}
+[projectInput, schemeInput, $("#source-directory")].forEach(input => input.addEventListener("input", refreshXcodePreview));
 async function selectSource(files, folder) {
   if (state.busy || !files.length) return;
   selectedSource = null;
+  sourceIdentification = null; identificationSequence++; showXcodePreview(null);
   $("#upload-preview").hidden = true;
   resetUploadConsent();
   setBusy(true, "正在检查源码…");
@@ -848,7 +880,7 @@ $("#pick-zip").addEventListener("click", () => $("#zip-input").click());
 $("#pick-folder").addEventListener("click", () => $("#folder-input").click());
 $("#zip-input").addEventListener("change", event => selectSource(event.target.files, false));
 $("#folder-input").addEventListener("change", event => selectSource(event.target.files, true));
-$("#clear-upload").addEventListener("click", () => { selectedSource = null; $("#upload-preview").hidden = true; resetUploadConsent(); $("#upload-selection-status").textContent = "选择已清除，未删除仓库中的任何文件。"; });
+$("#clear-upload").addEventListener("click", () => { selectedSource = null; sourceIdentification = null; identificationSequence++; showXcodePreview(null); $("#upload-preview").hidden = true; resetUploadConsent(); $("#upload-selection-status").textContent = "选择已清除，未删除仓库中的任何文件。"; });
 uploadConsentInput.addEventListener("change", () => {
   if (uploadConsentInput.checked) rememberUploadConsent(state.workspace?.private === true ? "private" : state.workspace?.private === false ? "public" : "unknown", state.workspace?.id);
   else forgetUploadConsent();
