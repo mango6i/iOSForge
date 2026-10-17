@@ -1,0 +1,723 @@
+// !$*UTF8*$!
+{
+	"archiveVersion" = "1";
+	"classes" = {
+	};
+	"objectVersion" = "56";
+	"objects" = {
+		"AA32AA32AA32AA32AA32AA01" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "wrapper.framework";
+			"name" = "QuartzCore.framework";
+			"path" = "System/Library/Frameworks/QuartzCore.framework";
+			"sourceTree" = "SDKROOT";
+		};
+		"AA32AA32AA32AA32AA32AA02" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "AA32AA32AA32AA32AA32AA01";
+		};
+		"6E0142BBA4A69AA3551491D8" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.c.objc";
+			"path" = "Bootstrap.m";
+			"sourceTree" = "<group>";
+		};
+		"153F4DE30F319F05D226B967" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "text.plist.xml";
+			"path" = "Info.plist";
+			"sourceTree" = "<group>";
+		};
+		"11DF959903218474BAA8CC64" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "folder";
+			"path" = "PreservedRuntime";
+			"sourceTree" = "<group>";
+		};
+		"91D6008407E7194D7CF13B9F" = {
+			"isa" = "PBXGroup";
+			"children" = (
+				"6E0142BBA4A69AA3551491D8",
+				"153F4DE30F319F05D226B967",
+				"11DF959903218474BAA8CC64",
+				"ED2B64A3F524758E8052E481",
+				"346F0E64DD7B07C782B28CE2",
+			);
+			"path" = "iPlayer";
+			"sourceTree" = "<group>";
+		};
+		"86B21767BA69F3EF7C3AE3E5" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "text.script.python";
+			"path" = "assemble_app.py";
+			"sourceTree" = "<group>";
+		};
+		"12F5797CB0510C51FDACFE07" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "text.script.python";
+			"path" = "free_edition.py";
+			"sourceTree" = "<group>";
+		};
+		"ED2B64A3F524758E8052E481" = {
+			"isa" = "PBXGroup";
+			"children" = (
+				"86B21767BA69F3EF7C3AE3E5",
+				"12F5797CB0510C51FDACFE07",
+			);
+			"path" = "BuildSupport";
+			"sourceTree" = "<group>";
+		};
+		"EEABB7D72B8ABEEC32205205" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "text.plist.entitlements";
+			"path" = "entitlements.plist";
+			"sourceTree" = "<group>";
+		};
+		"0B15A94D74ED3A8F03D351ED" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "text";
+			"path" = "iosforge.toml";
+			"sourceTree" = "<group>";
+		};
+		"59CAD545208B775DDB6F3958" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "wrapper.framework";
+			"name" = "UIKit.framework";
+			"path" = "System/Library/Frameworks/UIKit.framework";
+			"sourceTree" = "SDKROOT";
+		};
+		"AF7C1498B873B2BA18F42FE0" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "wrapper.framework";
+			"name" = "Foundation.framework";
+			"path" = "System/Library/Frameworks/Foundation.framework";
+			"sourceTree" = "SDKROOT";
+		};
+		"AF2961D99E22DD2339AB6D3E" = {
+			"isa" = "PBXGroup";
+			"children" = (
+				"AA32AA32AA32AA32AA32AA01",
+				"59CAD545208B775DDB6F3958",
+				"AF7C1498B873B2BA18F42FE0",
+			);
+			"name" = "Frameworks";
+			"sourceTree" = "<group>";
+		};
+		"F75E865059AE32137E05DCA0" = {
+			"isa" = "PBXFileReference";
+			"explicitFileType" = "wrapper.application";
+			"includeInIndex" = "0";
+			"path" = "iPlayer.app";
+			"sourceTree" = "BUILT_PRODUCTS_DIR";
+		};
+		"7C7CA09F3523C4CDCBB31EA4" = {
+			"isa" = "PBXGroup";
+			"children" = (
+				"F75E865059AE32137E05DCA0",
+				"9F15CCE30C4220ECA36BB41A",
+			);
+			"name" = "Products";
+			"sourceTree" = "<group>";
+		};
+		"C83B6FD395E230680CDDCE11" = {
+			"isa" = "PBXGroup";
+			"children" = (
+				"91D6008407E7194D7CF13B9F",
+				"EEABB7D72B8ABEEC32205205",
+				"0B15A94D74ED3A8F03D351ED",
+				"AF2961D99E22DD2339AB6D3E",
+				"7C7CA09F3523C4CDCBB31EA4",
+			);
+			"sourceTree" = "<group>";
+		};
+		"BDE440BBB7437BB97C0E41A2" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "6E0142BBA4A69AA3551491D8";
+		};
+		"2D6C8D3D9949705A02BB5D7F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "59CAD545208B775DDB6F3958";
+		};
+		"0D6D3B60B9B2D75643F663F0" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "AF7C1498B873B2BA18F42FE0";
+		};
+		"02787D6F7CA1ECA27E4A73E8" = {
+			"isa" = "PBXSourcesBuildPhase";
+			"buildActionMask" = "2147483647";
+			"files" = (
+				"BDE440BBB7437BB97C0E41A2",
+			);
+			"runOnlyForDeploymentPostprocessing" = "0";
+		};
+		"47175B96932A8633BBB931AB" = {
+			"isa" = "PBXFrameworksBuildPhase";
+			"buildActionMask" = "2147483647";
+			"files" = (
+				"2D6C8D3D9949705A02BB5D7F",
+				"0D6D3B60B9B2D75643F663F0",
+			);
+			"runOnlyForDeploymentPostprocessing" = "0";
+		};
+		"7771979FA5732EBDC2079D87" = {
+			"isa" = "PBXResourcesBuildPhase";
+			"buildActionMask" = "2147483647";
+			"files" = (
+			);
+			"runOnlyForDeploymentPostprocessing" = "0";
+		};
+		"2F93BA17EABE754143B0024E" = {
+			"isa" = "PBXShellScriptBuildPhase";
+			"alwaysOutOfDate" = "1";
+			"buildActionMask" = "2147483647";
+			"files" = (
+			);
+			"inputPaths" = (
+				"$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)",
+				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
+				"$(SRCROOT)/iPlayer/BuildSupport/assemble_app.py",
+				"$(SRCROOT)/iPlayer/BuildSupport/free_edition.py",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/runtime-manifest.json",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/002-00.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/003-00.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/004-00.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/007-00.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/007-01.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/008-00.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/009-00.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/011-00.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/012-00.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/014-00.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/015-00.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/017-00.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/018-00.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/020-00.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/021-00.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/023-00.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/024-00.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/026-00.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/027-00.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/028-00.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/029-00.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/030-00.bin",
+				"$(SRCROOT)/iPlayer/PreservedRuntime/Parts/030-01.bin",
+				"$(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/iPlayerLegacyMedia.framework/iPlayerLegacyMedia",
+				"$(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/iPlayerLegacyMedia.framework/Info.plist",
+			);
+			"name" = "Assemble preserved iPlayer runtime (maintenance build)";
+			"outputPaths" = (
+				"$(DERIVED_FILE_DIR)/iPlayer-maintenance.stamp",
+			);
+			"runOnlyForDeploymentPostprocessing" = "0";
+			"shellPath" = "/bin/sh";
+			"shellScript" = "set -eu\npython3 \"$SRCROOT/iPlayer/BuildSupport/assemble_app.py\" --product \"$TARGET_BUILD_DIR/$WRAPPER_NAME\"\n";
+			"showEnvVarsInLog" = "0";
+		};
+		"FF7CE535596DFFBE487D1506" = {
+			"isa" = "XCBuildConfiguration";
+			"buildSettings" = {
+				"CLANG_ENABLE_MODULES" = "YES";
+				"CLANG_ENABLE_OBJC_ARC" = "YES";
+				"SDKROOT" = "iphoneos";
+				"IPHONEOS_DEPLOYMENT_TARGET" = "15.0";
+				"GCC_C_LANGUAGE_STANDARD" = "gnu11";
+				"ENABLE_USER_SCRIPT_SANDBOXING" = "NO";
+				"COPY_PHASE_STRIP" = "NO";
+				"STRIP_INSTALLED_PRODUCT" = "NO";
+				"DEPLOYMENT_POSTPROCESSING" = "NO";
+				"GCC_OPTIMIZATION_LEVEL" = "0";
+			};
+			"name" = "Debug";
+		};
+		"D32D5B6B57626800BC090801" = {
+			"isa" = "XCBuildConfiguration";
+			"buildSettings" = {
+				"CLANG_ENABLE_MODULES" = "YES";
+				"CLANG_ENABLE_OBJC_ARC" = "YES";
+				"SDKROOT" = "iphoneos";
+				"IPHONEOS_DEPLOYMENT_TARGET" = "15.0";
+				"GCC_C_LANGUAGE_STANDARD" = "gnu11";
+				"ENABLE_USER_SCRIPT_SANDBOXING" = "NO";
+				"COPY_PHASE_STRIP" = "NO";
+				"STRIP_INSTALLED_PRODUCT" = "NO";
+				"DEPLOYMENT_POSTPROCESSING" = "NO";
+				"GCC_OPTIMIZATION_LEVEL" = "s";
+			};
+			"name" = "Release";
+		};
+		"5EDFEECEBD4CA9F273DF6A3C" = {
+			"isa" = "XCConfigurationList";
+			"buildConfigurations" = (
+				"FF7CE535596DFFBE487D1506",
+				"D32D5B6B57626800BC090801",
+			);
+			"defaultConfigurationIsVisible" = "0";
+			"defaultConfigurationName" = "Release";
+		};
+		"B5FE822886E000F98F6E65E6" = {
+			"isa" = "XCBuildConfiguration";
+			"buildSettings" = {
+				"PRODUCT_NAME" = "iPlayer";
+				"GCC_PREPROCESSOR_DEFINITIONS" = (
+					"$(inherited)",
+					"IPLAYER_RUNTIME_ASSEMBLY=1",
+				);
+				"PRODUCT_BUNDLE_IDENTIFIER" = "com.kang.iPlayer.swift";
+				"MARKETING_VERSION" = "2.1.1";
+				"CURRENT_PROJECT_VERSION" = "32";
+				"INFOPLIST_FILE" = "iPlayer/Info.plist";
+				"GENERATE_INFOPLIST_FILE" = "NO";
+				"CODE_SIGN_ENTITLEMENTS" = "entitlements.plist";
+				"CODE_SIGN_STYLE" = "Automatic";
+				"TARGETED_DEVICE_FAMILY" = "1,2";
+				"ARCHS" = "arm64";
+				"ONLY_ACTIVE_ARCH" = "NO";
+				"SUPPORTED_PLATFORMS" = "iphoneos";
+				"SUPPORTS_MACCATALYST" = "NO";
+				"SKIP_INSTALL" = "NO";
+				"INSTALL_PATH" = "/Applications";
+				"ENABLE_BITCODE" = "NO";
+				"DEBUG_INFORMATION_FORMAT" = "dwarf";
+				"ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES" = "NO";
+				"LD_RUNPATH_SEARCH_PATHS" = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				"VALIDATE_PRODUCT" = "NO";
+				"ENABLE_USER_SCRIPT_SANDBOXING" = "NO";
+				"SWIFT_VERSION" = "5.0";
+				"COPY_PHASE_STRIP" = "NO";
+				"STRIP_INSTALLED_PRODUCT" = "NO";
+				"DEPLOYMENT_POSTPROCESSING" = "NO";
+				"IPHONEOS_DEPLOYMENT_TARGET" = "15.0";
+				"GCC_OPTIMIZATION_LEVEL" = "0";
+			};
+			"name" = "Debug";
+		};
+		"17214E7200B875620A0C2299" = {
+			"isa" = "XCBuildConfiguration";
+			"buildSettings" = {
+				"PRODUCT_NAME" = "iPlayer";
+				"GCC_PREPROCESSOR_DEFINITIONS" = (
+					"$(inherited)",
+					"IPLAYER_RUNTIME_ASSEMBLY=1",
+				);
+				"PRODUCT_BUNDLE_IDENTIFIER" = "com.kang.iPlayer.swift";
+				"MARKETING_VERSION" = "2.1.1";
+				"CURRENT_PROJECT_VERSION" = "32";
+				"INFOPLIST_FILE" = "iPlayer/Info.plist";
+				"GENERATE_INFOPLIST_FILE" = "NO";
+				"CODE_SIGN_ENTITLEMENTS" = "entitlements.plist";
+				"CODE_SIGN_STYLE" = "Automatic";
+				"TARGETED_DEVICE_FAMILY" = "1,2";
+				"ARCHS" = "arm64";
+				"ONLY_ACTIVE_ARCH" = "NO";
+				"SUPPORTED_PLATFORMS" = "iphoneos";
+				"SUPPORTS_MACCATALYST" = "NO";
+				"SKIP_INSTALL" = "NO";
+				"INSTALL_PATH" = "/Applications";
+				"ENABLE_BITCODE" = "NO";
+				"DEBUG_INFORMATION_FORMAT" = "dwarf";
+				"ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES" = "NO";
+				"LD_RUNPATH_SEARCH_PATHS" = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				"VALIDATE_PRODUCT" = "NO";
+				"ENABLE_USER_SCRIPT_SANDBOXING" = "NO";
+				"SWIFT_VERSION" = "5.0";
+				"COPY_PHASE_STRIP" = "NO";
+				"STRIP_INSTALLED_PRODUCT" = "NO";
+				"DEPLOYMENT_POSTPROCESSING" = "NO";
+				"IPHONEOS_DEPLOYMENT_TARGET" = "15.0";
+				"GCC_OPTIMIZATION_LEVEL" = "s";
+			};
+			"name" = "Release";
+		};
+		"DE003E094B4A4A19B30EEE73" = {
+			"isa" = "XCConfigurationList";
+			"buildConfigurations" = (
+				"B5FE822886E000F98F6E65E6",
+				"17214E7200B875620A0C2299",
+			);
+			"defaultConfigurationIsVisible" = "0";
+			"defaultConfigurationName" = "Release";
+		};
+		"C16189C2DC94B91B397ACEC8" = {
+			"isa" = "PBXNativeTarget";
+			"buildConfigurationList" = "DE003E094B4A4A19B30EEE73";
+			"buildPhases" = (
+				"02787D6F7CA1ECA27E4A73E8",
+				"47175B96932A8633BBB931AB",
+				"7771979FA5732EBDC2079D87",
+				"EECCBEC43B975316C5162C9E",
+				"2F93BA17EABE754143B0024E",
+			);
+			"buildRules" = (
+			);
+			"dependencies" = (
+				"458785EA598AC717AE2345AB",
+			);
+			"name" = "iPlayer";
+			"productName" = "iPlayer";
+			"productReference" = "F75E865059AE32137E05DCA0";
+			"productType" = "com.apple.product-type.application";
+		};
+		"2089E76EEB4E85D09CDF60D7" = {
+			"isa" = "PBXProject";
+			"attributes" = {
+				"LastUpgradeCheck" = "1640";
+				"TargetAttributes" = {
+					"C16189C2DC94B91B397ACEC8" = {
+						"CreatedOnToolsVersion" = "16.4";
+						"ProvisioningStyle" = "Automatic";
+					};
+				};
+			};
+			"buildConfigurationList" = "5EDFEECEBD4CA9F273DF6A3C";
+			"compatibilityVersion" = "Xcode 14.0";
+			"developmentRegion" = "en";
+			"hasScannedForEncodings" = "0";
+			"knownRegions" = (
+				"en",
+				"Base",
+				"zh-Hans",
+			);
+			"mainGroup" = "C83B6FD395E230680CDDCE11";
+			"productRefGroup" = "7C7CA09F3523C4CDCBB31EA4";
+			"projectDirPath" = "";
+			"projectRoot" = "";
+			"targets" = (
+				"C16189C2DC94B91B397ACEC8",
+				"47BEC4163A93DA88423609C6",
+			);
+		};
+		"C8160F26E1A2B0F95D60FA66" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.c.h";
+			"path" = "LegacyMediaLibrary.h";
+			"sourceTree" = "<group>";
+		};
+		"4D552789455CD15A00ADD64C" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.c.objc";
+			"path" = "LegacyMediaLibrary.m";
+			"sourceTree" = "<group>";
+		};
+		"B536B47E0C4CD71B64A27A4B" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "4D552789455CD15A00ADD64C";
+		};
+		"AC13F061B62830C295BDE90F" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.c.h";
+			"path" = "LegacyMediaUI.h";
+			"sourceTree" = "<group>";
+		};
+		"DA97FEEDD6BF3B88EBC0541C" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.c.objc";
+			"path" = "LegacyMediaUI.m";
+			"sourceTree" = "<group>";
+		};
+		"91AA1942A9C29175CB5947FB" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "DA97FEEDD6BF3B88EBC0541C";
+		};
+		"727FB7DD1513D4318A3C2E0A" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.c.objc";
+			"path" = "LegacyMediaIntegration.m";
+			"sourceTree" = "<group>";
+		};
+		"361067A05794887E838904A7" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "727FB7DD1513D4318A3C2E0A";
+		};
+		"9DDA93A98D26E292CD4FF535" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "wrapper.cfbundle";
+			"path" = "Resources/CLPlayer.bundle";
+			"sourceTree" = "<group>";
+		};
+		"346F0E64DD7B07C782B28CE2" = {
+			"isa" = "PBXGroup";
+			"path" = "LegacyMedia";
+			"children" = (
+				"C8160F26E1A2B0F95D60FA66",
+				"4D552789455CD15A00ADD64C",
+				"AC13F061B62830C295BDE90F",
+				"DA97FEEDD6BF3B88EBC0541C",
+				"727FB7DD1513D4318A3C2E0A",
+				"9DDA93A98D26E292CD4FF535",
+				"D9785E58E2809661E301A824",
+			);
+			"sourceTree" = "<group>";
+		};
+		"9F15CCE30C4220ECA36BB41A" = {
+			"isa" = "PBXFileReference";
+			"explicitFileType" = "wrapper.framework";
+			"path" = "iPlayerLegacyMedia.framework";
+			"includeInIndex" = "0";
+			"sourceTree" = "BUILT_PRODUCTS_DIR";
+		};
+		"CB06AB71A75734AB85CEA0D4" = {
+			"isa" = "PBXSourcesBuildPhase";
+			"buildActionMask" = "2147483647";
+			"files" = (
+				"B536B47E0C4CD71B64A27A4B",
+				"91AA1942A9C29175CB5947FB",
+				"361067A05794887E838904A7",
+			);
+			"runOnlyForDeploymentPostprocessing" = "0";
+		};
+		"9E18462439C8E2F6F5E83979" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "AF7C1498B873B2BA18F42FE0";
+		};
+		"B8DF3650007DE9D2F2DCD69A" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "59CAD545208B775DDB6F3958";
+		};
+		"FF58EC57055635FE97F63E02" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "wrapper.framework";
+			"name" = "AVFoundation.framework";
+			"path" = "System/Library/Frameworks/AVFoundation.framework";
+			"sourceTree" = "SDKROOT";
+		};
+		"F5348803439899028783B33B" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "FF58EC57055635FE97F63E02";
+		};
+		"EC754F329B0699946F566504" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "wrapper.framework";
+			"name" = "AVKit.framework";
+			"path" = "System/Library/Frameworks/AVKit.framework";
+			"sourceTree" = "SDKROOT";
+		};
+		"E80180ED855612982A3C722E" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "EC754F329B0699946F566504";
+		};
+		"CB9BD64DD8FC96DA235F8945" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "wrapper.framework";
+			"name" = "Photos.framework";
+			"path" = "System/Library/Frameworks/Photos.framework";
+			"sourceTree" = "SDKROOT";
+		};
+		"91E826C034A6DBAE6EA34B1E" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "CB9BD64DD8FC96DA235F8945";
+		};
+		"47F0F955CB7DA2D330C24DA0" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "wrapper.framework";
+			"name" = "ImageIO.framework";
+			"path" = "System/Library/Frameworks/ImageIO.framework";
+			"sourceTree" = "SDKROOT";
+		};
+		"8711BAAF2CBBFBBCC0C37221" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "47F0F955CB7DA2D330C24DA0";
+		};
+		"895FEE3F25BFFA28794966E7" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "wrapper.framework";
+			"name" = "CoreGraphics.framework";
+			"path" = "System/Library/Frameworks/CoreGraphics.framework";
+			"sourceTree" = "SDKROOT";
+		};
+		"013E256E67707465283DACA7" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "895FEE3F25BFFA28794966E7";
+		};
+		"DA4322881D605A6350923A9A" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "wrapper.framework";
+			"name" = "CoreMedia.framework";
+			"path" = "System/Library/Frameworks/CoreMedia.framework";
+			"sourceTree" = "SDKROOT";
+		};
+		"385954E836FC1A2C39528D3D" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "DA4322881D605A6350923A9A";
+		};
+		"B0FD5E1D26F8BF89D6CBB394" = {
+			"isa" = "PBXFrameworksBuildPhase";
+			"buildActionMask" = "2147483647";
+			"files" = (
+				"AA32AA32AA32AA32AA32AA02",
+				"9E18462439C8E2F6F5E83979",
+				"B8DF3650007DE9D2F2DCD69A",
+				"F5348803439899028783B33B",
+				"E80180ED855612982A3C722E",
+				"91E826C034A6DBAE6EA34B1E",
+				"8711BAAF2CBBFBBCC0C37221",
+				"013E256E67707465283DACA7",
+				"385954E836FC1A2C39528D3D",
+			);
+			"runOnlyForDeploymentPostprocessing" = "0";
+		};
+		"C7B96D0059A420FC01F4E816" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "9DDA93A98D26E292CD4FF535";
+		};
+		"F027BC8D4C9489D60243B7E8" = {
+			"isa" = "PBXResourcesBuildPhase";
+			"buildActionMask" = "2147483647";
+			"files" = (
+				"C7B96D0059A420FC01F4E816",
+			);
+			"runOnlyForDeploymentPostprocessing" = "0";
+		};
+		"78427A37507ED65B9170E189" = {
+			"isa" = "XCBuildConfiguration";
+			"name" = "Debug";
+			"buildSettings" = {
+				"PRODUCT_NAME" = "iPlayerLegacyMedia";
+				"PRODUCT_BUNDLE_IDENTIFIER" = "com.kang.iPlayer.swift.LegacyMedia";
+				"CURRENT_PROJECT_VERSION" = "32";
+				"MARKETING_VERSION" = "2.1.1";
+				"GENERATE_INFOPLIST_FILE" = "YES";
+				"INFOPLIST_KEY_MinimumOSVersion" = "15.0";
+				"CLANG_ENABLE_OBJC_ARC" = "YES";
+				"CLANG_ENABLE_MODULES" = "YES";
+				"DEFINES_MODULE" = "NO";
+				"SDKROOT" = "iphoneos";
+				"SUPPORTED_PLATFORMS" = "iphoneos";
+				"ARCHS" = "arm64";
+				"ONLY_ACTIVE_ARCH" = "NO";
+				"IPHONEOS_DEPLOYMENT_TARGET" = "15.0";
+				"SKIP_INSTALL" = "YES";
+				"MACH_O_TYPE" = "mh_dylib";
+				"DYLIB_INSTALL_NAME_BASE" = "@rpath";
+				"DYLIB_CURRENT_VERSION" = "1";
+				"DYLIB_COMPATIBILITY_VERSION" = "1";
+				"INSTALL_PATH" = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				"CODE_SIGN_STYLE" = "Automatic";
+				"OTHER_LDFLAGS" = (
+					"$(inherited)",
+					"-lsqlite3",
+				);
+				"GCC_PREPROCESSOR_DEFINITIONS" = (
+					"$(inherited)",
+					"NDEBUG=1",
+				);
+				"DEBUG_INFORMATION_FORMAT" = "dwarf";
+				"ENABLE_USER_SCRIPT_SANDBOXING" = "NO";
+				"COPY_PHASE_STRIP" = "NO";
+				"STRIP_INSTALLED_PRODUCT" = "NO";
+				"GCC_OPTIMIZATION_LEVEL" = "0";
+			};
+		};
+		"6FA1B92B8B4C97CE9752108F" = {
+			"isa" = "XCBuildConfiguration";
+			"name" = "Release";
+			"buildSettings" = {
+				"PRODUCT_NAME" = "iPlayerLegacyMedia";
+				"PRODUCT_BUNDLE_IDENTIFIER" = "com.kang.iPlayer.swift.LegacyMedia";
+				"CURRENT_PROJECT_VERSION" = "32";
+				"MARKETING_VERSION" = "2.1.1";
+				"GENERATE_INFOPLIST_FILE" = "YES";
+				"INFOPLIST_KEY_MinimumOSVersion" = "15.0";
+				"CLANG_ENABLE_OBJC_ARC" = "YES";
+				"CLANG_ENABLE_MODULES" = "YES";
+				"DEFINES_MODULE" = "NO";
+				"SDKROOT" = "iphoneos";
+				"SUPPORTED_PLATFORMS" = "iphoneos";
+				"ARCHS" = "arm64";
+				"ONLY_ACTIVE_ARCH" = "NO";
+				"IPHONEOS_DEPLOYMENT_TARGET" = "15.0";
+				"SKIP_INSTALL" = "YES";
+				"MACH_O_TYPE" = "mh_dylib";
+				"DYLIB_INSTALL_NAME_BASE" = "@rpath";
+				"DYLIB_CURRENT_VERSION" = "1";
+				"DYLIB_COMPATIBILITY_VERSION" = "1";
+				"INSTALL_PATH" = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				"CODE_SIGN_STYLE" = "Automatic";
+				"OTHER_LDFLAGS" = (
+					"$(inherited)",
+					"-lsqlite3",
+				);
+				"GCC_PREPROCESSOR_DEFINITIONS" = (
+					"$(inherited)",
+					"NDEBUG=1",
+				);
+				"DEBUG_INFORMATION_FORMAT" = "dwarf";
+				"ENABLE_USER_SCRIPT_SANDBOXING" = "NO";
+				"COPY_PHASE_STRIP" = "NO";
+				"STRIP_INSTALLED_PRODUCT" = "NO";
+				"GCC_OPTIMIZATION_LEVEL" = "s";
+			};
+		};
+		"AA83D44735F203F918432567" = {
+			"isa" = "XCConfigurationList";
+			"buildConfigurations" = (
+				"78427A37507ED65B9170E189",
+				"6FA1B92B8B4C97CE9752108F",
+			);
+			"defaultConfigurationIsVisible" = "0";
+			"defaultConfigurationName" = "Release";
+		};
+		"47BEC4163A93DA88423609C6" = {
+			"isa" = "PBXNativeTarget";
+			"name" = "iPlayerLegacyMedia";
+			"productName" = "iPlayerLegacyMedia";
+			"productType" = "com.apple.product-type.framework";
+			"productReference" = "9F15CCE30C4220ECA36BB41A";
+			"buildConfigurationList" = "AA83D44735F203F918432567";
+			"buildPhases" = (
+				"CB06AB71A75734AB85CEA0D4",
+				"B0FD5E1D26F8BF89D6CBB394",
+				"F027BC8D4C9489D60243B7E8",
+			);
+			"buildRules" = (
+			);
+			"dependencies" = (
+			);
+		};
+		"420EDE07D23F7C4FA49F47D1" = {
+			"isa" = "PBXContainerItemProxy";
+			"containerPortal" = "2089E76EEB4E85D09CDF60D7";
+			"proxyType" = "1";
+			"remoteGlobalIDString" = "47BEC4163A93DA88423609C6";
+			"remoteInfo" = "iPlayerLegacyMedia";
+		};
+		"458785EA598AC717AE2345AB" = {
+			"isa" = "PBXTargetDependency";
+			"target" = "47BEC4163A93DA88423609C6";
+			"targetProxy" = "420EDE07D23F7C4FA49F47D1";
+		};
+		"2366FD8E25D743AE61B4B67A" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "9F15CCE30C4220ECA36BB41A";
+			"settings" = {
+				"ATTRIBUTES" = (
+					"CodeSignOnCopy",
+					"RemoveHeadersOnCopy",
+				);
+			};
+		};
+		"EECCBEC43B975316C5162C9E" = {
+			"isa" = "PBXCopyFilesBuildPhase";
+			"buildActionMask" = "2147483647";
+			"dstPath" = "";
+			"dstSubfolderSpec" = "10";
+			"files" = (
+				"2366FD8E25D743AE61B4B67A",
+			);
+			"name" = "Embed legacy media compatibility";
+			"runOnlyForDeploymentPostprocessing" = "0";
+		};
+		"D9785E58E2809661E301A824" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.c.h";
+			"path" = "LegacyPlaybackLayout.h";
+			"sourceTree" = "<group>";
+		};
+	};
+	"rootObject" = "2089E76EEB4E85D09CDF60D7";
+}
