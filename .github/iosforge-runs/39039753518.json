@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "run_id": 39039753518,
+  "repository": "mango6i/iOSForge",
+  "branch": "main",
+  "request_id": "002235ff5918bb585d7f51b0",
+  "build_type": "ipa",
+  "notify_via_github": true,
+  "created_at": "2026-10-17T14:12:33Z",
+  "source": {
+    "path": "sources/iPlayer-维护工程-播放器全屏与选择栏修正31",
+    "sha": "6edab44ced81a06adc71e04d6096bbc4997230ad"
+  },
+  "outputs": []
+}
