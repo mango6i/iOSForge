@@ -1,0 +1,93 @@
+// Recovered module 277; analysis path, not original filename.
+// Original SHA-256 d7d44834dcc8a4eea3847ca3132ece135952df0aa95136fb9af8b8e2c4ff7be7; original byte range [551394, 553459).
+__d(277, function (e, r, n, t) {
+  "use strict";
+
+  var s = r(243),
+    o = r(278),
+    a = r(280),
+    p = r(281),
+    l = r(282),
+    i = r(283),
+    c = r(275),
+    d = r(1),
+    u = r(285),
+    b = r(43),
+    h = (r(67), d.PropTypes),
+    f = function (e) {
+      function r() {
+        return babelHelpers.classCallCheck(this, r), babelHelpers.possibleConstructorReturn(this, Object.getPrototypeOf(r).apply(this, arguments));
+      }
+      return babelHelpers.inherits(r, e), babelHelpers.createClass(r, [{
+        key: "shouldComponentUpdate",
+        value: function (e, r) {
+          return e.sceneRendererProps.scene.navigationState !== this.props.sceneRendererProps.scene.navigationState;
+        }
+      }, {
+        key: "render",
+        value: function () {
+          return this.props.sceneRenderer(this.props.sceneRendererProps);
+        }
+      }]), r;
+    }(d.Component);
+  f.propTypes = {
+    sceneRenderer: h.func.isRequired,
+    sceneRendererProps: h.shape(c.SceneRenderer).isRequired
+  };
+  var R = function (e) {
+    function r() {
+      return babelHelpers.classCallCheck(this, r), babelHelpers.possibleConstructorReturn(this, Object.getPrototypeOf(r).apply(this, arguments));
+    }
+    return babelHelpers.inherits(r, e), babelHelpers.createClass(r, [{
+      key: "shouldComponentUpdate",
+      value: function (e, r) {
+        return u.shouldComponentUpdate.call(this, e, r);
+      }
+    }, {
+      key: "render",
+      value: function () {
+        var e = this.props,
+          r = e.panHandlers,
+          n = e.pointerEvents,
+          t = e.renderScene,
+          p = e.style,
+          l = babelHelpers.objectWithoutProperties(e, ["panHandlers", "pointerEvents", "renderScene", "style"]),
+          i = void 0 === p ? a.forHorizontal(l) : p,
+          c = void 0 === r ? o.forHorizontal(l) : r;
+        return d.createElement(s.View, babelHelpers["extends"]({}, c, {
+          pointerEvents: n,
+          ref: this.props.onComponentRef,
+          style: [y.main, i]
+        }), d.createElement(f, {
+          sceneRenderer: t,
+          sceneRendererProps: l
+        }));
+      }
+    }]), r;
+  }(d.Component);
+  R.propTypes = babelHelpers["extends"]({}, c.SceneRendererProps, {
+    onComponentRef: h.func.isRequired,
+    panHandlers: c.panHandlers,
+    pointerEvents: h.string.isRequired,
+    renderScene: h.func.isRequired,
+    style: h.any
+  }), R.CardStackPanResponder = o, R.CardStackStyleInterpolator = a, R.PagerPanResponder = p, R.PagerStyleInterpolator = l;
+  var y = b.create({
+    main: {
+      backgroundColor: "#E9E9EF",
+      bottom: 0,
+      left: 0,
+      position: "absolute",
+      right: 0,
+      shadowColor: "black",
+      shadowOffset: {
+        width: 0,
+        height: 0
+      },
+      shadowOpacity: .4,
+      shadowRadius: 10,
+      top: 0
+    }
+  });
+  R = i.create(R), n.exports = R;
+});

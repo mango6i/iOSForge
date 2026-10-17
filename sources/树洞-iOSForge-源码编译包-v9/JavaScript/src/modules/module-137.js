@@ -1,0 +1,51 @@
+// Recovered module 137; analysis path, not original filename.
+// Original SHA-256 f8d9d8b03e827af19dcb9c39ffd28f8b15acbad6bdec90710c27a08521ed4c7f; original byte range [233897, 235000).
+__d(137, function (e, t, n, l) {
+  "use strict";
+
+  var r = t(138),
+    s = (t(29), t(31).DialogManagerAndroid),
+    a = function () {
+      function e() {
+        babelHelpers.classCallCheck(this, e);
+      }
+      return babelHelpers.createClass(e, null, [{
+        key: "alert",
+        value: function (e, t, n, l) {
+          return "undefined" != typeof l ? (console.warn('Alert.alert() with a 4th "type" parameter is deprecated and will be removed. Use AlertIOS.prompt() instead.'), void r.alert(e, t, n, l)) : void r.alert(e, t, n);
+        }
+      }]), e;
+    }();
+  (function () {
+    function e() {
+      babelHelpers.classCallCheck(this, e);
+    }
+    return babelHelpers.createClass(e, null, [{
+      key: "alert",
+      value: function (e, t, n) {
+        var l = {
+            title: e || "",
+            message: t || ""
+          },
+          r = n ? n.slice(0, 3) : [{
+            text: "OK"
+          }],
+          a = r.pop(),
+          o = r.pop(),
+          i = r.pop();
+        i && (l = babelHelpers["extends"]({}, l, {
+          buttonNeutral: i.text || ""
+        })), o && (l = babelHelpers["extends"]({}, l, {
+          buttonNegative: o.text || ""
+        })), a && (l = babelHelpers["extends"]({}, l, {
+          buttonPositive: a.text || ""
+        })), s.showAlert(l, function (e) {
+          return console.warn(t);
+        }, function (e, t) {
+          e === s.buttonClicked && (t === s.buttonNeutral ? i.onPress && i.onPress() : t === s.buttonNegative ? o.onPress && o.onPress() : t === s.buttonPositive && a.onPress && a.onPress());
+        });
+      }
+    }]), e;
+  })();
+  n.exports = a;
+});
