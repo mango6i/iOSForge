@@ -110,6 +110,22 @@
       "deleted_run_numbers": {
         "39000984685": 294
       }
+    },
+    {
+      "timestamp": "2026-10-17T13:04:26+08:00",
+      "cleanup_run_id": 39004786561,
+      "deleted_run_ids": [
+        39004694489
+      ],
+      "actions_runs_deleted": 1,
+      "repository_items_deleted": 2,
+      "removed_paths": [
+        "sources/Download/Xingkong-unsigned.ipa",
+        "sources/星空-iOSForge-维护测试版-v3"
+      ],
+      "deleted_run_numbers": {
+        "39004694489": 295
+      }
     }
   ],
   "checks": [
