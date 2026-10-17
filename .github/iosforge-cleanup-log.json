@@ -98,6 +98,14 @@
       "managed_builds": 0,
       "detail": "本轮只清理到期编译任务及旧清理检查。当前清理检查 #45 是本轮记录，留待下次检查回收；网页发布和其他工作流记录不在编译清理范围。",
       "workflow_conclusion": "success"
+    },
+    {
+      "timestamp": "2026-10-17T11:46:56+08:00",
+      "cleanup_run_id": 39000078481,
+      "result": "waiting",
+      "run_number": 46,
+      "managed_builds": 1,
+      "detail": "本轮只清理到期编译任务及旧清理检查。当前清理检查 #46 是本轮记录，留待下次检查回收；网页发布和其他工作流记录不在编译清理范围。"
     }
   ],
   "system_deletions": [
