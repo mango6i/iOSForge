@@ -11,5 +11,12 @@
     "path": "sources/星空-iOSForge-维护测试版-v4",
     "sha": "cb588ffd39d8d452aa7be485403f3f0cdb089d05"
   },
-  "outputs": []
+  "outputs": [
+    {
+      "path": "sources/Download/Xingkong-unsigned.ipa",
+      "sha": "c04e5ee7e312da54a49bfca152abd3f705419e3c"
+    }
+  ],
+  "status": "success",
+  "completed_at": "2026-10-17T09:28:20Z"
 }
