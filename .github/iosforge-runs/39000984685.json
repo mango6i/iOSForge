@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "run_id": 39000984685,
+  "repository": "mango6i/iOSForge",
+  "branch": "main",
+  "request_id": "8be597efd91d96d067bab1a2",
+  "build_type": "ipa",
+  "notify_via_github": true,
+  "created_at": "2026-10-17T04:01:25Z",
+  "source": {
+    "path": "sources/星空-iOSForge-测试星星版-v2",
+    "sha": "c7758e74d98d1413cb06d98e0c4ad327445a6fbc"
+  },
+  "outputs": []
+}
