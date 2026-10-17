@@ -810,6 +810,21 @@
           "issue_number": 3
         }
       ]
+    },
+    {
+      "timestamp": "2026-10-17T22:43:46+08:00",
+      "removed": [
+        {
+          "run_id": 39039753518,
+          "comment_id": 6234942499,
+          "issue_number": 3
+        },
+        {
+          "run_id": 39040996259,
+          "comment_id": 6235112991,
+          "issue_number": 3
+        }
+      ]
     }
   ]
 }
