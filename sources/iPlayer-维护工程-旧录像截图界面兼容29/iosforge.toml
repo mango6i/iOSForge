@@ -1,9 +1,0 @@
-[project]
-name = "iPlayer Maintenance"
-kind = "app"
-minimum_ios = "15.0"
-
-[app]
-project = "iPlayer.xcodeproj"
-scheme = "iPlayer"
-configuration = "Release"
