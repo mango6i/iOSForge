@@ -240,6 +240,14 @@
       "run_number": 52,
       "managed_builds": 0,
       "detail": "本轮只清理到期编译任务及旧清理检查。当前清理检查 #52 是本轮记录，留待下次检查回收；网页发布和其他工作流记录不在编译清理范围。"
+    },
+    {
+      "timestamp": "2026-10-17T17:23:55+08:00",
+      "cleanup_run_id": 39020959009,
+      "result": "idle_stopped",
+      "run_number": 53,
+      "managed_builds": 0,
+      "detail": ""
     }
   ],
   "system_deletions": [
