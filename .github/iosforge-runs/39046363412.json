@@ -11,5 +11,12 @@
     "path": "sources/iPlayer-维护工程-界面稳定与免费入口修正32",
     "sha": "229c11840a476356a5913a1bd1e488b28c01d01e"
   },
-  "outputs": []
+  "outputs": [
+    {
+      "path": "sources/Download/iPlayer-unsigned.ipa",
+      "sha": "861309413342932f24c5352d3eb4d13d3a8e1f3a"
+    }
+  ],
+  "status": "success",
+  "completed_at": "2026-10-17T15:45:18Z"
 }
