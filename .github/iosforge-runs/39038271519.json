@@ -11,5 +11,12 @@
     "path": "sources/TWSChipDetector",
     "sha": "8265393a0163a4e8b878268924cf853feb6ac01b"
   },
-  "outputs": []
+  "outputs": [
+    {
+      "path": "sources/Download/TWSChipDetector-unsigned.ipa",
+      "sha": "c9a99cb7c6b7c8a615ddaceedf64762ae0c889e2"
+    }
+  ],
+  "status": "success",
+  "completed_at": "2026-10-17T13:52:14Z"
 }
