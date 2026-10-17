@@ -11,5 +11,12 @@
     "path": "sources/iPlayer-维护工程-启动修正测试28",
     "sha": "8e9397c5573eca66302d933d422bc9b7036c5c82"
   },
-  "outputs": []
+  "outputs": [
+    {
+      "path": "sources/Download/iPlayer-unsigned.ipa",
+      "sha": "f5cf6a2b4a056cb9897e97b97d7d394ad1e8494a"
+    }
+  ],
+  "status": "success",
+  "completed_at": "2026-10-17T03:51:19Z"
 }
