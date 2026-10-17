@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "run_id": 39000017475,
+  "repository": "mango6i/iOSForge",
+  "branch": "main",
+  "request_id": "d5cfd93840cbd677b2308bf1",
+  "build_type": "ipa",
+  "notify_via_github": true,
+  "created_at": "2026-10-17T03:45:51Z",
+  "source": {
+    "path": "sources/iPlayer-维护工程-Windows入口26",
+    "sha": "e676612b67054a3905589cb50c0b99bf65027fc0"
+  },
+  "outputs": []
+}
