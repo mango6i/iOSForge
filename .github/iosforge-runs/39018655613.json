@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "run_id": 39018655613,
+  "repository": "mango6i/iOSForge",
+  "branch": "main",
+  "request_id": "2a2b5496b11d31728077f3e6",
+  "build_type": "ipa",
+  "notify_via_github": true,
+  "created_at": "2026-10-17T08:47:07Z",
+  "source": {
+    "path": "sources/iPlayer-维护工程-旧录像截图界面兼容29",
+    "sha": "202665a06b14019abb49f499dad16afb6b90cdb6"
+  },
+  "outputs": []
+}
