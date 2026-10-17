@@ -11,5 +11,12 @@
     "path": "sources/iPlayer-维护工程-旧版布局与名称修正30",
     "sha": "61f1c68e7a7db5c9444afcec57d84dabd524f4e4"
   },
-  "outputs": []
+  "outputs": [
+    {
+      "path": "sources/Download/iPlayer-unsigned.ipa",
+      "sha": "363f23f7b481a0d9eac51454eec04c522aee923a"
+    }
+  ],
+  "status": "success",
+  "completed_at": "2026-10-17T09:42:14Z"
 }
