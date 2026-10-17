@@ -1,0 +1,57 @@
+// Recovered module 218; analysis path, not original filename.
+// Original SHA-256 9199255c498bfe806e5d6811ceb328e667d5ec1f4f8f1416d79cb9713185c1fa; original byte range [447759, 449011).
+__d(218, function (e, s, r, t) {
+  "use strict";
+
+  var i = s(54),
+    n = s(23),
+    o = (s(29), s(1)),
+    p = s(67),
+    h = s(80),
+    f = {
+      SIZE: {}
+    },
+    a = o.createClass({
+      displayName: "RefreshControl",
+      statics: {
+        SIZE: f.SIZE
+      },
+      mixins: [n],
+      propTypes: babelHelpers["extends"]({}, p.propTypes, {
+        onRefresh: o.PropTypes.func,
+        refreshing: o.PropTypes.bool.isRequired,
+        tintColor: i,
+        titleColor: i,
+        title: o.PropTypes.string,
+        enabled: o.PropTypes.bool,
+        colors: o.PropTypes.arrayOf(i),
+        progressBackgroundColor: i,
+        size: o.PropTypes.oneOf([f.SIZE.DEFAULT, f.SIZE.LARGE]),
+        progressViewOffset: o.PropTypes.number
+      }),
+      _nativeRef: null,
+      _lastNativeRefreshing: !1,
+      componentDidMount: function () {
+        this._lastNativeRefreshing = this.props.refreshing;
+      },
+      componentDidUpdate: function (e) {
+        this.props.refreshing !== e.refreshing ? this._lastNativeRefreshing = this.props.refreshing : this.props.refreshing !== this._lastNativeRefreshing && (this._nativeRef.setNativeProps({
+          refreshing: this.props.refreshing
+        }), this._lastNativeRefreshing = this.props.refreshing);
+      },
+      render: function () {
+        var e = this;
+        return o.createElement(l, babelHelpers["extends"]({}, this.props, {
+          ref: function (s) {
+            return e._nativeRef = s;
+          },
+          onRefresh: this._onRefresh
+        }));
+      },
+      _onRefresh: function () {
+        this._lastNativeRefreshing = !0, this.props.onRefresh && this.props.onRefresh(), this.forceUpdate();
+      }
+    }),
+    l = h("RCTRefreshControl", a);
+  r.exports = a;
+});
