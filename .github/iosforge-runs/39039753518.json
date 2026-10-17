@@ -11,5 +11,12 @@
     "path": "sources/iPlayer-维护工程-播放器全屏与选择栏修正31",
     "sha": "6edab44ced81a06adc71e04d6096bbc4997230ad"
   },
-  "outputs": []
+  "outputs": [
+    {
+      "path": "sources/Download/iPlayer-unsigned.ipa",
+      "sha": "17063dae5000960655f130073597e61aa4ecd22d"
+    }
+  ],
+  "status": "success",
+  "completed_at": "2026-10-17T14:13:45Z"
 }
