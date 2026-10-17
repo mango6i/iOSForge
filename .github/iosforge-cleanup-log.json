@@ -3,7 +3,16 @@
   "date": "2026-10-18",
   "timezone": "Asia/Shanghai",
   "entries": [],
-  "checks": [],
+  "checks": [
+    {
+      "timestamp": "2026-10-18T00:28:03+08:00",
+      "cleanup_run_id": 39049508161,
+      "result": "idle_stopped",
+      "run_number": 68,
+      "managed_builds": 0,
+      "detail": ""
+    }
+  ],
   "system_deletions": [
     {
       "timestamp": "2026-10-18T00:27:59+08:00",
