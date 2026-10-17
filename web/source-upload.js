@@ -66,6 +66,141 @@
     }
     return source;
   }
+  // Read project metadata only. Never execute uploaded scripts or guess the first
+  // bundle identifier (which may belong to a test target or an extension).
+  function openStep(text) {
+    let at = 0, count = 0;
+    const next = () => {
+      for (;;) {
+        while (/\s/.test(text[at] || "") && at < text.length) at++;
+        if (text.startsWith("/*", at)) { const end = text.indexOf("*/", at + 2); if (end < 0) throw Error(); at = end + 2; }
+        else if (text.startsWith("//", at)) { const end = text.indexOf("\n", at); at = end < 0 ? text.length : end + 1; }
+        else break;
+      }
+      if (++count > 250000 || at >= text.length) throw Error();
+      const ch = text[at++];
+      if ('{}()=;,'.includes(ch)) return { kind: ch };
+      if (ch === '"') {
+        let value = "", closed = false;
+        while (at < text.length) {
+          let ch = text[at++];
+          if (ch === '"') { closed = true; break; }
+          if (ch === "\\") { ch = text[at++]; ch = ({ n: "\n", r: "\r", t: "\t" })[ch] ?? ch; }
+          value += ch;
+        }
+        if (!closed) throw Error();
+        return { value };
+      }
+      let value = ch;
+      while (at < text.length && !/[\s{}()=;,"]/.test(text[at]) && !text.startsWith("/*", at) && !text.startsWith("//", at)) value += text[at++];
+      return { value };
+    };
+    let token = next();
+    const take = kind => { if (token.kind !== kind) throw Error(); token = next(); };
+    const value = (depth = 0) => {
+      if (depth > 64) throw Error();
+      if (token.kind === "{") {
+        const result = Object.create(null); take("{");
+        while (token.kind !== "}") { const key = token.value; if (key === undefined) throw Error(); token = next(); take("="); result[key] = value(depth + 1); take(";"); }
+        // The root closing brace may be the last token in an ASCII plist.
+        if (depth) take("}");
+        return result;
+      }
+      if (token.kind === "(") {
+        const result = []; take("(");
+        while (token.kind !== ")") { result.push(value(depth + 1)); if (token.kind !== ")") take(","); }
+        take(")"); return result;
+      }
+      if (token.value === undefined) throw Error();
+      const result = token.value; token = next(); return result;
+    };
+    return value();
+  }
+  async function identifyXcode(files, { project = "", scheme = "" } = {}) {
+    const result = { project: "", scheme: "", bundleId: "", projectHint: "未找到 Xcode 工程", schemeHint: "未识别到唯一 Scheme", bundleIdHint: "包名需由 Xcode 解析" };
+    const ignored = new Set([".git", ".github", ".theos", ".build", ".swiftpm", "Pods", "Carthage", "node_modules", "vendor", "build", "dist", "packages", "DerivedData", "__pycache__", "examples", "tests"]);
+    const containers = new Set();
+    for (const file of files) {
+      const parts = file.path.split("/");
+      for (let i = 0; i < parts.length - 1; i++) {
+        if (ignored.has(parts[i]) || parts[i].startsWith(".")) break;
+        if (/\.(xcodeproj|xcworkspace)$/.test(parts[i])) { containers.add(parts.slice(0, i + 1).join("/")); break; }
+      }
+    }
+    const parent = path => path.includes("/") ? path.slice(0, path.lastIndexOf("/") + 1) : "";
+    const workspaces = [...containers].filter(path => path.endsWith(".xcworkspace"));
+    const candidates = [...containers].filter(path => path.endsWith(".xcworkspace") || !workspaces.some(workspace => parent(workspace) === parent(path))).sort();
+    if (project && containers.has(project)) result.project = project;
+    else if (!project && candidates.length === 1) result.project = candidates[0];
+    else { if (candidates.length > 1) result.projectHint = "检测到多个工程，请指定"; return result; }
+    result.projectHint = result.project;
+    const cache = new Map();
+    const read = async path => {
+      if (!cache.has(path)) {
+        const file = files.find(file => file.path === path);
+        let text = "";
+        if (file && fileSize(file) <= 8 * MB) { try { text = textOf(file.read ? await file.read() : file.bytes) || ""; } catch { /* Metadata preview cannot block source selection. */ } }
+        cache.set(path, text);
+      }
+      return cache.get(path);
+    };
+    const xml = text => text.replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+    const attr = (text, name) => xml(text.match(new RegExp(`\\b${name}\\s*=\\s*(["'])(.*?)\\1`))?.[2] || "");
+    const scopes = [result.project];
+    if (result.project.endsWith(".xcworkspace")) scopes.push(...[...containers].filter(path => path.endsWith(".xcodeproj") && parent(path) === parent(result.project)));
+    const schemes = [];
+    for (const file of files) {
+      const container = scopes.find(path => { const prefix = path + "/xcshareddata/xcschemes/"; return file.path.startsWith(prefix) && /^[^/]+\.xcscheme$/.test(file.path.slice(prefix.length)); });
+      if (!container) continue;
+      const text = await read(file.path), refs = [];
+      for (const match of text.matchAll(/<BuildActionEntry\b([^>]*)>([\s\S]*?)<\/BuildActionEntry>/g)) {
+        const ref = match[2].match(/<BuildableReference\b([^>]*)\/?\s*>/);
+        if (attr(match[1], "buildForArchiving") === "YES" && ref && attr(ref[1], "BuildableName").endsWith(".app")) refs.push({ id: attr(ref[1], "BlueprintIdentifier"), container: attr(ref[1], "ReferencedContainer").replace(/^container:/, "") });
+      }
+      if (refs.length) schemes.push({ name: file.path.split("/").pop().slice(0, -9), refs, container });
+    }
+    const names = [...new Set(schemes.map(item => item.name))];
+    const selected = schemes.filter(item => item.name === (scheme || (names.length === 1 ? names[0] : "")));
+    if (selected.length) result.scheme = selected[0].name;
+    if (!scheme && names.length > 1) { result.schemeHint = "检测到多个 Scheme，请指定"; return result; }
+    const projects = scopes.filter(path => path.endsWith(".xcodeproj"));
+    const apps = [];
+    for (const path of projects) {
+      let plist; try { plist = openStep(await read(path + "/project.pbxproj")); } catch { continue; }
+      const objects = plist?.objects || {}, root = objects[plist.rootObject];
+      for (const id of root?.targets || []) {
+        const target = objects[id];
+        if (target?.isa !== "PBXNativeTarget" || target.productType !== "com.apple.product-type.application") continue;
+        if (selected.length && !selected.some(item => item.refs.some(ref => ref.id === id && (!ref.container || parent(path) + ref.container === path)))) continue;
+        if (!selected.length && scheme && target.name !== scheme) continue;
+        apps.push({ path, target, objects, root });
+      }
+    }
+    if (apps.length !== 1) return result;
+    const { path, target, objects, root } = apps[0];
+    if (!result.scheme && !names.length && !scheme && (root.targets || []).filter(id => objects[id]?.isa === "PBXNativeTarget").length === 1) result.scheme = target.name || "";
+    if (result.scheme) result.schemeHint = result.scheme;
+    const settings = object => {
+      const list = objects[object?.buildConfigurationList];
+      const configurations = (list?.buildConfigurations || []).map(id => objects[id]).filter(Boolean);
+      const selected = configurations.find(item => item.name === "Release") || (configurations.length === 1 ? configurations[0] : null);
+      return selected?.buildSettings || {};
+    };
+    const values = { TARGET_NAME: target.name, ...settings(root), ...settings(target) };
+    values.PRODUCT_NAME ??= target.name;
+    const resolve = value => {
+      if (typeof value !== "string") return "";
+      for (let i = 0; i < 12 && /\$[({]/.test(value); i++) value = value.replace(/\$\(([^)]+)\)|\$\{([^}]+)\}/g, (full, a, b) => typeof values[a || b] === "string" ? values[a || b] : full);
+      return value;
+    };
+    let bundle = resolve(values.PRODUCT_BUNDLE_IDENTIFIER);
+    if (!bundle && values.INFOPLIST_FILE) {
+      const info = await read(parent(path) + resolve(values.INFOPLIST_FILE));
+      bundle = resolve(xml(info.match(/<key>\s*CFBundleIdentifier\s*<\/key>\s*<string>([^<]*)<\/string>/)?.[1] || ""));
+    }
+    if (bundle.length <= 255 && /^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*$/.test(bundle)) result.bundleId = result.bundleIdHint = bundle;
+    return result;
+  }
   const crcTable = Uint32Array.from({ length: 256 }, (_, n) => { for (let k = 0; k < 8; k++) n = n & 1 ? 0xedb88320 ^ (n >>> 1) : n >>> 1; return n >>> 0; });
   function crc32(bytes) { let crc = -1; for (const byte of bytes) crc = crcTable[(crc ^ byte) & 255] ^ (crc >>> 8); return (crc ^ -1) >>> 0; }
   async function readZip(file, progress = () => {}) {
@@ -180,7 +315,7 @@
     const current = new Map(listing.tree.map(item => [key(item.path), item]));
     const existing = listing.tree.some(item => key(item.path) === key(target) || key(item.path).startsWith(key(target) + "/"));
     if (existing && !replace) fail(`目录 ${target} 已存在。请换一个项目名称，或明确勾选允许更新同名文件。`);
-    const changes = [];
+    const changes = [], intended = [];
     for (const file of files) {
       const path = `${target}/${validPath(file.path)}`;
       const parts = path.split("/");
@@ -189,10 +324,35 @@
         if (old && (old.path !== part || old.type !== (n === parts.length ? "blob" : "tree") || old.mode === "120000")) fail(`仓库存在大小写、链接或文件/目录冲突：${part}`);
       }
       const old = current.get(key(path));
-      if (old?.mode === file.mode && old.sha === (file.sha || await blobHash(file.bytes))) continue;
+      const sha = file.sha || await blobHash(file.bytes);
+      intended.push({ path, mode: file.mode, sha });
+      if (old?.mode === file.mode && old.sha === sha) continue;
       changes.push({ ...file, path });
     }
-    if (!changes.length) { progress(100, "源码与仓库一致，将直接启动编译。"); return { sha: original, directory: target, changed: false }; }
+    async function latestSnapshot(head) {
+      const commit = await api(`${base}/git/commits/${head}`);
+      const listing = await api(`${base}/git/trees/${commit.tree.sha}?recursive=1`);
+      if (listing.truncated) fail("最新仓库文件树过大，无法安全核对源码冲突；尚未更新分支。");
+      const latest = new Map(listing.tree.map(item => [key(item.path), item]));
+      if (!replace && listing.tree.some(item => key(item.path) === key(target) || key(item.path).startsWith(key(target) + "/"))) fail(`同名项目目录 ${target} 在上传期间已被创建。请选择其他名称，或确认后勾选更新同名文件。`);
+      const same = (a, b) => !a && !b || a && b && a.path === b.path && a.type === b.type && a.mode === b.mode && a.sha === b.sha;
+      for (const file of intended) {
+        const parts = file.path.split("/");
+        for (let n = 1; n < parts.length; n++) {
+          const path = parts.slice(0, n).join("/"), item = latest.get(key(path));
+          if (item && (item.path !== path || item.type !== "tree" || item.mode === "120000")) fail(`上传目标路径发生冲突：${path}。尚未覆盖任何源码，请核对该路径后重试。`);
+        }
+        const before = current.get(key(file.path)), now = latest.get(key(file.path));
+        if (!same(before, now) && !(now?.path === file.path && now.type === "blob" && now.mode === file.mode && now.sha === file.sha)) fail(`上传期间同一个源码文件发生了变化：${file.path}。已保留仓库与本地文件，请核对差异后再上传。`);
+      }
+      return commit;
+    }
+    if (!changes.length) {
+      const head = (await api(refPath)).object.sha;
+      if (head !== original) await latestSnapshot(head);
+      progress(100, "源码与仓库一致，将直接启动编译。");
+      return { sha: head, directory: target, changed: false };
+    }
     const post = async (path, body) => {
       const safeObject = path === "/git/blobs" || path === "/git/trees";
       for (let attempt = 0; ; attempt++) {
@@ -211,6 +371,7 @@
       }
     };
     let baseTree = commit.tree.sha, batch = [], size = 0, done = 0, index = 0;
+    const preparedEntries = [];
     const totalBytes = Math.max(1, changes.reduce((n, file) => n + fileSize(file), 0));
     async function flush() { if (batch.length) { baseTree = (await post("/git/trees", { base_tree: baseTree, tree: batch })).sha; batch = []; size = 0; } }
     for (const file of changes) {
@@ -226,6 +387,8 @@
           preparedBlobs.set(key, entry.sha);
         }
       } else entry.content = content.text;
+      // Keep only object IDs for rebasing, not another copy of the source bytes.
+      preparedEntries.push({ path: entry.path, mode: entry.mode, type: "blob", sha: entry.sha || file.sha || await blobHash(content.bytes) });
       const bytes = encoder.encode(JSON.stringify(entry)).length;
       if (size + bytes > 3 * MB) await flush();
       batch.push(entry); size += bytes;
@@ -234,17 +397,43 @@
     }
     await flush();
     progress(90, "文件已准备，正在安全提交源码…");
-    const created = await post("/git/commits", { message: `Upload ${name} from iOSForge [skip ci]`, tree: baseTree, parents: [original] });
-    if ((await api(refPath)).object.sha !== original) fail("上传期间分支有新提交，已停止更新以保护他人的修改。请重新上传；本次尚未改动分支。");
-    try {
-      await api(`${base}/git/refs/heads/${encodeURIComponent(branch)}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sha: created.sha, force: false }) });
-    } catch (error) {
-      let head;
-      try { head = (await api(refPath)).object.sha; } catch { fail(`提交结果暂时无法确认，请先检查 GitHub 提交记录，勿重复上传。提交编号：${created.sha}`); }
-      if (head !== created.sha) throw error;
+    let parent = original, rebases = 0;
+    for (;;) {
+      const head = (await api(refPath)).object.sha;
+      if (head !== parent) {
+        if (rebases >= 3) fail("仓库在提交时持续更新，已尝试衔接 3 次。所选文件仍保留，请稍后再点上传；本次尚未更新分支。");
+        const latest = await latestSnapshot(head);
+        progress(90, `仓库有无关文件更新，正在保留最新改动并继续提交源码（${++rebases} / 3）…`);
+        baseTree = latest.tree.sha; batch = []; size = 0;
+        for (const entry of preparedEntries) {
+          const bytes = encoder.encode(JSON.stringify(entry)).length;
+          if (size + bytes > 3 * MB) await flush();
+          batch.push(entry); size += bytes;
+        }
+        await flush();
+        parent = head;
+      }
+      const created = await post("/git/commits", { message: `Upload ${name} from iOSForge [skip ci]`, tree: baseTree, parents: [parent] });
+      try {
+        await api(`${base}/git/refs/heads/${encodeURIComponent(branch)}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sha: created.sha, force: false }) });
+      } catch (error) {
+        let latest;
+        const uncertain = () => fail(`提交结果暂时无法确认，请先检查 GitHub 提交记录，勿重复上传。提交编号：${created.sha}`);
+        try { latest = (await api(refPath)).object.sha; } catch { uncertain(); }
+        if (latest !== created.sha) {
+          // A definite fast-forward rejection means this update was not applied.
+          // Recheck affected files before preparing a new parent; never force.
+          if ([409, 422].includes(error.status) && latest !== parent) continue;
+          if (latest === parent) throw error;
+          let comparison;
+          try { comparison = await api(`${base}/compare/${created.sha}...${latest}`); } catch { uncertain(); }
+          if (!["ahead", "identical"].includes(comparison.status)) uncertain();
+          // The response was lost, but a newer commit already contains ours.
+        }
+      }
+      progress(100, "源码已提交，正在启动编译。");
+      return { sha: created.sha, directory: target, changed: true };
     }
-    progress(100, "源码已提交，正在启动编译。");
-    return { sha: created.sha, directory: target, changed: true };
   }
   async function repositorySnapshot({ api, base, branch }) {
     const refPath = `${base}/git/ref/heads/${encodeURIComponent(branch)}`;
@@ -308,5 +497,5 @@
     }
     return { sha: created.sha, path: target, outputPath: deletions.length > 1 ? "sources/Download" : "", outputsRemoved: deletions.length > 1 };
   }
-  globalThis.IOSForgeUpload = Object.freeze({ limits, readZip, readFolder, prepare, destination, publish, listProjects, removeProject, crc32 });
+  globalThis.IOSForgeUpload = Object.freeze({ limits, readZip, readFolder, prepare, identifyXcode, destination, publish, listProjects, removeProject, crc32 });
 })();
