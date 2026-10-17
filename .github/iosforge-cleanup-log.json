@@ -223,6 +223,22 @@
         "39040996259": 306,
         "39039753518": 305
       }
+    },
+    {
+      "timestamp": "2026-10-17T23:45:46+08:00",
+      "cleanup_run_id": 39046444458,
+      "deleted_run_ids": [
+        39044023533
+      ],
+      "actions_runs_deleted": 1,
+      "repository_items_deleted": 2,
+      "removed_paths": [
+        "sources/Download/树洞-unsigned.ipa",
+        "sources/树洞-iOSForge-源码编译包-v7"
+      ],
+      "deleted_run_numbers": {
+        "39044023533": 307
+      }
     }
   ],
   "checks": [
