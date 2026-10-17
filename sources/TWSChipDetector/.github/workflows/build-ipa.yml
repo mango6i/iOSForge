@@ -1,0 +1,31 @@
+name: Build unsigned IPA for TrollStore
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build for iPhone (unsigned)
+        run: |
+          xcodebuild -project TWSChipDetector.xcodeproj \
+            -scheme TWSChipDetector \
+            -configuration Release -sdk iphoneos \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO build
+      - name: Package IPA
+        run: |
+          mkdir -p "$RUNNER_TEMP/package/Payload"
+          cp -R "$RUNNER_TEMP/DerivedData/Build/Products/Release-iphoneos/TWSChipDetector.app" "$RUNNER_TEMP/package/Payload/"
+          cd "$RUNNER_TEMP/package"
+          zip -qr "$GITHUB_WORKSPACE/TWSChipDetector-unsigned.ipa" Payload
+      - name: Upload installable package
+        uses: actions/upload-artifact@v4
+        with:
+          name: TWSChipDetector-IPA
+          path: TWSChipDetector-unsigned.ipa
+          if-no-files-found: error
