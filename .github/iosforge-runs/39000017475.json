@@ -11,5 +11,12 @@
     "path": "sources/iPlayer-维护工程-Windows入口26",
     "sha": "e676612b67054a3905589cb50c0b99bf65027fc0"
   },
-  "outputs": []
+  "outputs": [
+    {
+      "path": "sources/Download/iPlayer-unsigned.ipa",
+      "sha": "d855049ccab93769cfe35c057ae3af0266c8410c"
+    }
+  ],
+  "status": "success",
+  "completed_at": "2026-10-17T03:46:33Z"
 }
