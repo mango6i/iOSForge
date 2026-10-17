@@ -5,6 +5,7 @@ on:
       - 'iosforge/**'
       - 'tests/**'
       - 'web/source-upload.js'
+      - 'web/app.js'
       - '.github/scripts/cleanup.py'
       - '.github/workflows/feature-checks.yml'
   workflow_dispatch:

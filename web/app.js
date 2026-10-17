@@ -822,8 +822,7 @@ function updateDestination() {
   resetUploadConsent();
   refreshXcodePreview();
 }
-function showXcodePreview(preview) {
-  const directory = `sources/${$("#upload-project").value.trim() || "项目名称"}`;
+function showXcodePreview(preview, directory = `sources/${$("#upload-project").value.trim() || "项目名称"}`) {
   const fields = [
     [projectInput, preview?.project ? `${directory}/${preview.project}` : preview?.projectHint || "选择源码后识别工程"],
     [schemeInput, preview?.scheme || preview?.schemeHint || "选择源码后识别 Scheme"],
@@ -836,9 +835,10 @@ function showXcodePreview(preview) {
 }
 async function refreshXcodePreview() {
   const sequence = ++identificationSequence, source = selectedSource;
-  if (!source) {
+  if (!source || !uploadMode()) {
     const saved = sourceIdentification;
-    showXcodePreview(saved && saved.directory === $("#source-directory").value.trim() && saved.repo === currentRepoKey() && saved.project === projectInput.value.trim() && saved.scheme === schemeInput.value.trim() ? saved.preview : null);
+    const matches = saved && saved.directory === $("#source-directory").value.trim() && saved.repo === currentRepoKey() && saved.branch === (branchInput.value.trim() || "main") && saved.project === projectInput.value.trim() && saved.scheme === schemeInput.value.trim();
+    showXcodePreview(matches ? saved.preview : null, matches ? saved.directory : undefined);
     return;
   }
   const directory = `sources/${$("#upload-project").value.trim()}`;
@@ -846,11 +846,11 @@ async function refreshXcodePreview() {
   try {
     const preview = await IOSForgeUpload.identifyXcode(source.files, { project: project.startsWith(directory + "/") ? project.slice(directory.length + 1) : project, scheme });
     if (sequence !== identificationSequence || source !== selectedSource) return;
-    sourceIdentification = { preview, directory, repo: currentRepoKey(), project, scheme };
+    sourceIdentification = { preview, directory, repo: currentRepoKey(), branch: branchInput.value.trim() || "main", project, scheme };
     showXcodePreview(preview);
   } catch { if (sequence === identificationSequence) showXcodePreview(null); }
 }
-[projectInput, schemeInput].forEach(input => input.addEventListener("input", refreshXcodePreview));
+[projectInput, schemeInput, $("#source-directory")].forEach(input => input.addEventListener("input", refreshXcodePreview));
 async function selectSource(files, folder) {
   if (state.busy || !files.length) return;
   selectedSource = null;
