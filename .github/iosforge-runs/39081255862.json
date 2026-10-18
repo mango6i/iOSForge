@@ -11,5 +11,12 @@
     "path": "sources/树洞-iOSForge-源码编译包-v10",
     "sha": "492c1d772b140b2e44e4ddf685894ab3d4306215"
   },
-  "outputs": []
+  "outputs": [
+    {
+      "path": "sources/Download/树洞-unsigned.ipa",
+      "sha": "7298760d0289de66359f34f7e0e8a0e45710161d"
+    }
+  ],
+  "status": "success",
+  "completed_at": "2026-10-18T00:02:52Z"
 }
