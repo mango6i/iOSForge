@@ -11,5 +11,12 @@
     "path": "sources/iPlayer-维护工程-选择与尊享页面修正33",
     "sha": "478a5357fab5fa1908d8b231b93da71682e05407"
   },
-  "outputs": []
+  "outputs": [
+    {
+      "path": "sources/Download/iPlayer-unsigned.ipa",
+      "sha": "c84893183e31f911312096562dabc18055d36c0f"
+    }
+  ],
+  "status": "success",
+  "completed_at": "2026-10-18T06:10:23Z"
 }
