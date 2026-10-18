@@ -1,0 +1,267 @@
+// Recovered module 33; analysis path, not original filename.
+// Original SHA-256 ead00aa21a09805872b9bf706c62bfabc4d9ae1a1a7d0f45485ea94fb0b8f275; original byte range [100848, 107051).
+__d(33, function (e, t, n, l) {
+  "use strict";
+
+  function a(e) {
+    return !Array.isArray(e[1]);
+  }
+  function u(e, t) {
+    return -1 !== e.indexOf(t);
+  }
+  function i(e) {
+    var t = e.message,
+      n = babelHelpers.objectWithoutProperties(e, ["message"]),
+      l = new Error(t);
+    return l.framesToPop = 1, babelHelpers["extends"](l, n);
+  }
+  function o(e, t, n) {
+    Object.defineProperty(e, t, {
+      configurable: !0,
+      enumerable: !0,
+      get: function () {
+        var l = n();
+        return Object.defineProperty(e, t, {
+          configurable: !0,
+          enumerable: !0,
+          writeable: !0,
+          value: l
+        }), l;
+      }
+    });
+  }
+  var s = t(34),
+    r = t(36),
+    c = t(37),
+    h = (t(29), t(380)),
+    _ = t(406),
+    v = t(39),
+    d = 0,
+    f = 1,
+    b = 2,
+    m = 5,
+    g = 131072,
+    k = _({
+      remote: null,
+      remoteAsync: null,
+      syncHook: null
+    }),
+    y = function (e) {
+      try {
+        e();
+      } catch (t) {
+        r.reportFatalError(t);
+      }
+    },
+    p = function () {
+      function t(e) {
+        var n = this;
+        babelHelpers.classCallCheck(this, t), this._callableModules = {}, this._queue = [[], [], [], 0], this._callbacks = [], this._callbackID = 0, this._callID = 0, this._lastFlush = 0, this._eventLoopStartTime = new Date().getTime(), this._debugInfo = {}, this._remoteModuleTable = {}, this._remoteMethodTable = {}, ["invokeCallbackAndReturnFlushedQueue", "callFunctionReturnFlushedQueue", "flushedQueue"].forEach(function (e) {
+          return n[e] = n[e].bind(n);
+        }), o(this, "RemoteModules", function () {
+          var t = e(),
+            l = t.remoteModuleConfig,
+            a = n._genModulesConfig(l),
+            u = n._genModules(a);
+          return n._genLookupTables(a, n._remoteModuleTable, n._remoteMethodTable), u;
+        });
+      }
+      return babelHelpers.createClass(t, [{
+        key: "callFunctionReturnFlushedQueue",
+        value: function (e, t, n) {
+          var l = this;
+          return y(function () {
+            l.__callFunction(e, t, n), l.__callImmediates();
+          }), this.flushedQueue();
+        }
+      }, {
+        key: "invokeCallbackAndReturnFlushedQueue",
+        value: function (e, t) {
+          var n = this;
+          return y(function () {
+            n.__invokeCallback(e, t), n.__callImmediates();
+          }), this.flushedQueue();
+        }
+      }, {
+        key: "flushedQueue",
+        value: function () {
+          this.__callImmediates();
+          var e = this._queue;
+          return this._queue = [[], [], [], this._callID], e[0].length ? e : null;
+        }
+      }, {
+        key: "processModuleConfig",
+        value: function (e, t) {
+          var n = this._genModule(e, t);
+          return this.RemoteModules[n.name] = n.module, this._genLookup(e, t, this._remoteModuleTable, this._remoteMethodTable), n.module;
+        }
+      }, {
+        key: "getEventLoopRunningTime",
+        value: function () {
+          return new Date().getTime() - this._eventLoopStartTime;
+        }
+      }, {
+        key: "__callImmediates",
+        value: function () {
+          s.beginEvent("JSTimersExecution.callImmediates()"), y(function () {
+            return c.callImmediates();
+          }), s.endEvent();
+        }
+      }, {
+        key: "__nativeCall",
+        value: function (t, n, l, a, u) {
+          (a || u) && (this._callbackID > 32 && (this._debugInfo[this._callbackID >> 5] = null), this._debugInfo[this._callbackID >> 1] = [t, n], a && l.push(this._callbackID), this._callbacks[this._callbackID++] = a, u && l.push(this._callbackID), this._callbacks[this._callbackID++] = u), e.nativeTraceBeginAsyncFlow && e.nativeTraceBeginAsyncFlow(g, "native", this._callID), this._callID++, this._queue[d].push(t), this._queue[f].push(n), this._queue[b].push(l);
+          var i = new Date().getTime();
+          e.nativeFlushQueueImmediate && i - this._lastFlush >= m && (e.nativeFlushQueueImmediate(this._queue), this._queue = [[], [], [], this._callID], this._lastFlush = i), s.counterEvent("pending_js_to_native_queue", this._queue[0].length);
+        }
+      }, {
+        key: "__callFunction",
+        value: function (e, t, n) {
+          this._lastFlush = new Date().getTime(), this._eventLoopStartTime = this._lastFlush, s.beginEvent(e + "." + t + "()");
+          var l = this._callableModules[e];
+          h(!!l, "Module %s is not a registered callable module.", e), l[t].apply(l, n), s.endEvent();
+        }
+      }, {
+        key: "__invokeCallback",
+        value: function (e, t) {
+          this._lastFlush = new Date().getTime(), this._eventLoopStartTime = this._lastFlush;
+          var n = this._callbacks[e],
+            l = this._debugInfo[e >> 1],
+            a = l && this._remoteModuleTable[l[0]],
+            u = l && this._remoteMethodTable[l[0]][l[1]];
+          if (!n) {
+            var i = "Callback with id " + e + ": " + a + "." + u + "() not found";
+            u && (i = "The callback " + u + "() exists in module " + a + ", but only one callback may be registered to a function in a native module."), h(n, i);
+          }
+          var o = l ? "<callback for " + a + "." + u + ">" : e;
+          s.beginEvent("MessageQueue.invokeCallback(" + o + ", " + v(t) + ")"), this._callbacks[-2 & e] = null, this._callbacks[1 | e] = null, n.apply(null, t), s.endEvent();
+        }
+      }, {
+        key: "_genModulesConfig",
+        value: function (e) {
+          if (Array.isArray(e)) return e;
+          for (var t = [], n = Object.keys(e), l = 0, a = n.length; a > l; l++) {
+            var u = n[l],
+              i = e[u],
+              o = [u];
+            i.constants && o.push(i.constants);
+            var s = i.methods;
+            if (s) {
+              for (var r = [], c = [], h = [], _ = Object.keys(s), v = 0, d = _.length; d > v; v++) {
+                var f = _[v],
+                  b = s[f];
+                r[b.methodID] = f, b.type === k.remoteAsync ? c.push(b.methodID) : b.type === k.syncHook && h.push(b.methodID);
+              }
+              r.length && (o.push(r), o.push(c), o.push(h));
+            }
+            t[i.moduleID] = o;
+          }
+          return t;
+        }
+      }, {
+        key: "_genLookupTables",
+        value: function (e, t, n) {
+          var l = this;
+          e.forEach(function (e, a) {
+            l._genLookup(e, a, t, n);
+          });
+        }
+      }, {
+        key: "_genLookup",
+        value: function (e, t, n, l) {
+          if (e) {
+            var u = void 0,
+              i = void 0;
+            if (a(e)) {
+              var o = babelHelpers.slicedToArray(e, 3);
+              u = o[0], i = o[2];
+            } else {
+              var s = babelHelpers.slicedToArray(e, 2);
+              u = s[0], i = s[1];
+            }
+            n[t] = u, l[t] = babelHelpers["extends"]({}, i);
+          }
+        }
+      }, {
+        key: "_genModules",
+        value: function (e) {
+          var t = this,
+            n = {};
+          return e.forEach(function (e, l) {
+            var a = t._genModule(e, l);
+            a && (n[a.name] = a.module);
+          }), n;
+        }
+      }, {
+        key: "_genModule",
+        value: function (e, t) {
+          var n = this;
+          if (!e) return null;
+          var l = void 0,
+            i = void 0,
+            o = void 0,
+            s = void 0,
+            r = void 0;
+          if (a(e)) {
+            var c = babelHelpers.slicedToArray(e, 5);
+            l = c[0], i = c[1], o = c[2], s = c[3], r = c[4];
+          } else {
+            var _ = babelHelpers.slicedToArray(e, 4);
+            l = _[0], o = _[1], s = _[2], r = _[3];
+          }
+          var v = {};
+          return o && o.forEach(function (e, l) {
+            var a = s && u(s, l),
+              i = r && u(r, l);
+            h(!a || !i, "Cannot have a method that is both async and a sync hook");
+            var o = a ? k.remoteAsync : i ? k.syncHook : k.remote;
+            v[e] = n._genMethod(t, l, o);
+          }), babelHelpers["extends"](v, i), i || o || s || (v.moduleID = t), {
+            name: l,
+            module: v
+          };
+        }
+      }, {
+        key: "_genMethod",
+        value: function (t, n, l) {
+          var a = null,
+            u = this;
+          if (l === k.remoteAsync) a = function () {
+            for (var e = arguments.length, l = Array(e), a = 0; e > a; a++) l[a] = arguments[a];
+            return new Promise(function (e, a) {
+              u.__nativeCall(t, n, l, function (t) {
+                e(t);
+              }, function (e) {
+                var t = i(e);
+                a(t);
+              });
+            });
+          };else {
+            if (l === k.syncHook) return function () {
+              for (var l = arguments.length, a = Array(l), u = 0; l > u; u++) a[u] = arguments[u];
+              return e.nativeCallSyncHook(t, n, a);
+            };
+            a = function () {
+              for (var e = arguments.length, l = Array(e), a = 0; e > a; a++) l[a] = arguments[a];
+              var i = l.length > 0 ? l[l.length - 1] : null,
+                o = l.length > 1 ? l[l.length - 2] : null,
+                s = "function" == typeof i,
+                r = "function" == typeof o;
+              r && h(s, "Cannot have a non-function arg after a function arg.");
+              var c = s + r,
+                _ = s ? i : null,
+                v = r ? o : null;
+              return l = l.slice(0, l.length - c), u.__nativeCall(t, n, l, v, _);
+            };
+          }
+          return a.type = l, a;
+        }
+      }, {
+        key: "registerCallableModule",
+        value: function (e, t) {
+          this._callableModules[e] = t;
+        }
+      }]), t;
+    }();
+  n.exports = p;
+});

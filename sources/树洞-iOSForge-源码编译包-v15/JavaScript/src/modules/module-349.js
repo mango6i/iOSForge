@@ -1,0 +1,87 @@
+// Recovered module 349; analysis path, not original filename.
+// Original SHA-256 6a094568ede4e1071e409050f08f2e55793d5435d27e6e67cbe048475a924981; original byte range [1631865, 1635435).
+__d(349, function (o, e, n, t) {
+  "use strict";
+
+  Object.defineProperty(t, "__esModule", {
+    value: !0
+  }), t.web = t.textWithoutEncoding = t.text = t.email = t.phonecall = void 0;
+  var r = e(312),
+    i = t.phonecall = function (o, e) {
+      if (2 !== arguments.length) return void console.log("you must supply exactly 2 arguments");
+      if (!p("String", o)) return void console.log("the phone number must be provided as a String value");
+      if (!p("Boolean", e)) return void console.log("the prompt parameter must be a Boolean");
+      var n = void 0;
+      n = "android" !== r.Platform.OS && e ? "telprompt:" : "tel:", n += o, c(n);
+    },
+    l = t.email = function (o, e, n, t, r) {
+      var i = "mailto:",
+        l = arguments.length;
+      switch (l) {
+        case 0:
+          return void c(i);
+        case 5:
+          break;
+        default:
+          return void console.log("you must supply either 0 or 5 arguments. You supplied " + l);
+      }
+      var a = !1;
+      if (p("Array", arguments[0])) {
+        var d = u(arguments[0], "String");
+        d.length > 0 && (i += encodeURIComponent(d.join(",")));
+      }
+      if (i += "?", p("Array", arguments[1])) {
+        var s = u(arguments[1], "String");
+        s.length > 0 && (a = !0, i += "cc=" + encodeURIComponent(s.join(",")));
+      }
+      if (p("Array", arguments[2])) {
+        a && (i += "&");
+        var g = u(arguments[2], "String");
+        g.length > 0 && (a = !0, i += "bcc=" + encodeURIComponent(g.join(",")));
+      }
+      p("String", arguments[3]) && (a && (i += "&"), a = !0, i += "subject=" + encodeURIComponent(arguments[3])), p("String", arguments[4]) && (a && (i += "&"), i += "body=" + encodeURIComponent(arguments[4])), c(i);
+    },
+    a = t.text = function () {
+      var o = arguments.length <= 0 || void 0 === arguments[0] ? null : arguments[0],
+        e = arguments.length <= 1 || void 0 === arguments[1] ? null : arguments[1];
+      if (arguments.length > 2) return void console.log("you supplied too many arguments. You can either supply 0 or 1 or 2");
+      var n = "sms:";
+      o && (p("String", o) ? n += o : console.log("the phone number should be provided as a string. It was provided as " + Object.prototype.toString.call(o).slice(8, -1) + ",ignoring the value provided")), e && (p("String", e) ? ("android" === r.Platform.OS && (e = encodeURIComponent(e)), n += "ios" === r.Platform.OS ? "&body=" + encodeURIComponent(e) : "?body=" + encodeURIComponent(e)) : console.log("the body should be provided as a string. It was provided as " + Object.prototype.toString.call(e).slice(8, -1) + ",ignoring the value provided")), c(n);
+    },
+    d = t.textWithoutEncoding = function () {
+      var o = arguments.length <= 0 || void 0 === arguments[0] ? null : arguments[0],
+        e = arguments.length <= 1 || void 0 === arguments[1] ? null : arguments[1];
+      if (arguments.length > 2) return void console.log("you supplied too many arguments. You can either supply 0 or 1 or 2");
+      var n = "sms:";
+      o && (p("String", o) ? n += o : console.log("the phone number should be provided as a string. It was provided as " + Object.prototype.toString.call(o).slice(8, -1) + ",ignoring the value provided")), e && (p("String", e) ? n += "ios" === r.Platform.OS ? "&body=" + e : "?body=" + e : console.log("the body should be provided as a string. It was provided as " + Object.prototype.toString.call(e).slice(8, -1) + ",ignoring the value provided")), c(n);
+    },
+    s = t.web = function () {
+      var o = arguments.length <= 0 || void 0 === arguments[0] ? null : arguments[0];
+      return o ? p("String", o) ? void c(o) : void console.log("address was not provided as a string, it was provided as " + Object.prototype.toString.call(o).slice(8, -1)) : void console.log("Missing address argument");
+    },
+    c = function (o) {
+      r.Linking.canOpenURL(o).then(function (e) {
+        e ? r.Linking.openURL(o)["catch"](function (e) {
+          o.includes("telprompt") || console.warn("openURL error", e);
+        }) : console.log("Can't handle url: " + o);
+      })["catch"](function (o) {
+        return console.warn("An unexpected error happened", o);
+      });
+    },
+    u = function (o, e) {
+      var n = [];
+      return o.forEach(function (o) {
+        p(e, o) && n.push(o);
+      }), n;
+    },
+    p = function (o, e) {
+      return Object.prototype.toString.call(e).slice(8, -1) === o;
+    };
+  t["default"] = {
+    phonecall: i,
+    text: a,
+    textWithoutEncoding: d,
+    email: l,
+    web: s
+  };
+});
