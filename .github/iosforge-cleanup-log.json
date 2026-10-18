@@ -246,6 +246,21 @@
       ],
       "retained_run_id": 39082059840,
       "retained_run_number": 75
+    },
+    {
+      "timestamp": "2026-10-18T08:24:15+08:00",
+      "cleanup_run_id": 39082614300,
+      "deleted_run_ids": [
+        39082059840
+      ],
+      "deleted_runs": [
+        {
+          "id": 39082059840,
+          "run_number": 75
+        }
+      ],
+      "retained_run_id": 39082614300,
+      "retained_run_number": 76
     }
   ],
   "notification_deletions": [
