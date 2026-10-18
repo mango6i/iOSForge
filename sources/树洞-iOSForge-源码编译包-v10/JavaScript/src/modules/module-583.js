@@ -1,0 +1,40 @@
+// Recovered module 583; analysis path, not original filename.
+// Original SHA-256 5977fb3c1517d88e05b82a41fab63fe522677408c9d1446dc81d780a5d9162b6; original byte range [1586542, 1587358).
+__d(583, function (t, o, r, e) {
+  "use strict";
+
+  var n = Object.prototype.hasOwnProperty,
+    c = Object.prototype.toString,
+    p = o(582),
+    u = o(584),
+    s = !{
+      toString: null
+    }.propertyIsEnumerable("toString"),
+    i = function () {}.propertyIsEnumerable("prototype"),
+    l = ["toString", "toLocaleString", "valueOf", "hasOwnProperty", "isPrototypeOf", "propertyIsEnumerable", "constructor"],
+    y = function (t) {
+      var o = null !== t && "object" == typeof t,
+        r = "[object Function]" === c.call(t),
+        e = u(t),
+        y = [];
+      if (!o && !r && !e) throw new TypeError("Object.keys called on a non-object");
+      if (e) p(t, function (t, o) {
+        y.push(o);
+      });else {
+        var a,
+          f = i && r;
+        for (a in t) f && "prototype" === a || !n.call(t, a) || y.push(a);
+      }
+      if (s) {
+        var b = t.constructor,
+          O = b && b.prototype === t;
+        p(l, function (o) {
+          O && "constructor" === o || !n.call(t, o) || y.push(o);
+        });
+      }
+      return y;
+    };
+  y.shim = function () {
+    return Object.keys || (Object.keys = y), Object.keys || y;
+  }, r.exports = y;
+});
