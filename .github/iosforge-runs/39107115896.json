@@ -11,5 +11,12 @@
     "path": "sources/iPlayer-维护工程-全选展开与删除确认34",
     "sha": "70c41da96a3b976451fe4d7d80d11a98034d172d"
   },
-  "outputs": []
+  "outputs": [
+    {
+      "path": "sources/Download/iPlayer-unsigned.ipa",
+      "sha": "9deea4d8dc72ffcdec8d49eb8edab4d8237b1a88"
+    }
+  ],
+  "status": "success",
+  "completed_at": "2026-10-18T07:18:34Z"
 }
