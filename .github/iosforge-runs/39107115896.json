@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "run_id": 39107115896,
+  "repository": "mango6i/iOSForge",
+  "branch": "main",
+  "request_id": "e9860752147b93f32fe6b007",
+  "build_type": "ipa",
+  "notify_via_github": true,
+  "created_at": "2026-10-18T07:17:45Z",
+  "source": {
+    "path": "sources/iPlayer-维护工程-全选展开与删除确认34",
+    "sha": "70c41da96a3b976451fe4d7d80d11a98034d172d"
+  },
+  "outputs": []
+}
