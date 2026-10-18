@@ -1,0 +1,76 @@
+// Recovered module 421; analysis path, not original filename.
+// Original SHA-256 7e8d4f75c8d3b6ff605e0242660326a907b99e5c6c899f170840944ee9b05c8a; original byte range [248193, 249868).
+__d(421, function (e, t, n, r) {
+  "use strict";
+
+  var i = t(416),
+    l = t(420),
+    o = t(418),
+    u = i.LISTENERS,
+    a = i.CAPTURE,
+    f = i.BUBBLE,
+    c = i.ATTRIBUTE,
+    s = i.newNode,
+    v = l.defineCustomEventTarget,
+    d = o.createEventWrapper,
+    h = o.STOP_IMMEDIATE_PROPAGATION_FLAG,
+    p = "undefined" != typeof window && "undefined" != typeof window.EventTarget,
+    E = n.exports = function w() {
+      if (!(this instanceof w)) {
+        if (1 === arguments.length && Array.isArray(arguments[0])) return v(w, arguments[0]);
+        if (arguments.length > 0) {
+          for (var e = Array(arguments.length), t = 0; t < arguments.length; ++t) e[t] = arguments[t];
+          return v(w, e);
+        }
+        throw new TypeError("Cannot call a class as a function");
+      }
+      Object.defineProperty(this, u, {
+        value: Object.create(null)
+      });
+    };
+  E.prototype = Object.create((p ? window.EventTarget : Object).prototype, {
+    constructor: {
+      value: E,
+      writable: !0,
+      configurable: !0
+    },
+    addEventListener: {
+      value: function (e, t, n) {
+        if (null == t) return !1;
+        if ("function" != typeof t && "object" != typeof t) throw new TypeError('"listener" is not an object.');
+        var r = n ? a : f,
+          i = this[u][e];
+        if (null == i) return this[u][e] = s(t, r), !0;
+        for (var l = null; null != i;) {
+          if (i.listener === t && i.kind === r) return !1;
+          l = i, i = i.next;
+        }
+        return l.next = s(t, r), !0;
+      },
+      configurable: !0,
+      writable: !0
+    },
+    removeEventListener: {
+      value: function (e, t, n) {
+        if (null == t) return !1;
+        for (var r = n ? a : f, i = null, l = this[u][e]; null != l;) {
+          if (l.listener === t && l.kind === r) return null == i ? this[u][e] = l.next : i.next = l.next, !0;
+          i = l, l = l.next;
+        }
+        return !1;
+      },
+      configurable: !0,
+      writable: !0
+    },
+    dispatchEvent: {
+      value: function (e) {
+        var t = this[u][e.type];
+        if (null == t) return !0;
+        for (var n = d(e, this); null != t && ("function" == typeof t.listener ? t.listener.call(this, n) : t.kind !== c && "function" == typeof t.listener.handleEvent && t.listener.handleEvent(n), !n[h]);) t = t.next;
+        return !n.defaultPrevented;
+      },
+      configurable: !0,
+      writable: !0
+    }
+  });
+});
