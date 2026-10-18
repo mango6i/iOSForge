@@ -130,6 +130,22 @@
       "deleted_run_numbers": {
         "39102821689": 316
       }
+    },
+    {
+      "timestamp": "2026-10-18T14:11:40+08:00",
+      "cleanup_run_id": 39103105446,
+      "deleted_run_ids": [
+        39103046458
+      ],
+      "actions_runs_deleted": 1,
+      "repository_items_deleted": 2,
+      "removed_paths": [
+        "sources/Download/iPlayer-unsigned.ipa",
+        "sources/iPlayer-维护工程-选择与尊享页面修正33"
+      ],
+      "deleted_run_numbers": {
+        "39103046458": 317
+      }
     }
   ],
   "checks": [
