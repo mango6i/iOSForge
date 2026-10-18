@@ -146,6 +146,22 @@
       "deleted_run_numbers": {
         "39103046458": 317
       }
+    },
+    {
+      "timestamp": "2026-10-18T15:11:39+08:00",
+      "cleanup_run_id": 39106674997,
+      "deleted_run_ids": [
+        39106599678
+      ],
+      "actions_runs_deleted": 1,
+      "repository_items_deleted": 2,
+      "removed_paths": [
+        "sources/Download/树洞-unsigned.ipa",
+        "sources/树洞-iOSForge-源码编译包-v16"
+      ],
+      "deleted_run_numbers": {
+        "39106599678": 318
+      }
     }
   ],
   "checks": [
