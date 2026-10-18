@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "run_id": 39088166554,
+  "repository": "mango6i/iOSForge",
+  "branch": "main",
+  "request_id": "568a56234b0460ba1a72171a",
+  "build_type": "ipa",
+  "notify_via_github": true,
+  "created_at": "2026-10-18T01:54:42Z",
+  "source": {
+    "path": "sources/树洞-iOSForge-源码编译包-v13",
+    "sha": "9f09031f3a7c1471a8f337ac236f93bc30d6e768"
+  },
+  "outputs": []
+}
