@@ -1,0 +1,69 @@
+// Recovered module 75; analysis path, not original filename.
+// Original SHA-256 aaa7c1c14d8fa944ad340978d73f8a670bcfd56368d0c7daabdf50f44d5aacce; original byte range [140827, 141980).
+__d(75, function (e, a, r, t) {
+  "use strict";
+
+  function s(e) {
+    var a = o.createIdentityMatrix();
+    return e.forEach(function (e) {
+      var r = Object.keys(e)[0],
+        t = e[r];
+      switch (r) {
+        case "matrix":
+          o.multiplyInto(a, a, t);
+          break;
+        case "perspective":
+          n(a, o.reusePerspectiveCommand, [t]);
+          break;
+        case "rotateX":
+          n(a, o.reuseRotateXCommand, [c(t)]);
+          break;
+        case "rotateY":
+          n(a, o.reuseRotateYCommand, [c(t)]);
+          break;
+        case "rotate":
+        case "rotateZ":
+          n(a, o.reuseRotateZCommand, [c(t)]);
+          break;
+        case "scale":
+          n(a, o.reuseScaleCommand, [t]);
+          break;
+        case "scaleX":
+          n(a, o.reuseScaleXCommand, [t]);
+          break;
+        case "scaleY":
+          n(a, o.reuseScaleYCommand, [t]);
+          break;
+        case "translate":
+          n(a, o.reuseTranslate3dCommand, [t[0], t[1], t[2] || 0]);
+          break;
+        case "translateX":
+          n(a, o.reuseTranslate2dCommand, [t, 0]);
+          break;
+        case "translateY":
+          n(a, o.reuseTranslate2dCommand, [0, t]);
+          break;
+        case "skewX":
+          n(a, o.reuseSkewXCommand, [c(t)]);
+          break;
+        case "skewY":
+          n(a, o.reuseSkewYCommand, [c(t)]);
+          break;
+        default:
+          throw new Error("Invalid transform name: " + r);
+      }
+    }), a;
+  }
+  function n(e, a, r) {
+    var t = o.createIdentityMatrix(),
+      s = [t].concat(r);
+    a.apply(this, s), o.multiplyInto(e, e, t);
+  }
+  function c(e) {
+    var a = parseFloat(e, 10);
+    return e.indexOf("rad") > -1 ? a : a * Math.PI / 180;
+  }
+  var o = a(76);
+  a(29), a(380), a(39);
+  r.exports = s;
+});

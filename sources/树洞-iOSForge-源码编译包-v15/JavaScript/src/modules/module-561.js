@@ -1,0 +1,32 @@
+// Recovered module 561; analysis path, not original filename.
+// Original SHA-256 4cc635676c85d9c759e03b434429b0ae8e4605f0fc2d523dc6f150393342d250; original byte range [896683, 897218).
+__d(561, function (t, i, n, e) {
+  "use strict";
+
+  var r = i(312),
+    s = (r.DeviceEventEmitter, r.NativeAppEventEmitter),
+    u = (r.Platform, r.NativeModules.RNZipArchive),
+    o = u.unzip,
+    c = u.zip,
+    p = u.unzipAssets ? u.unzipAssets : void 0,
+    v = function (t) {
+      throw t;
+    },
+    a = {
+      unzip: function (t, i) {
+        return o(t, i)["catch"](v);
+      },
+      zip: function (t, i) {
+        return c(t, i)["catch"](v);
+      },
+      unzipAssets: function (t, i) {
+        if (!p) throw new Error("unzipAssets not supported on this platform");
+        return p(t, i)["catch"](v);
+      },
+      subscribe: function (t) {
+        var i = s;
+        return i.addListener("zipArchiveProgressEvent", t);
+      }
+    };
+  n.exports = a;
+});
