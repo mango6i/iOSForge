@@ -298,30 +298,13 @@ def save_json(api: GitHubApi, branch: str, path: str, value: dict, message: str)
 def source_snapshot(api: GitHubApi, branch: str, source_path: str) -> dict | None:
     if not source_path:
         return None
-    item = api.request(
-        "GET",
-        f"/contents/{encoded_path(source_path)}?ref={quote(branch, safe='')}",
-        allow_404=True,
-    )
-    if not isinstance(item, list) or not item:
+    # Contents directory listings are capped; source ownership needs only the
+    # immutable project tree SHA, not a listing of all 100,000 source files.
+    _, _, entries = branch_tree(api, branch)
+    item = entries.get(source_path)
+    if not item or item.get("type") != "tree" or not item.get("sha"):
         return None
-    first = item[0]
-    parent_sha = ""
-    # The contents listing does not return the directory tree SHA. Resolve it
-    # from the branch tree so cleanup can refuse to delete a modified project.
-    ref = api.request("GET", f"/git/ref/heads/{quote(branch, safe='')}")
-    if isinstance(ref, dict):
-        commit_sha = str(ref.get("object", {}).get("sha", ""))
-        commit = api.request("GET", f"/git/commits/{commit_sha}") if commit_sha else None
-        if isinstance(commit, dict):
-            tree_sha = str(commit.get("tree", {}).get("sha", ""))
-            tree = api.request("GET", f"/git/trees/{tree_sha}?recursive=1") if tree_sha else None
-            if isinstance(tree, dict):
-                entry = next((node for node in tree.get("tree", []) if node.get("path") == source_path and node.get("type") == "tree"), None)
-                parent_sha = str(entry.get("sha", "")) if isinstance(entry, dict) else ""
-    if not parent_sha:
-        return None
-    return {"path": source_path, "sha": parent_sha}
+    return {"path": source_path, "sha": item["sha"]}
 
 
 def record_build(api: GitHubApi, branch: str, run_id: str) -> None:
@@ -756,8 +739,28 @@ def branch_tree(api: GitHubApi, branch: str) -> tuple[str, str, dict[str, dict]]
     commit = api.request("GET", f"/git/commits/{head}") if head else None
     tree_sha = str(commit.get("tree", {}).get("sha", "")) if isinstance(commit, dict) else ""
     tree = api.request("GET", f"/git/trees/{tree_sha}?recursive=1") if tree_sha else None
-    if not head or not tree_sha or not isinstance(tree, dict) or tree.get("truncated"):
+    if not head or not tree_sha or not isinstance(tree, dict):
         raise RuntimeError("Unable to read the complete branch tree safely.")
+    if tree.get("truncated"):
+        def read(sha: str, prefix: str = "", recursive: bool = False) -> list[dict]:
+            value = api.request("GET", f"/git/trees/{sha}" + ("?recursive=1" if recursive else ""))
+            if not isinstance(value, dict) or value.get("truncated") or not isinstance(value.get("tree"), list):
+                raise RuntimeError("Unable to read complete cleanup ownership directories.")
+            return [dict(item, path=prefix + item["path"]) for item in value["tree"] if isinstance(item, dict) and isinstance(item.get("path"), str)]
+
+        nodes = read(tree_sha)
+        for folder in list(nodes):
+            if folder.get("type") != "tree":
+                continue
+            if folder["path"] == ".github":
+                nodes += read(folder["sha"], ".github/", True)
+            elif folder["path"] == "sources":
+                sources = read(folder["sha"], "sources/")
+                nodes += sources
+                for item in sources:
+                    if item.get("path") == "sources/Download" and item.get("type") == "tree":
+                        nodes += read(item["sha"], "sources/Download/", True)
+        tree = {"tree": nodes}
     entries = {str(item.get("path")): item for item in tree.get("tree", []) if isinstance(item, dict) and item.get("path")}
     return head, tree_sha, entries
 

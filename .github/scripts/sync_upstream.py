@@ -102,7 +102,17 @@ class Api:
         tree_sha = commit["tree"]["sha"]
         tree = self.call("GET", "/git/trees/"+tree_sha+"?recursive=1")
         if tree.get("truncated"):
-            raise RuntimeError("Repository tree is truncated; update stopped without changes.")
+            root = self.call("GET", "/git/trees/" + tree_sha)
+            if root.get("truncated"):
+                raise RuntimeError("Root tool directory is incomplete; update stopped without changes.")
+            entries = list(root["tree"])
+            for item in root["tree"]:
+                if item["type"] == "tree" and item["path"] in {".github", "web", "iosforge", "scripts"}:
+                    subtree = self.call("GET", "/git/trees/" + item["sha"] + "?recursive=1")
+                    if subtree.get("truncated"):
+                        raise RuntimeError("Tool directory is incomplete; update stopped without changes.")
+                    entries += [dict(node, path=item["path"] + "/" + node["path"]) for node in subtree["tree"]]
+            tree = {"tree": entries}
         return tree_sha, {item["path"]:item for item in tree["tree"] if item["type"] == "blob"}
     def blob(self, entry):
         if entry.get("mode") not in {"100644", "100755"} or not re.fullmatch(r"[0-9a-f]{40}", entry.get("sha", "")):

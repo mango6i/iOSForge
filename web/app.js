@@ -165,6 +165,7 @@ function encodePath(path) {
 }
 
 async function githubOnce(path, options = {}) {
+  if(state.closed || !state.token)throw new Error("当前页面会话已结束或 Token 已清空，操作已停止；请重新填写 Token 并检查仓库。若离开过工作台，请重新选择源码。这不代表令牌已到期。");
   let response;
   try { response = await fetch(`https://api.github.com${path}`, {
     ...options,
@@ -728,6 +729,10 @@ form.addEventListener("submit", async (event) => {
   try {
     await verifyWorkspace({ upload: uploadMode(), fresh: true });
     if (uploadMode()) {
+      if(selectedSource.files.length>=2000 || selectedSource.files.some(file=>(file.size??file.bytes.length)>100*1024*1024)){
+        try{const support=await github(`${repoBase()}/contents/iosforge/source_parts.py?ref=${encodeURIComponent(branch)}`);if(support.type!=="file")throw new Error("构建环境缺少大工程还原模块。");}
+        catch(error){if(error.status!==404)throw error;throw new Error("目标仓库构建环境尚未升级，暂不支持 10 万文件与大文件还原。请先同步最新版 iOSForge 工具或导入最新初始化包，再重新上传。");}
+      }
       setStatus("running", "上传中", "正在保存源码到 GitHub", "文件会作为一次提交保存；上传完成后自动编译。请保持网页打开。", "dispatch");
       $("#upload-progress-wrap").hidden = false;
       $("#upload-result").hidden = true;

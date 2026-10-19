@@ -29,6 +29,11 @@ jobs:
       - run: node tests/upload.cjs
       - run: node tests/upload-concurrency.cjs
       - run: node tests/xcode-detect.cjs
+      - run: node tests/session-auth.cjs
+      - run: node tests/capacity-upload.cjs
+      - run: node tests/binary-batch.cjs
+      - run: node tests/chunked-source.cjs
+      - run: node tests/zip-stream.cjs
       - run: node tests/large-upload.cjs
   real-ipa:
     runs-on: macos-15

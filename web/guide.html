@@ -98,8 +98,9 @@
               <h3>更新以前上传的项目</h3>
               <p>使用相同项目名称，并勾选“允许更新本次同名文件”。未上传的旧文件<strong>不会被删除</strong>。如果你删除或改名了许多文件，建议换一个新项目名称，避免旧文件继续参与编译。没有勾选时，已存在的目录会被拦截，不会悄悄覆盖。</p>
               <h3>上传限制与特殊工程</h3>
-              <div class="table-scroll"><table><thead><tr><th>项目</th><th>当前限制</th></tr></thead><tbody><tr><td>源码 ZIP</td><td>500 MB 以内；不支持加密、分卷和 ZIP64。</td></tr><tr><td>实际源码</td><td>解压后 / 文件夹总计不超过 2 GB、10000 个文件，单个文件不超过 100 MB（GitHub 普通仓库限制）。</td></tr><tr><td>二进制和大文件</td><td>逐文件读取、校验和上传，不在内存里保留整个解压工程；取消原来的 150 个限制。写入按 GitHub 频率限制等待，大工程可能耗时较长，请保持网页打开。</td></tr><tr><td>不适合网页上传</td><td>包含符号链接、Git 子模块或 Git LFS 的复杂工程，请使用 Git 客户端，保留原始结构。网页会拒绝 ZIP 符号链接与 LFS 指针。</td></tr></tbody></table></div>
-              <p>超出限制可用 GitHub Desktop 上传完整源码。随后回到工作台，选“使用仓库源码”，把源码目录填写为该工程所在文件夹，照常编译；不要把未经解压的 ZIP 直接放进仓库。</p>
+              <div class="table-scroll"><table><thead><tr><th>项目</th><th>当前限制</th></tr></thead><tbody><tr><td>源码 ZIP</td><td>1 GB 以内，支持 ZIP64；不支持加密和分卷。中央目录最多 64 MB。</td></tr><tr><td>实际源码</td><td>解压后 / 文件夹总计不超过 2 GB、100000 个文件，单个文件不超过 500 MB。</td></tr><tr><td>二进制和大文件</td><td>超过 100 MB 的文件自动拆成不超过 50 MB 的分块，保存在项目的 .iosforge-parts 目录；.iosforge-large-files.json 记录校验信息。构建前会还原原路径、内容和可执行权限，无需 Git LFS。删除项目与自动清理会连同分块删除。用 Git 客户端下载源码后，可运行 Python 模块 iosforge.source_parts 中的 restore_sources 还原。</td></tr><tr><td>大量文件</td><td>ZIP64 与文件夹均支持 10 万个文件。GitHub 递归目录被截断时会分目录核对；逐文件检查、分批创建树，最后一次性更新分支。写入按 GitHub 频率限制等待，大工程可能耗时较长，请保持网页打开。</td></tr><tr><td>不适合网页上传</td><td>包含符号链接、Git 子模块或已有 Git LFS 指针的复杂工程，请使用 Git 客户端，保留原始结构。网页会拒绝 ZIP 符号链接与 LFS 指针。</td></tr></tbody></table></div>
+              <p>2000 个文件及以上的工程，会将不超过 2 MB 的小二进制文件批量编码保存，避免成千上万个独立写入请求；构建前根据清单还原真实字节。传输清单最多 64 MB，不能直接使用仓库中的编码文本作为原图片或二进制。克隆后可运行 <code>python -m iosforge.source_parts --source-dir sources/项目名称</code> 校验还原。旧构建仓库请先同步最新版工具。</p>
+              <p>超出这些网页上限时，请使用合适的 Git / Git LFS 工具管理完整源码；普通 Git 本身仍会拒绝超过 100 MB 的单个文件。随后回到工作台，选“使用仓库源码”，把源码目录填写为该工程所在文件夹；不要把未经解压的 ZIP 直接放进仓库。</p>
               <div class="guide-result"><svg class="icon"><use href="#i-check"/></svg><p><strong>完成标志：</strong>看到“源码已保存”和提交链接，右侧出现排队或编译状态。如果保存成功但编译未启动，先刷新任务记录确认没有重复编译，再点击开始构建；不必重新上传。</p></div>
             </section>
 

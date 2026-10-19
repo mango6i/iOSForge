@@ -11,6 +11,7 @@ from .ipa import package_ipa
 from .manifest import Manifest, ManifestError
 from .plugin import build_all, build_deb, build_plugin
 from .process import BuildError
+from .source_parts import restore_sources
 
 
 def parser() -> argparse.ArgumentParser:
@@ -55,6 +56,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         manifest = Manifest.load(args.manifest)
+        restore_sources(manifest.path.parent, args.source_dir)
         manifest = scoped_manifest(manifest, args.source_dir)
         if args.command.startswith("build-"):
             prepare_custom(manifest)

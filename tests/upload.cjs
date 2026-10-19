@@ -45,8 +45,8 @@ async function main() {
   assert.throws(() => U.prepare([{ path: 'P/code.m', bytes: enc('-----BEGIN RSA PRIVATE KEY-----') }]), /私钥/);
   assert.throws(() => U.prepare([{ path: 'P/a', bytes: enc('version https://git-lfs.github.com/spec/v1\noid sha256:a') }]), /LFS/);
   assert.equal(U.prepare([{ path: 'P/.env.example', bytes: enc('KEY=your-key') }]).files.length, 1);
-  await assert.rejects(U.readZip({ size: 501 * 1024 * 1024 }), /500 MB/);
-  assert.throws(() => U.prepare(Array.from({ length: 10001 }, (_, i) => ({ path: 'P/' + i, bytes: enc('x') }))), /10000/);
+  await assert.rejects(U.readZip({ size: 1024 * 1024 * 1024 + 1 }), /1 GB/);
+  assert.throws(() => U.prepare(Array.from({ length: 100001 }, (_, i) => ({ path: 'P/' + i, bytes: enc('x') }))), /100000/);
   for (const name of ['../bad', '.github', 'P/Other', 'P.']) assert.throws(() => U.destination(name));
   assert.equal(U.destination('我的项目-1'), 'sources/我的项目-1');
   const symlink = fflate.zipSync({ 'P/link': [enc('target'), { os: 3, attrs: 0xa1ff << 16 }] });
@@ -57,7 +57,7 @@ async function main() {
   for (let i = 0; i < encrypted.length - 46; i++) if (ev.getUint32(i, true) === 0x02014b50) { ev.setUint16(i + 8, ev.getUint16(i + 8, true) | 1, true); break; }
   await assert.rejects(U.readZip(file(encrypted)), /加密/);
   const oversized = Uint8Array.from(zip); const ov = new DataView(oversized.buffer);
-  for (let i = 0; i < oversized.length - 46; i++) if (ov.getUint32(i, true) === 0x02014b50) { ov.setUint32(i + 24, 101 * 1024 * 1024, true); break; }
+  for (let i = 0; i < oversized.length - 46; i++) if (ov.getUint32(i, true) === 0x02014b50) { ov.setUint32(i + 24, 501 * 1024 * 1024, true); break; }
   await assert.rejects(U.readZip(file(oversized)), /限制/);
   const bomb = fflate.zipSync({ 'P/large.txt': new Uint8Array(4 * 1024 * 1024) }); const bv = new DataView(bomb.buffer);
   for (let i = 0; i < bomb.length - 46; i++) if (bv.getUint32(i, true) === 0x02014b50) { bv.setUint32(i + 24, 1, true); bv.setUint32(i + 16, U.crc32(new Uint8Array(1)), true); break; }

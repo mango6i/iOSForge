@@ -8,6 +8,7 @@ import sys
 from .discovery import find_app, find_plugin, scoped_manifest
 from .manifest import Manifest
 from .process import BuildError
+from .source_parts import restore_sources
 
 
 def plan(manifest: Manifest, build_type: str) -> dict[str, str]:
@@ -25,6 +26,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         manifest = Manifest.load(Path("iosforge.toml"))
+        restore_sources(manifest.path.parent, os.environ.get("SOURCE_DIRECTORY", "").strip())
         manifest = scoped_manifest(manifest, os.environ.get("SOURCE_DIRECTORY", "").strip())
         outputs = plan(manifest, args.type)
         if output := os.environ.get("GITHUB_OUTPUT"):

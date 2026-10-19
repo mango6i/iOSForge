@@ -10,9 +10,9 @@
   <link rel="stylesheet" href="./styles.css?v=studio-fit-500-2" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
   <script src="./host-context.js?v=own-repository-1" defer></script>
-  <script src="./source-upload.js?v=upload-rebase-detect-1" defer></script>
+  <script src="./source-upload.js?v=upload-1gb-100k-1" defer></script>
   <script src="./build-logs.js?v=read-recovery-1" defer></script>
-  <script src="./app.js?v=upload-rebase-detect-1" defer></script>
+  <script src="./app.js?v=upload-1gb-100k-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">跳到编译工作台</a>
@@ -98,7 +98,7 @@
                         <svg class="icon"><use href="#i-package"/></svg><strong>把源码 ZIP 拖到这里</strong><p>也可以选择一个完整工程文件夹</p>
                         <div class="upload-pickers"><button id="pick-zip" type="button" class="secondary-button">选择 ZIP</button><button id="pick-folder" type="button" class="secondary-button">选择文件夹</button></div>
                         <input id="zip-input" type="file" accept=".zip,application/zip" hidden /><input id="folder-input" type="file" webkitdirectory multiple hidden />
-                        <span class="upload-limits">ZIP ≤ 500 MB · 解压后 ≤ 2 GB · 单文件 ≤ 100 MB</span>
+                        <span class="upload-limits">ZIP 1 GB · 展开 2 GB · 单文件 500 MB · 10 万个</span>
                       </div>
                       <p id="upload-selection-status" class="field-hint" role="status" aria-live="polite">文件先在浏览器中检查，点击“上传并编译”后才会提交。</p>
                       <div id="upload-preview" class="upload-preview" hidden><div class="upload-preview-heading"><button id="clear-upload" class="copy-button" type="button">清除选择</button></div><details><summary><strong id="upload-file-count">查看待上传文件</strong></summary><ul id="upload-file-list"></ul></details></div>
@@ -116,7 +116,7 @@
                     <div id="public-upload-warning" class="public-upload-warning" hidden><strong>当前仓库是公开的：上传后所有人可见。</strong><details class="inline-help" data-desktop-dialog><summary>公开上传注意事项</summary><div class="help-content"><p>如果源码不应公开，请停止上传，换成自己的 Private 私有仓库。删除当前文件也无法自动清除提交历史。私有仓库可降低公开泄露风险，但不能保证绝对安全。上方“确认提交”是唯一需要勾选的上传确认。</p></div></details></div>
                     <label class="upload-consent"><input id="upload-replace" type="checkbox" /><span>如果目录已存在，允许更新本次同名文件；未上传的旧文件不会删除。</span></label>
                     <label class="upload-consent build-notify-option"><input id="build-notify" type="checkbox" checked /><span><strong>构建完成后发送邮件通知</strong><small>成功／失败均通知，需启用 GitHub Email。</small></span></label>
-                    <details class="inline-help" data-desktop-dialog><summary>支持的文件与上传限制</summary><div class="help-content"><p class="field-hint">支持完整 Theos / Xcode 源码，不是现成 IPA、deb 或 dylib。ZIP 上限 500 MB，解压后 / 文件夹上限 2 GB、10000 个文件，单文件上限 100 MB。大工程逐文件检查与上传，请保持网页打开；遇到 GitHub 限流会等待。<a href="./guide.html#upload">查看上传说明 ↗</a></p></div></details>
+                    <details class="inline-help" data-desktop-dialog><summary>支持的文件与上传限制</summary><div class="help-content"><p class="field-hint">支持完整 Theos / Xcode 源码，不是现成 IPA、deb 或 dylib。ZIP 上限 1 GB，解压后 / 文件夹上限 2 GB、100000 个文件，单文件上限 500 MB；支持 ZIP64。超过 100 MB 的文件自动分块保存，构建前校验并还原原路径和内容，无需 Git LFS。大工程逐文件检查与上传，请保持网页打开；遇到 GitHub 限流会等待。<a href="./guide.html#upload">查看上传说明 ↗</a></p></div></details>
                   </div>
 
                 </div>
