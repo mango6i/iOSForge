@@ -1,9 +1,0 @@
-[project]
-name = "AppsManagerRebuilt"
-kind = "app"
-minimum_ios = "15.0"
-
-[app]
-project = "AppsManagerRebuilt.xcodeproj"
-scheme = "AppsManagerRebuilt"
-configuration = "Release"
