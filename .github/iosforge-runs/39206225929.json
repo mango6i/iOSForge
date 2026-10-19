@@ -11,5 +11,12 @@
     "path": "sources/AppsManager_Rebuilt_BuildableSource",
     "sha": "b7dd671fcc1d8810df4a73d400be6913fbc7d36b"
   },
-  "outputs": []
+  "outputs": [
+    {
+      "path": "sources/Download/AppsManagerRebuilt-unsigned.ipa",
+      "sha": "63d50a1a251f50718a92bb270dc9a83a5ec4cc80"
+    }
+  ],
+  "status": "success",
+  "completed_at": "2026-10-19T05:46:38Z"
 }
