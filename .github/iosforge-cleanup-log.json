@@ -41,5 +41,22 @@
       "detail": "本轮只清理到期编译任务及旧清理检查。当前清理检查 #87 是本轮记录，留待下次检查回收；网页发布和其他工作流记录不在编译清理范围。",
       "workflow_conclusion": "success"
     }
+  ],
+  "system_deletions": [
+    {
+      "timestamp": "2026-10-22T14:45:38+08:00",
+      "cleanup_run_id": 39735953159,
+      "deleted_run_ids": [
+        39735578914
+      ],
+      "deleted_runs": [
+        {
+          "id": 39735578914,
+          "run_number": 87
+        }
+      ],
+      "retained_run_id": 39735953159,
+      "retained_run_number": 88
+    }
   ]
 }
