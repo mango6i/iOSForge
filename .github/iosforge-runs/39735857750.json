@@ -11,5 +11,8 @@
     "path": "sources/SideStore_0.7_develop_完整中文源码_iOSForge_误报修复版",
     "sha": "76ee57f058ab38e8dafa1a0f7b33a7f4c0845bf7"
   },
-  "outputs": []
+  "outputs": [],
+  "cleanup_pending": {
+    "actions_record": true
+  }
 }
