@@ -1,7 +1,0 @@
-你的 iOSForge 仓库根目录 `.github/workflows/build.yml` 必须修改以下两处：
-1. 在 build-ipa: 任务中：runs-on: macos-15 -> runs-on: macos-26
-2. 在 build-ipa 内的 setup-ios 步骤中：xcode-version: ${{ vars.IOSFORGE_XCODE_VERSION || '16.4' }} -> xcode-version: ${{ vars.IOSFORGE_XCODE_VERSION || '26.2' }}
-如果在仓库 Settings -> Secrets and variables -> Actions -> Variables 配置了 IOSFORGE_XCODE_VERSION，改成 26.2 或删除这个覆盖变量。
-
-注意：GitHub hosted runner macos-26 / Xcode 26.2 是否在你的账号可用需要从 Actions 日志确认。
-并且原项目有复杂 Xcode 脚本和依赖，不能保证一次编译成功。

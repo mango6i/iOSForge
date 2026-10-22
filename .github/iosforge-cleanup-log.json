@@ -2,7 +2,23 @@
   "version": 1,
   "date": "2026-10-22",
   "timezone": "Asia/Shanghai",
-  "entries": [],
+  "entries": [
+    {
+      "timestamp": "2026-10-22T14:42:20+08:00",
+      "cleanup_run_id": 39735578914,
+      "deleted_run_ids": [
+        39735514210
+      ],
+      "actions_runs_deleted": 1,
+      "repository_items_deleted": 1,
+      "removed_paths": [
+        "sources/SideStore_0.7_develop_完整中文源码_iOSForge_误报修复版"
+      ],
+      "deleted_run_numbers": {
+        "39735514210": 324
+      }
+    }
+  ],
   "notification_deletions": [
     {
       "timestamp": "2026-10-22T14:42:18+08:00",
