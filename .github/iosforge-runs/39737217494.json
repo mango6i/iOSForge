@@ -11,5 +11,8 @@
     "path": "sources/SideStore_0.7_汉化源码_iOSForge_无需全局配置_远程依赖版",
     "sha": "3cd2542dc81349832975101c7b39ea0101aa66b1"
   },
-  "outputs": []
+  "outputs": [],
+  "cleanup_pending": {
+    "actions_record": true
+  }
 }
