@@ -17,6 +17,21 @@
       "deleted_run_numbers": {
         "39735514210": 324
       }
+    },
+    {
+      "timestamp": "2026-10-22T14:45:46+08:00",
+      "cleanup_run_id": 39735953159,
+      "deleted_run_ids": [
+        39735857750
+      ],
+      "actions_runs_deleted": 1,
+      "repository_items_deleted": 1,
+      "removed_paths": [
+        "sources/SideStore_0.7_develop_完整中文源码_iOSForge_误报修复版"
+      ],
+      "deleted_run_numbers": {
+        "39735857750": 325
+      }
     }
   ],
   "notification_deletions": [
