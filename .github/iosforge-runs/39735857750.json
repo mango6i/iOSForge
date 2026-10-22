@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "run_id": 39735857750,
+  "repository": "mango6i/iOSForge",
+  "branch": "main",
+  "request_id": "ffad80eaa812402df603d5cf",
+  "build_type": "ipa",
+  "notify_via_github": true,
+  "created_at": "2026-10-22T06:44:45Z",
+  "source": {
+    "path": "sources/SideStore_0.7_develop_完整中文源码_iOSForge_误报修复版",
+    "sha": "76ee57f058ab38e8dafa1a0f7b33a7f4c0845bf7"
+  },
+  "outputs": []
+}
