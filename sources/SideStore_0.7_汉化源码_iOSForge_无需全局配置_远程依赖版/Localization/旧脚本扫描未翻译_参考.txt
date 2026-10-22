@@ -1,0 +1,58 @@
+
+Enable JIT for %@ Failed
+Failed to refresh %@ Sources
+Failed to refresh Source '%@'
+Failed to refresh Store
+Free developer accounts are limited to 1 active signing certificate. Since the private key for the active certificate was not found on this device, SideStore will create a new certificate. This will automatically revoke the active certificate, which may disable installations on other devices or made by Xcode.
+If you've removed the 3-sideloaded app limit via the MacDirtyCow exploit, disable this setting to sideload more than 3 apps at a time.
+No valid migration path exists to downgrade this database. Please update SideStore or reset your database.
+Non-developer Apple IDs are limited to 3 active apps and app extensions, and \"%@\" contains %@ %@. Please choose an app to deactivate.
+Notice
+Open %@
+Organization
+Other
+Permission
+Photo & Video
+Pledge
+Privacy Permission
+REVOKED
+Reason:
+Refresh %@ Failed
+Remove %@ Failed
+Remove Source
+Reset Database
+Resign %@ Failed
+Restore %@ Failed
+Review Permissions
+SideStore News
+SideStore's database could not be saved.
+Sideloaded
+Social
+Some sources were unable to load
+Starting…
+Tap to view source errors.
+The cached permissions for %@ do not match the source.
+The cached versions for %@ do not match the source.
+The database on disk was created with a newer version of SideStore. Downgrading the database schema is not supported. Please update SideStore or reset your database.
+The default SideStore source cannot be removed.
+The more you open SideStore, the more chances it's given to refresh apps in the background.
+These are permissions required by “%@” that SideStore does not recognize. Make sure you understand them before continuing.
+This reinstallation registers the new signature with the OS and will terminate SideStore. You can reopen SideStore immediately once reinstallation is completed.
+To ensure you can continue using SideStore, 
+the app must be reinstalled now using the new certificate. Otherwise, you will be unable to refresh or open SideStore once the old certificate expires.
+Unable to Launch SideStore
+Unable to Refresh Store
+Unable to Refresh “%@” Source
+Unable to access the shared App Group container. Refusing to create or use a private sandbox fallback database.
+Unable to find a valid migration path for the database.
+Undefined
+Unknown
+Unknown App
+Update
+Update %@ Failed
+Updating sources…
+Utilities
+Would you like to add the source “%@”?
+Yesterday
+one or more apps
+“%@” Blocked
