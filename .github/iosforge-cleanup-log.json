@@ -2,5 +2,17 @@
   "version": 1,
   "date": "2026-10-22",
   "timezone": "Asia/Shanghai",
-  "entries": []
+  "entries": [],
+  "notification_deletions": [
+    {
+      "timestamp": "2026-10-22T14:42:18+08:00",
+      "removed": [
+        {
+          "run_id": 39735514210,
+          "comment_id": 6334527953,
+          "issue_number": 3
+        }
+      ]
+    }
+  ]
 }
