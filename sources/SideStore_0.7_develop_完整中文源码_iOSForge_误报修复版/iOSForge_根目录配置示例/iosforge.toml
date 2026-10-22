@@ -1,0 +1,12 @@
+[project]
+name = "SideStore 0.7 简体中文"
+kind = "app"
+minimum_ios = "15.0"
+
+[app]
+# 通过 iOSForge 网页传入 --source-dir 后，会自动搜索对应工程与 Scheme。
+configuration = "Release"
+
+[build]
+# 如果 iOSForge 上传项目名称是 SideStore_ZH，请保持这个路径。
+prepare_script = "sources/SideStore_ZH/ci/iosforge_prepare.sh"
