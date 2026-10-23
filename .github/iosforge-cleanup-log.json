@@ -2,7 +2,24 @@
   "version": 1,
   "date": "2026-10-24",
   "timezone": "Asia/Shanghai",
-  "entries": [],
+  "entries": [
+    {
+      "timestamp": "2026-10-24T00:12:07+08:00",
+      "cleanup_run_id": 39984627580,
+      "deleted_run_ids": [
+        39983612212
+      ],
+      "actions_runs_deleted": 1,
+      "repository_items_deleted": 2,
+      "removed_paths": [
+        "sources/AutoTap-iOSForge-IPA-Source-v1.0.3",
+        "sources/Download/AutoTap-unsigned.ipa"
+      ],
+      "deleted_run_numbers": {
+        "39983612212": 331
+      }
+    }
+  ],
   "checks": [
     {
       "timestamp": "2026-10-24T00:11:13+08:00",
