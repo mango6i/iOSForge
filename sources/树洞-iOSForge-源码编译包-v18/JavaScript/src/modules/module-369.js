@@ -1,0 +1,310 @@
+// Recovered module 369; analysis path, not original filename.
+// Original SHA-256 9bc53e60087a23e59fc4e62fc8335432b159659c3a0ef927592dd6a16b01fee0; original byte range [1910379, 1918397).
+__d(369, function (e, t, a, n) {
+  Object.defineProperty(n, "__esModule", {
+    value: !0
+  }), n.NameText = void 0;
+  var r = t(311),
+    i = babelHelpers.interopRequireDefault(r),
+    o = t(312),
+    s = t(314);
+  n.NameText = i["default"].createClass({
+    displayName: "NameText",
+    getInitialState: function () {
+      var e = this.props.userid;
+      if (e) {
+        this.appends = this.props.appends || "";
+        var t = this.props.text,
+          a = e.slice(0, 2);
+        return "3:" === a ? t = s.apps.userid === e.slice(2) ? (0, s.tr)("\u6211\u7684\u661f\u7a7a") : (0, s.tr)("Secret Tree") : "8:" === a ? t = (0, s.tr)("Drift Circle") : "1" === e ? t = (0, s.tr)("System Message") : "-1" === e ? t = (0, s.tr)("Important Tip") : "-2" === e ? t = (0, s.tr)("Shadow Tip") : e === s.apps.USERID_RES && (t = (0, s.tr)("Got Response")), {
+          name: t || s.apps.profiles[e] && s.apps.profiles[e].name || ""
+        };
+      }
+      return (0, s.tlog)("error", "NameText userid null"), {
+        name: ""
+      };
+    },
+    changeName: function (e, t) {
+      if (!this.props.text) {
+        if (!e) return t ? void this.setState({}) : ((0, s.tlog)("error", "NameText name", e, this.props.userid), void (this.props.onNameLoad && this.props.onNameLoad()));
+        this.props.onNameLoad && this.props.onNameLoad(e), this.setState({
+          name: e
+        });
+      }
+    },
+    componentWillReceiveProps: function (e) {
+      var t = this;
+      if (e.userid && e.userid !== this.props.userid) {
+        s.apps.unon("userNameChanged_" + this.props.userid, this.changeName), s.apps.unon("nameUseridLoaded_" + this.props.userid, this.changeName);
+        var a = e.userid,
+          n = e.text;
+        s.apps.on("userNameChanged_" + a, this.changeName), this.appends = e.appends || "";
+        var r = a.slice(0, 2);
+        if ("3:" === r ? n = s.apps.userid === a.slice(2) ? (0, s.tr)("\u6211\u7684\u661f\u7a7a") : (0, s.tr)("Secret Tree") : "8:" === r ? n = (0, s.tr)("Drift Circle") : "1" === a ? n = (0, s.tr)("System Message") : "-1" === a ? n = (0, s.tr)("Important Tip") : "-2" === a ? n = (0, s.tr)("Shadow Tip") : a === s.apps.USERID_RES && (n = (0, s.tr)("Got Response")), n) this.setState({
+          name: n
+        });else {
+          var i = "nameUseridLoaded_" + a;
+          s.apps.has(i, this.changeName) || s.apps.on(i, this.changeName), s.apps.isEventing(i) || (s.apps.startEvent(i), s.apps.getProfileK(a, "name").then(function (e) {
+            s.apps.eventEnd(i), s.apps.emitOnce(i, e);
+          })["catch"](function (e) {
+            s.apps.eventEnd(i), (0, s.tlog)("error", "NameText getProfileK", t.props.userid, a, e);
+          }));
+        }
+      }
+    },
+    componentWillMount: function () {
+      var e = this.props.userid;
+      if (e) if (s.apps.on("userNameChanged_" + e, this.changeName), this.state.name) this.props.onNameLoad && this.props.onNameLoad(this.state.name);else {
+        var t = "nameUseridLoaded_" + e;
+        s.apps.has(t, this.changeName) || s.apps.on(t, this.changeName), s.apps.isEventing(t) || (s.apps.startEvent(t), s.apps.getProfileK(e, "name").then(function (e) {
+          s.apps.eventEnd(t), s.apps.emitOnce(t, e);
+        })["catch"](function (e) {
+          s.apps.eventEnd(t), (0, s.tlog)("error", "NameText componentWillMount", e);
+        }));
+      }
+    },
+    componentWillUnmount: function () {
+      this.props.userid ? (s.apps.unon("userNameChanged_" + this.props.userid, this.changeName), s.apps.unon("nameUseridLoaded_" + this.props.userid, this.changeName)) : (0, s.tlog)("error", "NameText userid null");
+    },
+    render: function () {
+      var e,
+        t,
+        a,
+        n,
+        r = this.props.userid;
+      if (r) {
+        var l = s.apps.profiles[r];
+        if (l) {
+          var p = l.ftag;
+          l.forbid && s.apps.isUserForbided(l.forbid) && (t = !0), s.apps.showCmdBall && (l.forbid && s.apps.notIn(l.forbid, s.apps.CONS_FORBID_NORMAL) && (a = l.forbid === s.apps.CONS_FORBID_UNS ? l.invalid ? 1 === l.invalid ? {
+            backgroundColor: "rgb(122,197,205)"
+          } : {
+            backgroundColor: "rgb(205,198,115)"
+          } : {
+            backgroundColor: "rgb(221,160,221)"
+          } : l.forbid === s.apps.CONS_FORBID_CHEAT ? {
+            backgroundColor: s.theme.warnTrans9
+          } : l.forbid === s.apps.CONS_FORBID_BLOCK ? {
+            backgroundColor: "rgb(162,205,90)"
+          } : l.forbid === s.apps.CONS_FORBID_FAKE ? {
+            backgroundColor: "rgb(147,112,219)"
+          } : {
+            backgroundColor: s.theme.darkMagenta
+          }), l.shaExp > Date.now() && (n = !0));
+        }
+        return i["default"].createElement(o.View, {
+          style: babelHelpers["extends"]({
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center"
+          }, a)
+        }, n ? i["default"].createElement(o.View, {
+          style: {
+            backgroundColor: s.theme.deepGreen3Trans7,
+            borderRadius: 5,
+            paddingHorizontal: 5,
+            paddingVertical: 3,
+            marginHorizontal: 3,
+            justifyContent: "center",
+            alignItems: "center"
+          }
+        }, i["default"].createElement(s.MyTextView, {
+          myTextValue: "P",
+          imageFontSize: 9,
+          style: {
+            fontSize: 9,
+            color: s.theme.lightb,
+            textAlign: "center"
+          }
+        })) : null, t ? i["default"].createElement(o.View, {
+          style: {
+            backgroundColor: s.theme.warnTrans9,
+            borderRadius: 5,
+            paddingHorizontal: 5,
+            paddingVertical: 3,
+            marginLeft: 3,
+            marginRight: 3,
+            justifyContent: "center",
+            alignItems: "center"
+          }
+        }, i["default"].createElement(s.MyTextView, {
+          myTextValue: (0, s.tr)("Forbided"),
+          imageFontSize: 9,
+          style: {
+            fontSize: 9,
+            color: s.theme.lightb,
+            textAlign: "center"
+          }
+        })) : null, e ? i["default"].createElement(o.View, {
+          style: {
+            backgroundColor: s.theme.steelBlue,
+            borderRadius: 5,
+            paddingHorizontal: 5,
+            paddingVertical: 3,
+            marginLeft: 3,
+            marginRight: 3,
+            justifyContent: "center",
+            alignItems: "center"
+          }
+        }, i["default"].createElement(s.MyTextView, {
+          myTextValue: (0, s.tr)("Frozen"),
+          imageFontSize: 9,
+          style: {
+            fontSize: 9,
+            color: s.theme.lightb,
+            textAlign: "center"
+          }
+        })) : null, i["default"].createElement(s.MyTextView, babelHelpers["extends"]({}, this.props, {
+          myTextValue: this.state.name + this.appends
+        })), this.props.showGender && l && l.gender ? s.apps.showCmdBall ? i["default"].createElement(s.CachedImage, {
+          imageId: s.apps.getGenderImageId(r),
+          resizeMode: "cover",
+          fadeDuration: 0,
+          style: {
+            width: 16,
+            height: 16,
+            marginLeft: 2
+          }
+        }) : i["default"].createElement(s.CachedImage, {
+          defaultSource: s.apps.getGenderSource(r),
+          resizeMode: "cover",
+          fadeDuration: 0,
+          style: {
+            width: 16,
+            height: 16,
+            marginLeft: 2
+          }
+        }) : null, s.apps.showCmdBall && l ? i["default"].createElement(o.View, {
+          style: {
+            flexDirection: "row",
+            backgroundColor: s.theme.lightLessTrans1,
+            borderRadius: 5,
+            paddingHorizontal: 5,
+            paddingVertical: 3,
+            marginHorizontal: 3,
+            justifyContent: "center",
+            alignItems: "center"
+          }
+        }, l.phoneNum && "+86" === l.phoneNum.slice(0, 3) ? i["default"].createElement(s.MyTextView, {
+          myTextValue: "+",
+          imageFontSize: 9,
+          style: {
+            fontSize: 9,
+            color: s.theme.lightb,
+            textAlign: "center"
+          }
+        }) : null, l.deviceFrom ? i["default"].createElement(s.MyTextView, {
+          myTextValue: s.apps.deviceTrans(l.deviceFrom),
+          imageFontSize: 9,
+          style: {
+            fontSize: 9,
+            color: s.theme.lightb,
+            textAlign: "center"
+          }
+        }) : null) : null, this.props.showCountry && s.apps.showCmdBall && l && l.country ? i["default"].createElement(s.MyTextView, {
+          myTextValue: function () {
+            return l.country;
+          }(),
+          imageFontSize: 9,
+          style: {
+            marginHorizontal: 3,
+            fontSize: 9,
+            color: s.theme.lightb,
+            textAlign: "center"
+          }
+        }) : null, this.props.showGroup || "2:" === r.slice(0, 2) ? i["default"].createElement(o.View, {
+          style: {
+            backgroundColor: s.theme.lightLessTrans1,
+            borderRadius: 5,
+            paddingHorizontal: 5,
+            paddingVertical: 3,
+            marginHorizontal: 3,
+            justifyContent: "center",
+            alignItems: "center"
+          }
+        }, i["default"].createElement(s.MyTextView, {
+          myTextValue: (0, s.tr)("Group"),
+          imageFontSize: 9,
+          style: {
+            fontSize: 9,
+            color: s.theme.lightb,
+            textAlign: "center"
+          }
+        })) : null, p ? i["default"].createElement(o.View, {
+          style: {
+            backgroundColor: s.theme.lightLessTrans1,
+            borderRadius: 5,
+            paddingHorizontal: 5,
+            paddingVertical: 3,
+            marginLeft: 3,
+            justifyContent: "center",
+            alignItems: "center"
+          }
+        }, i["default"].createElement(s.MyTextView, {
+          myTextValue: p,
+          imageFontSize: 9,
+          style: {
+            fontSize: 9,
+            color: s.theme.lightb,
+            textAlign: "center"
+          }
+        })) : null, this.props.isSpaceReport || "^1" !== r.slice(-2) || !s.apps.showCmdBall && r.slice(-s.apps.userid.length) !== s.apps.userid ? null : i["default"].createElement(o.View, {
+          style: {
+            backgroundColor: s.theme.lightLessTrans1,
+            borderRadius: 5,
+            paddingHorizontal: 5,
+            paddingVertical: 3,
+            marginLeft: 3,
+            justifyContent: "center",
+            alignItems: "center"
+          }
+        }, i["default"].createElement(s.MyTextView, {
+          myTextValue: (0, s.tr)("Shadow"),
+          imageFontSize: 9,
+          style: {
+            fontSize: 9,
+            color: s.theme.lightb,
+            textAlign: "center"
+          }
+        })), s.apps.showCmdBall && l && l.ipCnt ? i["default"].createElement(o.View, {
+          style: {
+            backgroundColor: s.theme.warnTrans9,
+            borderRadius: 10,
+            paddingHorizontal: 7,
+            paddingVertical: 3,
+            marginHorizontal: 3,
+            justifyContent: "center",
+            alignItems: "center"
+          }
+        }, i["default"].createElement(s.MyTextView, {
+          myTextValue: l.ipCnt,
+          imageFontSize: 9,
+          style: {
+            fontSize: 9,
+            color: s.theme.lighte,
+            textAlign: "center"
+          }
+        })) : null, s.apps.showCmdBall && l && l.reportC ? i["default"].createElement(o.View, {
+          style: {
+            backgroundColor: s.theme.steelBlue,
+            borderRadius: 10,
+            paddingHorizontal: 7,
+            paddingVertical: 3,
+            marginHorizontal: 3,
+            justifyContent: "center",
+            alignItems: "center"
+          }
+        }, i["default"].createElement(s.MyTextView, {
+          myTextValue: l.reportC,
+          imageFontSize: 9,
+          style: {
+            fontSize: 9,
+            color: s.theme.lighte,
+            textAlign: "center"
+          }
+        })) : null);
+      }
+      return (0, s.tlog)("error", "NameText userid null"), null;
+    }
+  });
+});
