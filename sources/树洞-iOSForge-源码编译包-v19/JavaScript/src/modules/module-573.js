@@ -1,0 +1,143 @@
+// Recovered module 573; analysis path, not original filename.
+// Original SHA-256 db102e71ada1d52139b5d9431c11371afadeed16f30b8f357626d79d1f25ddd5; original byte range [1567618, 1570972).
+__d(573, function (e, t, n, i) {
+  Object.defineProperty(i, "__esModule", {
+    value: !0
+  });
+  var a = t(311),
+    s = babelHelpers.interopRequireDefault(a),
+    o = t(555),
+    r = babelHelpers.interopRequireDefault(o),
+    l = t(312),
+    u = t(567),
+    d = babelHelpers.interopRequireDefault(u),
+    c = l.Animated.createAnimatedComponent(d["default"]),
+    p = .1,
+    h = 1.5 * Math.PI,
+    f = function (e) {
+      function t(e) {
+        babelHelpers.classCallCheck(this, t);
+        var n = babelHelpers.possibleConstructorReturn(this, Object.getPrototypeOf(t).call(this, e));
+        return n.state = {
+          startAngle: new l.Animated.Value(-p),
+          endAngle: new l.Animated.Value(0),
+          rotation: new l.Animated.Value(0),
+          colorIndex: 0
+        }, n;
+      }
+      return babelHelpers.inherits(t, e), babelHelpers.createClass(t, [{
+        key: "componentDidMount",
+        value: function () {
+          this.props.animating && (this.animate(), this.spin());
+        }
+      }, {
+        key: "componentWillReceiveProps",
+        value: function (e) {
+          e.animating !== this.props.animating && (e.animating ? (this.animate(), this.spin()) : this.stopAnimations());
+        }
+      }, {
+        key: "animate",
+        value: function () {
+          var e = this,
+            t = arguments.length <= 0 || void 0 === arguments[0] ? 1 : arguments[0];
+          l.Animated.sequence([l.Animated.timing(this.state.startAngle, {
+            toValue: -h * t - p,
+            duration: this.props.duration || 1e3,
+            isInteraction: !1,
+            easing: l.Easing.inOut(l.Easing.quad)
+          }), l.Animated.timing(this.state.endAngle, {
+            toValue: -h * t,
+            duration: this.props.duration || 1e3,
+            isInteraction: !1,
+            easing: l.Easing.inOut(l.Easing.quad)
+          })]).start(function (n) {
+            n.finished && (Array.isArray(e.props.color) && e.setState({
+              colorIndex: t % e.props.color.length
+            }), e.animate(t + 1));
+          });
+        }
+      }, {
+        key: "spin",
+        value: function () {
+          var e = this;
+          l.Animated.timing(this.state.rotation, {
+            toValue: 1,
+            duration: this.props.spinDuration || 5e3,
+            easing: l.Easing.linear,
+            isInteraction: !1
+          }).start(function (t) {
+            t.finished && (e.state.rotation.setValue(0), e.spin());
+          });
+        }
+      }, {
+        key: "stopAnimations",
+        value: function () {
+          this.state.startAngle.stopAnimation(), this.state.endAngle.stopAnimation(), this.state.rotation.stopAnimation();
+        }
+      }, {
+        key: "render",
+        value: function () {
+          var e = this.props,
+            t = e.animating,
+            n = e.children,
+            i = e.color,
+            a = e.direction,
+            o = e.hidesWhenStopped,
+            r = e.size,
+            u = e.style,
+            d = e.thickness,
+            p = babelHelpers.objectWithoutProperties(e, ["animating", "children", "color", "direction", "hidesWhenStopped", "size", "style", "thickness"]);
+          if (!t && o) return null;
+          var h = r / 2 - d,
+            f = {
+              top: d,
+              left: d
+            },
+            m = "counter-clockwise" === a ? -1 : 1;
+          return s["default"].createElement(l.Animated.View, babelHelpers["extends"]({}, p, {
+            style: [u, {
+              backgroundColor: "transparent",
+              overflow: "hidden",
+              transform: [{
+                rotate: this.state.rotation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: ["0deg", 360 * m + "deg"]
+                })
+              }]
+            }]
+          }), s["default"].createElement(l.ART.Surface, {
+            width: r,
+            height: r
+          }, s["default"].createElement(c, {
+            direction: "counter-clockwise" === a ? "clockwise" : "counter-clockwise",
+            radius: h,
+            stroke: Array.isArray(i) ? i[this.state.colorIndex] : i,
+            offset: f,
+            startAngle: this.state.startAngle,
+            endAngle: this.state.endAngle,
+            strokeCap: "round",
+            strokeWidth: d
+          })), n);
+        }
+      }]), t;
+    }(a.Component);
+  f.propTypes = {
+    animating: r["default"].bool,
+    color: r["default"].oneOfType([r["default"].string, r["default"].arrayOf(r["default"].string)]),
+    children: r["default"].node,
+    direction: r["default"].oneOf(["clockwise", "counter-clockwise"]),
+    duration: r["default"].number,
+    hidesWhenStopped: r["default"].bool,
+    size: r["default"].number,
+    spinDuration: r["default"].number,
+    style: l.View.propTypes.style,
+    thickness: r["default"].number
+  }, f.defaultProps = {
+    animating: !0,
+    color: "rgba(0, 122, 255, 1)",
+    direction: "counter-clockwise",
+    hidesWhenStopped: !1,
+    size: 40,
+    thickness: 3
+  }, i["default"] = f;
+});

@@ -1,0 +1,44 @@
+// Recovered module 300; analysis path, not original filename.
+// Original SHA-256 6a60afdaf0338d7dd97fd5b651ac28ef72e0dcef33654bf777b07cd62297f24d; original byte range [579370, 580135).
+__d(300, function (t, s, e, n) {
+  "use strict";
+
+  var i = s(46),
+    a = s(31).SettingsManager,
+    r = s(380),
+    c = [],
+    l = {
+      _settings: a && a.settings,
+      get: function (t) {
+        return this._settings[t];
+      },
+      set: function (t) {
+        this._settings = babelHelpers["extends"](this._settings, t), a.setValues(t);
+      },
+      watchKeys: function (t, s) {
+        "string" == typeof t && (t = [t]), r(Array.isArray(t), "keys should be a string or array of strings");
+        var e = c.length;
+        return c.push({
+          keys: t,
+          callback: s
+        }), e;
+      },
+      clearWatch: function (t) {
+        t < c.length && (c[t] = {
+          keys: [],
+          callback: null
+        });
+      },
+      _sendObservations: function (t) {
+        var s = this;
+        Object.keys(t).forEach(function (e) {
+          var n = t[e],
+            i = s._settings[e] !== n;
+          s._settings[e] = n, i && c.forEach(function (t) {
+            -1 !== t.keys.indexOf(e) && t.callback && t.callback();
+          });
+        });
+      }
+    };
+  i.addListener("settingsUpdated", l._sendObservations.bind(l)), e.exports = l;
+});
