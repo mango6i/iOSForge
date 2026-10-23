@@ -2,7 +2,24 @@
   "version": 1,
   "date": "2026-10-23",
   "timezone": "Asia/Shanghai",
-  "entries": [],
+  "entries": [
+    {
+      "timestamp": "2026-10-23T11:20:39+08:00",
+      "cleanup_run_id": 39894394430,
+      "deleted_run_ids": [
+        39894323694
+      ],
+      "actions_runs_deleted": 1,
+      "repository_items_deleted": 2,
+      "removed_paths": [
+        "sources/Download/树洞-unsigned.ipa",
+        "sources/树洞-iOSForge-源码编译包-v18"
+      ],
+      "deleted_run_numbers": {
+        "39894323694": 327
+      }
+    }
+  ],
   "checks": [
     {
       "timestamp": "2026-10-23T11:19:47+08:00",
