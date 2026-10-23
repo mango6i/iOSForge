@@ -46,6 +46,14 @@
       "managed_builds": 0,
       "detail": "",
       "workflow_conclusion": "success"
+    },
+    {
+      "timestamp": "2026-10-23T11:58:53+08:00",
+      "cleanup_run_id": 39897845323,
+      "result": "idle_stopped",
+      "run_number": 93,
+      "managed_builds": 0,
+      "detail": ""
     }
   ],
   "system_deletions": [
