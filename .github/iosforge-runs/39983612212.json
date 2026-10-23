@@ -11,5 +11,12 @@
     "path": "sources/AutoTap-iOSForge-IPA-Source-v1.0.3",
     "sha": "9f8bb4218d46ebf5f0399aca0393d6db32142b1b"
   },
-  "outputs": []
+  "outputs": [
+    {
+      "path": "sources/Download/AutoTap-unsigned.ipa",
+      "sha": "30df00447d4a98eb293d20483278e108a881e9f1"
+    }
+  ],
+  "status": "success",
+  "completed_at": "2026-10-23T16:10:47Z"
 }
