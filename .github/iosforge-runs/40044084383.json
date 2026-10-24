@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "run_id": 40044084383,
+  "repository": "mango6i/iOSForge",
+  "branch": "main",
+  "request_id": "8fa8839d2bf6a6941927bd3f",
+  "build_type": "ipa",
+  "notify_via_github": true,
+  "created_at": "2026-10-24T00:15:47Z",
+  "source": {
+    "path": "sources/树洞-用户ID聊天测试版-v20",
+    "sha": "49b603f4e4bd6ccd26fb08202b5b155af5049442"
+  },
+  "outputs": []
+}
