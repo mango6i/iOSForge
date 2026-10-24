@@ -18,5 +18,8 @@
     }
   ],
   "status": "success",
-  "completed_at": "2026-10-24T14:38:42Z"
+  "completed_at": "2026-10-24T14:38:42Z",
+  "cleanup_pending": {
+    "actions_record": true
+  }
 }
