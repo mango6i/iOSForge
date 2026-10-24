@@ -1,0 +1,54 @@
+// Recovered module 596; analysis path, not original filename.
+// Original SHA-256 ba89337afe0970292d4c9abdad7e1dfd77f780d3625b4b20a17f24f3f0da1103; original byte range [1574437, 1575703).
+__d(596, function (e, t, r, a) {
+  function l(e, t, r, a) {
+    if (r >= i) return f.ART.Path().moveTo(e, t).move(a, 0).arc(0, 2 * a, a, a).arc(0, -2 * a, a, a).close();
+    var l = Math.PI / 2 - r,
+      s = Math.PI / 2,
+      n = r > Math.PI ? 1 : 0,
+      u = e + a,
+      o = t + a;
+    return "M" + u + " " + o + "\n          L" + (u + Math.cos(l) * a) + " " + (o - Math.sin(l) * a) + "\n          A" + a + " " + a + " 0 " + n + " 0 " + (u + Math.cos(s) * a) + " " + (o - Math.sin(s) * a) + "\n          L" + u + " " + o;
+  }
+  Object.defineProperty(a, "__esModule", {
+    value: !0
+  });
+  var s = t(311),
+    n = babelHelpers.interopRequireDefault(s),
+    u = t(555),
+    o = babelHelpers.interopRequireDefault(u),
+    f = t(312),
+    i = 2 * Math.PI,
+    p = function (e) {
+      function t() {
+        return babelHelpers.classCallCheck(this, t), babelHelpers.possibleConstructorReturn(this, Object.getPrototypeOf(t).apply(this, arguments));
+      }
+      return babelHelpers.inherits(t, e), babelHelpers.createClass(t, [{
+        key: "render",
+        value: function () {
+          var e = this.props,
+            t = e.angle,
+            r = e.radius,
+            a = e.offset,
+            s = babelHelpers.objectWithoutProperties(e, ["angle", "radius", "offset"]),
+            u = l(a.left || 0, a.top || 0, t, r);
+          return n["default"].createElement(f.ART.Shape, babelHelpers["extends"]({
+            d: u
+          }, s));
+        }
+      }]), t;
+    }(s.Component);
+  p.propTypes = {
+    angle: o["default"].number.isRequired,
+    radius: o["default"].number.isRequired,
+    offset: o["default"].shape({
+      top: o["default"].number,
+      left: o["default"].number
+    })
+  }, p.defaultProps = {
+    offset: {
+      top: 0,
+      left: 0
+    }
+  }, a["default"] = p;
+});
