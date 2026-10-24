@@ -1,0 +1,26 @@
+name: Folder access regression checks
+on:
+  push:
+    branches: [shudong-folder-checks]
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check folder permission behavior
+        run: |
+          swiftc -parse-as-library AccountCheck/FolderAccess.swift FolderAccessSelfTests.swift -o /tmp/folder-tests
+          /tmp/folder-tests
+      - name: Check account parsing and read-only database behavior
+        run: |
+          swiftc -parse-as-library AccountCheck/Core.swift AccountCheck/FolderAccess.swift AccountCheck/SQLiteReader.swift CoreSelfTests.swift -o /tmp/core-tests -lsqlite3
+          /tmp/core-tests
+      - name: Check iPhone source types without building an app or IPA
+        run: |
+          SDK=$(xcrun --sdk iphoneos --show-sdk-path)
+          xcrun swiftc -typecheck -parse-as-library -sdk "$SDK" -target arm64-apple-ios15.0 -module-name AccountCheck AccountCheck/*.swift
+      - name: Validate project inputs
+        run: python3 scripts/validate_project.py

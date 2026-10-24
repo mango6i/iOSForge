@@ -11,6 +11,12 @@ final class ReadOnlyDatabase {
             throw CheckFailure.invalidDatabase
         }
         sqlite3_busy_timeout(handle, 1500)
+        do {
+            _ = try rows("SELECT name FROM sqlite_master LIMIT 1")
+        } catch {
+            sqlite3_close(handle); handle = nil
+            throw CheckFailure.invalidDatabase
+        }
     }
     deinit { sqlite3_close(handle) }
     func rows(_ sql: String, _ values: [String] = []) throws -> [[String]] {
@@ -82,12 +88,12 @@ enum DirectoryScanner {
             if shared == nil { source.issue = "无法读取 mistShared.db；本目录尚不能检测服务器状态。" }
             for file in files.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {
                 guard file.pathExtension.lowercased() == "db", file.lastPathComponent != "mistShared.db" else { continue }
-                let values = try file.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey])
-                guard values.isRegularFile == true, values.isSymbolicLink != true else { continue }
                 let userID = file.deletingPathExtension().lastPathComponent
                 guard Pairing.validID(userID) else { continue }
                 var row = AccountRow(sourceID:id, fullID:userID, number:0, nickname:"昵称待获取", databaseURL:file)
                 do {
+                    let values = try file.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey])
+                    guard values.isRegularFile == true, values.isSymbolicLink != true else { continue }
                     let db = try ReadOnlyDatabase(file)
                     guard db.tableExists("UserProfile") else { continue }
                     row.nickname = try db.nickname(userID:userID, shared:false) ?? shared?.nickname(userID:userID, shared:true) ?? "昵称待获取"
@@ -100,7 +106,7 @@ enum DirectoryScanner {
             }
             if source.rows.isEmpty { source.issue = "未发现可识别的账号数据库。请确认选择的是树洞文档目录，且含有 完整ID.db / 完整ID^1.db；空目录不代表账号正常。" }
         } catch {
-            source.issue = "无法读取目录。授权可能失效，请重新选择。"
+            source.issue = FolderAccessProblem.classify(error).text
         }
         return source
     }
@@ -113,9 +119,12 @@ enum DirectoryScanner {
         if direct.contains(where: { $0.lastPathComponent == "mistShared.db" }) { return [root] }
         var candidates: [URL] = []
         for url in direct {
-            let values = try url.resourceValues(forKeys:Set(keys))
-            guard values.isDirectory == true, values.isSymbolicLink != true else { continue }
             guard url.lastPathComponent.hasPrefix("树洞"), url.lastPathComponent != "树洞账号检测" else { continue }
+            if let values = try? url.resourceValues(forKeys:Set(keys)) {
+                guard values.isDirectory == true, values.isSymbolicLink != true else { continue }
+            }
+            // A child's metadata error must be reported on that source, not mistaken for
+            // revocation of the entire selected parent folder.
             candidates.append(url)
         }
         // Also show an empty selected directory explicitly, instead of silently dropping it.

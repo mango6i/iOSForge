@@ -5,6 +5,7 @@ struct SourceView: Identifiable {
     let id: String
     let grantID: UUID
     let folder: URL
+    let relativeComponents: [String]
     let title: String
     var rows: [AccountRow]
     var issue: String?
@@ -30,11 +31,36 @@ struct SourceView: Identifiable {
         await scan(checkAfter:!access.grants.isEmpty)
     }
     func add(_ urls:[URL]) {
-        for url in urls {
-            do { try access.add(url) }
-            catch { notices.append("\(url.lastPathComponent)：无法保存目录授权，请重新选择。") }
+        guard !scanning, !checking else { return }
+        scanning = true
+        progress = "正在读取所选目录…"
+        let folders = access
+        task = Task {
+            let errors = await Task.detached(priority:.userInitiated) { () -> [String] in
+                var errors: [String] = []
+                for url in urls {
+                    do { try folders.add(url) }
+                    catch { errors.append("\(url.lastPathComponent)：\(FolderAccessProblem.classify(error).text)") }
+                }
+                return errors
+            }.value
+            scanning = false
+            await scan(checkAfter:false,extraNotices:errors)
         }
-        task = Task { await scan(checkAfter:false) }
+    }
+    func useLocalDocuments() {
+        guard !scanning, !checking else { return }
+        scanning = true
+        progress = "正在读取本工具目录…"
+        let folders = access
+        task = Task {
+            let errors = await Task.detached(priority:.userInitiated) { () -> [String] in
+                do { try folders.addLocalDocuments(); return [] }
+                catch { return [FolderAccessProblem.classify(error).text] }
+            }.value
+            scanning = false
+            await scan(checkAfter:false,extraNotices:errors)
+        }
     }
     func remove(_ id: UUID) {
         guard !checking, !scanning else { return }
@@ -43,42 +69,57 @@ struct SourceView: Identifiable {
     }
     func rescan() { task = Task { await scan(checkAfter:false) } }
 
-    func scan(checkAfter:Bool) async {
+    func scan(checkAfter:Bool,extraNotices:[String] = []) async {
         guard !scanning, !checking else { return }
         scanning = true
         progress = "正在扫描已授权目录…"
-        notices = []
+        notices = extraNotices
         grants = access.grants
         let saved = grants
+        let folders = access
         let output = await Task.detached(priority:.userInitiated) { () -> ([SourceView],[String]) in
-            let folders = FolderAccess()
             var sources: [SourceView] = []
             var notices: [String] = []
             var seen = Set<String>()
             var next = 1
             for (grantIndex, grant) in saved.enumerated() {
                 do {
-                    let root = try folders.resolve(grant)
-                    let discovered = try folders.read(root) { url -> [ScannedSource] in
-                        try DirectoryScanner.discover(url).map { DirectoryScanner.scan($0) }
+                    let discovered = try folders.read(grant) { root -> [(ScannedSource,[String])] in
+                        try DirectoryScanner.discover(root).map { folder in
+                            let rootParts = root.standardizedFileURL.pathComponents
+                            let parts = folder.standardizedFileURL.pathComponents
+                            guard parts.starts(with:rootParts) else { throw FolderAccessProblem.permissionDenied }
+                            return (DirectoryScanner.scan(folder),Array(parts.dropFirst(rootParts.count)))
+                        }
                     }
-                    for source in discovered where !seen.contains(source.id) {
+                    if let warning = folders.warning(for:grant) { notices.append("\(grant.title)：\(warning)") }
+                    for (source, relativeComponents) in discovered where !seen.contains(source.id) {
                         seen.insert(source.id)
                         let rows = Pairing.pairs(source:source.id,accounts:source.rows,firstNumber:next)
                         next += Set(rows.map(\.number)).count
+                        let label = relativeComponents.isEmpty ? grant.title : source.title
                         sources.append(SourceView(id:source.id,grantID:grant.id,folder:source.folder,
-                            title:"来源 \(grantIndex + 1) · \(source.title)",rows:rows,issue:source.issue))
+                            relativeComponents:relativeComponents,title:"来源 \(grantIndex + 1) · \(label)",rows:rows,issue:source.issue))
                     }
                 } catch {
-                    notices.append("\(grant.title)：授权失效或无法读取，请重新选择此目录；此目录尚未检测。")
+                    notices.append("\(grant.title)：\(FolderAccessProblem.classify(error).text) 此目录尚未检测。")
                 }
             }
             return (sources,notices)
         }.value
         sources = output.0
         notices.append(contentsOf:output.1)
+        grants = access.grants
         scanning = false
-        progress = saved.isEmpty ? "首次使用请添加树洞目录" : "发现 \(rowCount) 个账号位置 · 点击一键检测"
+        if saved.isEmpty {
+            progress = "首次使用请添加树洞目录"
+        } else if sources.isEmpty {
+            progress = "目录尚未读取成功，请查看提示或重新选择"
+        } else if rowCount == 0 {
+            progress = "目录已读取，未发现可识别的账号数据库"
+        } else {
+            progress = "发现 \(rowCount) 个账号位置 · 点击一键检测"
+        }
         if checkAfter, rowCount > 0 { beginCheck() }
     }
 
@@ -99,6 +140,7 @@ struct SourceView: Identifiable {
         }
         let snapshot = sources
         let savedGrants = grants
+        let folders = access
         task = Task { [weak self] in
             guard let self = self else { return }
             var finished = 0
@@ -109,10 +151,9 @@ struct SourceView: Identifiable {
                 do {
                     guard let grant = savedGrants.first(where:{$0.id == source.grantID}) else { throw CheckFailure.unreadable }
                     let identity = try await Task.detached(priority:.userInitiated) { () -> (ConnectionConfig,String,String) in
-                        let folders = FolderAccess()
-                        let root = try folders.resolve(grant)
-                        return try folders.read(root) { _ in
-                            let db = try ReadOnlyDatabase(source.folder.appendingPathComponent("mistShared.db"))
+                        return try folders.read(grant) { root in
+                            let directory = source.relativeComponents.reduce(root) { $0.appendingPathComponent($1,isDirectory:true) }
+                            let db = try ReadOnlyDatabase(directory.appendingPathComponent("mistShared.db"))
                             let config = try db.config()
                             let candidates = source.rows.filter { $0.databaseURL != nil && $0.localIssue == nil }.sorted { lhs,rhs in
                                 if lhs.fullID == config.preferredUserID { return true }
@@ -120,7 +161,8 @@ struct SourceView: Identifiable {
                                 return lhs.fullID < rhs.fullID
                             }
                             for account in candidates {
-                                if let url = account.databaseURL, let token = try? ReadOnlyDatabase(url).credential(), !token.isEmpty {
+                                if let filename = account.databaseURL?.lastPathComponent,
+                                   let token = try? ReadOnlyDatabase(directory.appendingPathComponent(filename)).credential(), !token.isEmpty {
                                     return (config,account.fullID,token)
                                 }
                             }
@@ -145,7 +187,11 @@ struct SourceView: Identifiable {
                         progress = "已检测 \(finished) / \(total)"
                     }
                 } catch {
-                    let failure = Task.isCancelled ? CheckFailure.cancelled : (error as? CheckFailure) ?? .network
+                    let failure = Task.isCancelled ? CheckFailure.cancelled : (error is FolderAccessProblem ? .unreadable : (error as? CheckFailure) ?? .network)
+                    if let folderError = error as? FolderAccessProblem,
+                       let index = sources.firstIndex(where:{$0.id == source.id}) {
+                        sources[index].issue = folderError.text
+                    }
                     for row in source.rows where isChecking(row.id) {
                         if row.databaseURL == nil {
                             update(row.id,status:row.isShadow ? "缺失分身（目录中没有对应数据库）" : "缺失主账号（目录中没有对应数据库）",outcome:.missing)

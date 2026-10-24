@@ -40,6 +40,10 @@ struct ProfileResult: Equatable {
 
     static func parse(_ packet: [String: Any]) -> ProfileResult {
         let name = (packet["name"] as? String).flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
+        if let invalid = packet["invalid"] as? NSNumber, invalid.boolValue {
+            return ProfileResult(name:name,rawMark:packet["forbid"].map { String(describing:$0) } ?? "未返回",
+                                 constant:nil,outcome:.unknown,text:"未知状态（服务器返回账号资料无效）")
+        }
         guard let number = packet["forbid"] as? NSNumber,
               CFGetTypeID(number) != CFBooleanGetTypeID(),
               number.doubleValue.isFinite,
@@ -112,7 +116,7 @@ struct ConnectionConfig {
     static func parse(_ values: [String: Any]) throws -> ConnectionConfig {
         guard let deviceID = values["deviceId"] as? String, !deviceID.isEmpty,
               let uuid = values["deviceUuid"] as? String, !uuid.isEmpty else { throw CheckFailure.configuration }
-        let center = values["dataCenter"] as? String ?? "do"
+        let center = (values["dataCenter"] as? String) ?? "do"
         guard ["do", "ali"].contains(center) else { throw CheckFailure.configuration }
         func truth(_ key: String) -> Bool {
             if let n = values[key] as? NSNumber { return n.boolValue }

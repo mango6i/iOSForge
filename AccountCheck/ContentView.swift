@@ -2,6 +2,9 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var model = CheckerModel()
+    private var appVersion: String {
+        (Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String) ?? "—"
+    }
     var body: some View {
         NavigationView {
             ScrollView {
@@ -24,6 +27,8 @@ struct ContentView: View {
                             Text("授权后，后续启动会自动扫描并检测这些目录。无法读取、空目录和登录受限都会单独提示。")
                                 .font(.footnote).foregroundColor(.secondary)
                             Button("添加目录") { model.pickerVisible = true }.buttonStyle(.borderedProminent)
+                            Text("如果选择器仍无法读取，可把每个来源的数据库分别放到“我的 iPhone → 树洞账号检测”内的“树洞①”“树洞②”等子文件夹，再点“读取本工具目录”。")
+                                .font(.footnote).foregroundColor(.secondary)
                         }.padding(20).frame(maxWidth:.infinity,alignment:.leading).background(Color(.secondarySystemGroupedBackground)).cornerRadius(18)
                     }
                     ForEach(model.sources) { source in
@@ -37,7 +42,7 @@ struct ContentView: View {
                         }
                     }
                     if !model.grants.isEmpty {
-                        DisclosureGroup("已授权目录（\(model.grants.count)）") {
+                        DisclosureGroup("已选择目录（\(model.grants.count)）") {
                             VStack(alignment:.leading,spacing:12) {
                                 ForEach(model.grants) { grant in
                                     HStack(alignment:.top) {
@@ -54,6 +59,8 @@ struct ContentView: View {
                     }
                     Text("只读检测 · 不发送聊天 · 不修改账号标记\n服务器特殊标记仅代表检测事实，本工具不解除限制。")
                         .font(.caption).foregroundColor(.secondary).frame(maxWidth:.infinity).multilineTextAlignment(.center).padding(.vertical,8)
+                    Text("版本 \(appVersion)")
+                        .font(.caption2).foregroundColor(.secondary).frame(maxWidth:.infinity)
                 }.padding(.horizontal,16).padding(.bottom,12)
             }
             .background(Color(.systemGroupedBackground))
@@ -72,7 +79,12 @@ struct ContentView: View {
                             Text(model.checking ? "检测中" : "一键检测").font(.headline)
                         }.frame(maxWidth:.infinity,minHeight:48)
                     }.buttonStyle(.borderedProminent).disabled(model.checking || model.scanning || model.rowCount == 0)
-                    if !model.checking { Button("重新扫描目录") { model.rescan() }.font(.footnote).disabled(model.scanning) }
+                    if !model.checking {
+                        HStack(spacing:24) {
+                            Button("重新扫描目录") { model.rescan() }
+                            Button("读取本工具目录") { model.useLocalDocuments() }
+                        }.font(.footnote).disabled(model.scanning)
+                    }
                 }.padding(.horizontal,20).padding(.top,12).padding(.bottom,8).background(.regularMaterial)
             }
             .sheet(isPresented:$model.pickerVisible) {
@@ -130,13 +142,25 @@ struct ViewThatFitsCompat:View {
     let checking:Bool
     @Environment(\.sizeCategory) private var sizeCategory
     var body:some View {
-        VStack(alignment:.leading,spacing:8) {
-            Text(title).font(.body.weight(.semibold)).lineLimit(nil).fixedSize(horizontal:false,vertical:true).textSelection(.enabled)
-            HStack(alignment:.top,spacing:8) {
-                if checking { ProgressView().padding(.top,2) }
-                Text(status).font(.body).foregroundColor(color).lineLimit(nil).fixedSize(horizontal:false,vertical:true).textSelection(.enabled)
-            }.frame(maxWidth:.infinity,alignment:.trailing)
+        Group {
+            if sizeCategory.isAccessibilityCategory {
+                VStack(alignment:.leading,spacing:8) { name; result }
+            } else {
+                HStack(alignment:.top,spacing:12) {
+                    name.frame(maxWidth:.infinity,alignment:.leading)
+                    result.frame(maxWidth:.infinity,alignment:.trailing)
+                }
+            }
         }.accessibilityElement(children:.combine)
+    }
+    private var name:some View {
+        Text(title).font(.body.weight(.semibold)).lineLimit(nil).fixedSize(horizontal:false,vertical:true).textSelection(.enabled)
+    }
+    private var result:some View {
+        HStack(alignment:.top,spacing:8) {
+            if checking { ProgressView().padding(.top,2) }
+            Text(status).font(.body).foregroundColor(color).lineLimit(nil).fixedSize(horizontal:false,vertical:true).textSelection(.enabled)
+        }
     }
 }
 
@@ -160,7 +184,8 @@ struct HelpView:View {
                     Text("首次授权，之后自动检查").font(.title2.bold())
                     Text("添加目录 → 浏览 → 我的 iPhone → 树洞（或树洞①、树洞②）→ 打开。每个安装目录分别授权；如果系统允许选择包含这些目录的父文件夹，也可以一次选择父文件夹。")
                     Text("普通 iOS 沙盒不能直接扫描其他应用容器。巨魔安装也不代表本工具已获得这些目录权限。本工具使用系统文件夹授权并保存书签；权限被撤销或书签失效时会要求重新选择。")
-                    Text("如果目录在系统选择器中不可见，或不允许选择，请从“文件”中将该树洞目录里的 mistShared.db 和对应账号数据库复制到一个你能选择的独立文件夹，再授权这个文件夹。每个安装来源使用单独文件夹，复制时保留数据库原名；复制数据只代表复制时的账号与配置。")
+                    Text("如果目录在系统选择器中不可见，或仍然被系统拒绝访问，请把每个树洞来源的 mistShared.db 与对应账号数据库，分别复制到“我的 iPhone → 树洞账号检测”中的“树洞①”“树洞②”等独立子文件夹，再点击首页的“读取本工具目录”。这个入口读取本应用自己的文件夹，不依赖跨应用目录授权。复制时保留数据库原名；复制数据只代表复制时的账号与配置。")
+                    Text("选择目录后会先实际验证读取。若书签无法长期保存，但本次可以读取，会明确提示重启后重新选择。权限接口没有提供额外授权时，也仍然需要通过实际只读检查；不会越过系统拒绝的权限。")
                     Text("为避免复制到不完整的 SQLite 数据，先退出树洞，再复制账号 .db、mistShared.db 及同名的 -wal / -shm 文件（若存在）。本工具不读取聊天表或图片。")
                     Text("一键检测").font(.headline)
                     Text("所有账号先显示“检测中”。每个完整 ID 都有自己的资料查询结果，主号和末尾 ^1 的分身共用编号。正常仅对应 forbid=2；10 显示“异常❌（服务器特殊标记10 / CHEAT）”。其他已知标记保留原客户端名称；未知码或缺失标记不会归为正常。")
