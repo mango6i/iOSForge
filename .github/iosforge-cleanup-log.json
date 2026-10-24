@@ -98,6 +98,19 @@
       "deleted_run_numbers": {
         "40088285909": 336
       }
+    },
+    {
+      "timestamp": "2026-10-24T19:05:28+08:00",
+      "cleanup_run_id": 40088473532,
+      "deleted_run_ids": [
+        40088454916
+      ],
+      "actions_runs_deleted": 1,
+      "repository_items_deleted": 0,
+      "removed_paths": [],
+      "deleted_run_numbers": {
+        "40088454916": 337
+      }
     }
   ],
   "checks": [
