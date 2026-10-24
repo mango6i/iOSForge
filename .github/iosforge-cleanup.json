@@ -1,7 +1,0 @@
-{
-  "version": 1,
-  "enabled": true,
-  "delete_failed_runs": true,
-  "success_retention_minutes": 2,
-  "notify_via_github": true
-}

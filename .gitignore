@@ -1,9 +1,0 @@
-__pycache__/
-*.py[cod]
-*.egg-info/
-.venv/
-dist/
-.theos/
-.DS_Store
-.pytest_cache/
-
