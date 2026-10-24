@@ -1,0 +1,557 @@
+// Recovered module 371; analysis path, not original filename.
+// Original SHA-256 5ea7a6b8ad8ddf4c157ac22a7599730ee0ff173eeae053147b759cb1fa618f98; original byte range [1959435, 1973581).
+__d(371, function (e, t, i, o) {
+  function a(e, t, i) {
+    var o = [],
+      a = [],
+      s = e[e.length - 1];
+    if (s) {
+      var r = i - s.length;
+      if (r > 0) {
+        var n = t.slice(0, r);
+        t = t.slice(r), s = s.concat(n), e[e.length - 1] = s;
+      }
+    }
+    for (var h = 0; h < t.length; ++h) h > 0 && h % i === 0 && (o.push(a), a = []), a.push(t[h]);
+    return a.length > 0 && o.push(a), e.push.apply(e, o), e;
+  }
+  function s(e) {
+    if ("android" === h.Platform.OS) {
+      if (/^video/.test(e)) return !0;
+    } else if ("ALAssetTypeVideo" === e) return !0;
+    return !1;
+  }
+  Object.defineProperty(o, "__esModule", {
+    value: !0
+  }), o.PictureBoard = o.PictureElem = void 0;
+  var r = t(311),
+    n = babelHelpers.interopRequireDefault(r),
+    h = t(312),
+    d = t(314),
+    l = o.PictureElem = n["default"].createClass({
+      displayName: "PictureElem",
+      getInitialState: function () {
+        return this.node = this.props.node, this.uri = this.node.image.uri, {
+          selected: -1 !== d.apps.selectedImageUris.indexOf(this.uri)
+        };
+      },
+      onPicLongPress: function () {},
+      onPicPress: function () {
+        var e = this;
+        if ("mySpace" === d.apps.currentNavi && "3:" === d.apps.currentRoutes.mySpace.userid.slice(0, 2)) return void d.apps.tip((0, d.tr)("If you wanna throw bottle with photos, do it in album post."));
+        d.apps.pictureBoardPicPressed = !0;
+        var t = this.node.image,
+          i = t.width,
+          o = t.height,
+          a = t.uri;
+        if (.4 > i / o && (d.apps.isLongLongPic[a] = !0), -1 !== d.apps.selectedImageUris.indexOf(this.uri)) {
+          if (d.apps.pictureBoardShow = !0, i) {
+            if (s(this.node.type)) {
+              var r = d.apps.getImageUriCache(this.uri);
+              d.apps.emit("showModelImage", {
+                path: this.uri,
+                videoThumb: r,
+                ratio: i / o,
+                isVideo: !0,
+                picboard: 1
+              });
+            } else d.apps.emit("showModelImage", {
+              uri: this.uri,
+              ratio: i / o,
+              isPhoto: !0,
+              picboard: 1
+            });
+          } else s(this.node.type) ? d.ProcessingManager.getVideoInfo(this.uri).then(function (t) {
+            var i = t.size,
+              o = i.width,
+              a = i.height,
+              s = d.apps.getImageUriCache(e.uri);
+            d.apps.emit("showModelImage", {
+              path: e.uri,
+              videoThumb: s,
+              ratio: o / a,
+              isVideo: !0,
+              picboard: 1
+            });
+          }) : h.Image.getSize(this.uri, function (t, i) {
+            d.apps.emit("showModelImage", {
+              uri: e.uri,
+              ratio: t / i,
+              isPhoto: !0,
+              picboard: 1
+            });
+          });
+        } else d.apps.deselectAllPictures(), this.select();
+      },
+      componentWillReceiveProps: function (e) {
+        e.node.image.uri !== this.uri || e.node.size !== this.node.size ? (d.apps.unon("picboardElemSelectChanged_" + this.uri, this.picboardElemSelectChanged), this.node = e.node, this.uri = this.node.image.uri, d.apps.on("picboardElemSelectChanged_" + this.uri, this.picboardElemSelectChanged), this.uri === this.props.photoTakened[0] && (this.onPicPress(), this.props.photoTakened.shift()), this.setState({
+          selected: -1 !== d.apps.selectedImageUris.indexOf(this.uri)
+        })) : this.uri === this.props.photoTakened[0] && (this.onPicPress(), this.props.photoTakened.shift());
+      },
+      componentDidMount: function () {
+        this.uri === this.props.photoTakened[0] && (this.onPicPress(), this.props.photoTakened.shift()), d.apps.on("picboardElemSelectChanged_" + this.uri, this.picboardElemSelectChanged);
+      },
+      render: function () {
+        var e = this.node.image,
+          t = e.width,
+          i = e.height,
+          o = this.uri + ";" + this.node.size;
+        return n["default"].createElement(h.TouchableOpacity, {
+          style: {
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center"
+          },
+          onPress: this.onPicPress
+        }, s(this.node.type) ? n["default"].createElement(d.CachedImage, {
+          videoUri: o,
+          videoThumbWidth: t,
+          videoThumbHeight: i,
+          style: {
+            width: d.theme.dashboardImageSize,
+            height: d.theme.dashboardImageSize,
+            backgroundColor: d.theme.transparent
+          },
+          resizeMode: "cover"
+        }) : n["default"].createElement(d.CachedImage, {
+          videoUri: o,
+          isPhoto: !0,
+          style: {
+            width: d.theme.dashboardImageSize,
+            height: d.theme.dashboardImageSize,
+            backgroundColor: d.theme.transparent
+          },
+          resizeMode: "cover"
+        }), s(this.node.type) ? n["default"].createElement(h.View, {
+          style: {
+            position: "absolute",
+            top: 3,
+            left: 3,
+            alignItems: "center",
+            justifyContent: "center",
+            width: d.theme.dashboardImageSize,
+            height: d.theme.dashboardImageSize
+          }
+        }, n["default"].createElement(h.View, {
+          style: {
+            backgroundColor: "rgba(0,0,0,0.2)",
+            width: d.theme.dashboardImageSize / 2,
+            alignItems: "center",
+            justifyContent: "center",
+            height: d.theme.dashboardImageSize / 2,
+            borderRadius: d.theme.dashboardImageSize / 4,
+            borderWidth: 3,
+            borderColor: d.theme.whiteTrans6
+          }
+        }, n["default"].createElement(d.Ionicons, {
+          style: ["ios" === h.Platform.OS ? {
+            paddingLeft: 5
+          } : {
+            marginLeft: 5
+          }],
+          name: "md-play",
+          size: 23,
+          color: d.theme.whiteTrans6
+        }))) : null, this.renderSelectedMark());
+      },
+      picboardElemSelectChanged: function (e) {
+        e ? this.select() : this.deselect();
+      },
+      select: function () {
+        var e = this,
+          t = this.node.image,
+          i = t.width,
+          o = t.height;
+        -1 === d.apps.selectedImageUris.indexOf(this.uri) && d.apps.selectedImageUris.push(this.uri), d.apps.deselectImageCallbacks[this.uri] = function () {
+          return e.deselect();
+        }, s(this.node.type) && (d.apps.selectedVideoCount += 1, d.apps.isSendUriVideo[this.uri] = {
+          width: i,
+          height: o,
+          size: this.node.size
+        }), d.apps.emit("selectedPicturesChanged", d.apps.selectedImageUris.length), this.setState({
+          selected: !0
+        }), s(this.node.type) || d.fs.getSizeFromUri(this.uri).then(function (e) {
+          d.apps.emit("rawPhotoSizeChanged", e);
+        });
+      },
+      deselect: function () {
+        var e = this;
+        d.apps.selectedImageUris = d.apps.selectedImageUris.filter(function (t) {
+          return t !== e.uri;
+        }), delete d.apps.deselectImageCallbacks[this.uri], this.setState({
+          selected: !1
+        }), s(this.node.type) ? d.apps.selectedVideoCount -= 1 : d.fs.getSizeFromUri(this.uri).then(function (e) {
+          d.apps.emit("rawPhotoSizeChanged", -e);
+        }), d.apps.emit("selectedPicturesChanged", d.apps.selectedImageUris.length);
+      },
+      componentWillMount: function () {
+        this.state.selected && this.select();
+      },
+      componentWillUnmount: function () {
+        d.apps.unon("picboardElemSelectChanged_" + this.uri, this.picboardElemSelectChanged);
+      },
+      renderSelectedMark: function () {
+        var e = this;
+        return this.state.selected ? n["default"].createElement(h.TouchableOpacity, {
+          onPress: function () {
+            e.deselect();
+          },
+          style: {
+            position: "absolute",
+            right: 3,
+            top: d.theme.dashboardImageSize - 23,
+            width: 26,
+            height: 26,
+            backgroundColor: d.theme.transparent
+          }
+        }, n["default"].createElement(h.View, {
+          style: {
+            position: "absolute",
+            right: 1,
+            top: 8,
+            width: 16,
+            height: 16,
+            backgroundColor: d.theme.light,
+            borderRadius: 8
+          }
+        }), n["default"].createElement(d.FontAwesome, {
+          style: {
+            position: "absolute",
+            right: -2,
+            top: 4,
+            width: 22,
+            height: 22,
+            backgroundColor: d.theme.transparent
+          },
+          name: "check-circle",
+          size: 23,
+          color: d.theme.deepGreen
+        })) : void 0;
+      }
+    });
+  o.PictureBoard = n["default"].createClass({
+    displayName: "PictureBoard",
+    getInitialState: function () {
+      this.loadingLock = !1, this.lastCursor = null, this.assets = [], this.noMore = !1, this.options = h.CameraRoll.GroupTypesOptions, this.photoTakened = [], this.fetchParams = {
+        first: 18,
+        assetType: "Photos"
+      };
+      var e = !(!d.apps.rawOptionSelected || !d.apps.selectedImageUris.length);
+      return d.apps.rawOptionSelected = e, this.rawPhotoSize = 0, {
+        step: "select",
+        picSelectedNum: 0,
+        rawPhotoSize: 0,
+        rawOptionSelected: e,
+        dataSource: new h.ListView.DataSource({
+          rowHasChanged: this.rowHasChanged
+        })
+      };
+    },
+    rowHasChanged: function (e, t) {
+      if (e.length !== t.length) return !0;
+      for (var i = 0; i < e.length; i++) if (e[i] !== t[i]) return !0;
+      return !1;
+    },
+    renderImage: function (e) {
+      return e ? n["default"].createElement(l, {
+        node: e,
+        photoTakened: this.photoTakened
+      }) : n["default"].createElement(h.View, {
+        style: {
+          flex: 1
+        }
+      });
+    },
+    renderRow: function (e) {
+      return n["default"].createElement(h.View, {
+        style: {
+          overflow: "hidden",
+          flexDirection: "row",
+          paddingHorizontal: 3,
+          height: d.theme.dashboardImageSize + 6,
+          justifyContent: "flex-start"
+        }
+      }, this.renderImage(e[0]), this.renderImage(e[1]), this.renderImage(e[2]));
+    },
+    onSelectedPicturesChanged: function () {
+      var e = d.apps.selectedImageUris.length - d.apps.selectedVideoCount;
+      this.setState({
+        picSelectedNum: e
+      });
+    },
+    onRawPhotoSizeChanged: function (e) {
+      this.rawPhotoSize += e, this.setState({
+        rawPhotoSize: this.rawPhotoSize
+      });
+    },
+    onClearPicBoard: function () {
+      this.clearPanel();
+    },
+    componentWillUnmount: function () {
+      d.apps.selectedVideoCount = 0, /^interact_/.test(d.apps.currentRoutes[d.apps.currentNavi].name) && d.apps.deselectAllPictures(), this.clearPanel(), d.apps.unon("toggleEmo", this.onToggleEmo), d.apps.unon("photoTakened", this.onPhotoTakened), d.apps.unon("selectedPicturesChanged", this.onSelectedPicturesChanged), d.apps.unon("rawPhotoSizeChanged", this.onRawPhotoSizeChanged), d.apps.unon("picBoardFetchMore", this.fetchImages), d.apps.unon("clearPicBoard", this.onClearPicBoard), d.apps.unon("picBoardScrollToTop", this.picBoardScrollToTop);
+    },
+    componentDidMount: function () {
+      this.fetchImages(!0), d.apps.on("clearPicBoard", this.onClearPicBoard), d.apps.on("toggleEmo", this.onToggleEmo), d.apps.on("photoTakened", this.onPhotoTakened), d.apps.on("selectedPicturesChanged", this.onSelectedPicturesChanged), d.apps.on("rawPhotoSizeChanged", this.onRawPhotoSizeChanged), d.apps.on("picBoardFetchMore", this.fetchImages), d.apps.on("picBoardScrollToTop", this.picBoardScrollToTop);
+    },
+    picBoardScrollToTop: function () {
+      this.listViewRef && this.listViewRef.scrollTo({
+        y: 0
+      });
+    },
+    onPhotoTakened: function (e) {
+      var t = this;
+      this.listViewRef.scrollTo({
+        y: 0
+      });
+      var i = e.path;
+      this.photoTakened.push(i);
+      var o = {
+        uri: i
+      };
+      s(e.type) ? (o.isVideo = !0, o.type = d.apps.CONS_MSG_TYPE_VIDEO) : (o.isPhoto = !0, o.type = d.apps.CONS_MSG_TYPE_IMAGE), d.apps.picBoardCachedImages.push(o);
+      var r = [];
+      this.assets.forEach(function (e) {
+        e.forEach(function (e) {
+          e.image.uri !== i && r.push(e);
+        });
+      });
+      var n = {
+        uri: i
+      };
+      "ios" === h.Platform.OS ? (n.width = e.width, n.height = e.height, d.fs.getSizeFromUri(i).then(function (i) {
+        t.assets = [[{
+          image: n,
+          type: e.type,
+          size: i
+        }]], t.setState({
+          dataSource: t.state.dataSource.cloneWithRows(a(t.assets, r, 3))
+        });
+      })) : (this.assets = [[{
+        image: n,
+        type: e.type,
+        size: 1
+      }]], this.setState({
+        dataSource: this.state.dataSource.cloneWithRows(a(this.assets, r, 3))
+      }));
+    },
+    clearPanel: function (e) {
+      d.apps.picBoardCachedImages = [], this.lastCursor = null, this.assets = [], this.noMore = !1, this.fetchParams = {
+        first: 18,
+        assetType: "Photos"
+      }, "android" === h.Platform.OS && this.listViewRef && this.listViewRef.scrollTo({
+        y: 0
+      }), this.loadingLock = !1, d.apps.rawOptionSelected = !1, this.fetchImages(!0);
+    },
+    onToggleEmo: function (e) {
+      e ? this.clearPanel() : d.apps.isKeyboardShow || (d.apps.emit("cancelCustomNavTitle"), d.apps.emit("picBoardScrollToTop"));
+    },
+    requestPhotoDiag: function () {
+      var e = this;
+      d.apps.requestPhotoDiag(), d.apps.on("photoPermissionChanged", function () {
+        d.apps.unon("photoPermissionChanged"), d.apps.permissions.photo && e.setState({}, function () {
+          e.fetchImages();
+        });
+      });
+    },
+    fetchImages: function (e) {
+      var t = this;
+      if (d.apps.permissions.photo && "ios" !== h.Platform.OS && (d.apps.isEmoShow || e) && !this.loadingLock) {
+        this.loadingLock = !0, "android" !== h.Platform.OS && (this.fetchParams.groupTypes = "SavedPhotos"), this.lastCursor && (this.fetchParams.after = this.lastCursor);
+        var i = this.fetchParams;
+        h.CameraRoll.getPhotos(this.fetchParams).then(function (e) {
+          if (t.loadingLock = !1, i === t.fetchParams && (e.page_info.has_next_page || (t.noMore = !0), e.edges.length > 0)) {
+            var o = [];
+            e.edges.forEach(function (e) {
+              var t = e.node.image,
+                i = t.width,
+                a = t.height,
+                r = t.uri;
+              if (e.node.size || (e.node.size = 1), a > 0 && i > 0) {
+                o.push(e.node);
+                var n = {
+                  uri: r,
+                  width: i,
+                  height: a
+                };
+                s(e.node.type) ? (n.isVideo = !0, n.type = d.apps.CONS_MSG_TYPE_VIDEO) : (n.isPhoto = !0, n.type = d.apps.CONS_MSG_TYPE_IMAGE), d.apps.picBoardCachedImages.push(n);
+              }
+            }), t.lastCursor = e.page_info.end_cursor, t.setState({
+              dataSource: t.state.dataSource.cloneWithRows(a(t.assets, o, 3).slice())
+            });
+          }
+        })["catch"]((0, d.errCb)("fetchImages"));
+      }
+    },
+    onEndReached: function () {
+      this.noMore || this.fetchImages();
+    },
+    renderFooterSpinner: function () {
+      return this.noMore || 0 === this.assets.length ? n["default"].createElement(h.View, {
+        style: {
+          height: 30,
+          width: d.theme.winWidth
+        }
+      }) : "android" === h.Platform.OS ? n["default"].createElement(h.ProgressBarAndroid, {
+        style: {
+          height: 30
+        },
+        styleAttr: "Inverse"
+      }) : n["default"].createElement(h.ActivityIndicatorIOS, {
+        animating: !0,
+        size: "small"
+      });
+    },
+    calcRawSize: function (e) {
+      return this.state.rawOptionSelected ? 1048576 > e ? "(" + (e / 1024).toFixed(0) + "KB)" : "(" + (e / 1024 / 1024).toFixed(2) + "MB)" : "";
+    },
+    renderRawView: function () {
+      return this.state.rawOptionSelected ? n["default"].createElement(h.View, {
+        style: {
+          backgroundColor: d.theme.transparent,
+          borderRadius: 5,
+          paddingVertical: 4,
+          paddingHorizontal: 6,
+          flexDirection: "row",
+          alignItems: "center"
+        }
+      }, n["default"].createElement(h.View, {
+        style: {
+          width: 12,
+          height: 12,
+          borderRadius: 6,
+          marginRight: 3,
+          backgroundColor: d.theme.deepGreen
+        }
+      }), n["default"].createElement(h.Text, {
+        style: {
+          color: d.theme.deep9,
+          fontSize: 14
+        }
+      }, (0, d.tr)("Raw") + this.calcRawSize(this.state.rawPhotoSize))) : n["default"].createElement(h.View, {
+        style: {
+          backgroundColor: d.theme.transparent,
+          borderRadius: 5,
+          paddingVertical: 4,
+          paddingHorizontal: 6
+        }
+      }, n["default"].createElement(h.Text, {
+        style: {
+          color: d.theme.deep9,
+          fontSize: 15
+        }
+      }, (0, d.tr)("Raw") + this.calcRawSize(this.state.rawPhotoSize)));
+    },
+    render: function () {
+      var e = this;
+      return d.apps.permissions.photo ? n["default"].createElement(h.View, {
+        style: {
+          flex: 1,
+          height: d.theme.picBoardHeight,
+          paddingTop: 3,
+          paddingBottom: 6,
+          backgroundColor: d.theme.picBoardBg
+        }
+      }, n["default"].createElement(h.View, {
+        style: {
+          height: d.theme.picBoardHeight - 32
+        }
+      }, n["default"].createElement(h.ListView, {
+        ref: function (t) {
+          return e.listViewRef = t;
+        },
+        initialListSize: 10,
+        pageSize: 10,
+        renderRow: this.renderRow,
+        renderFooter: this.renderFooterSpinner,
+        onEndReached: this.onEndReached,
+        scrollsToTop: !1,
+        dataSource: this.state.dataSource,
+        removeClippedSubviews: !0,
+        onEndReachedThreshold: 2e3,
+        onScroll: function (t) {
+          var i = t.nativeEvent,
+            o = i.contentSize,
+            a = i.layoutMeasurement,
+            s = i.contentOffset;
+          s.y + a.height >= o.height - 36 && (e.noMore || e.fetchImages());
+        }
+      })), n["default"].createElement(h.View, {
+        style: {
+          position: "absolute",
+          top: d.theme.picBoardHeight - 30,
+          left: 0,
+          height: 30,
+          width: d.theme.winWidth,
+          backgroundColor: d.theme.picBoardBg,
+          flexDirection: "row",
+          justifyContent: "flex-start",
+          alignItems: "center"
+        }
+      }, n["default"].createElement(h.TouchableOpacity, {
+        style: {
+          justifyContent: "center",
+          alignItems: "center",
+          width: 30,
+          height: 30,
+          marginLeft: 10,
+          marginTop: 2
+        },
+        onPress: function () {
+          if ("ios" === h.Platform.OS) {
+            var t = "ALAssetTypePhoto";
+            d.ImagePicker.show(function (i) {
+              d.fs.unlink(i.uri.replace(/^file:\/\//, ""))["catch"](function (e) {
+                (0, d.tlog)("error", "Delete tmp image pick " + i.uri, e);
+              }), e.onPhotoTakened({
+                source: i,
+                type: t
+              });
+            }, {
+              mediaType: "photo",
+              noData: !1,
+              thumbW: 100,
+              thumbH: 100
+            });
+          } else t = "image/jpeg", d.ImagePicker.show(function (i) {
+            d.fs.unlink(i.uri.replace(/^file:\/\//, ""))["catch"](function (e) {
+              (0, d.tlog)("error", "Delete tmp image pick " + i.uri, e);
+            }), e.onPhotoTakened({
+              path: i.assetUri,
+              type: t
+            });
+          }, {
+            mediaType: "photo"
+          });
+        }
+      }, n["default"].createElement(d.Ionicons, {
+        name: "ios-image-outline",
+        size: 23,
+        color: d.theme.deep9
+      })), null, null)) : n["default"].createElement(h.TouchableOpacity, {
+        style: {
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: d.theme.lightTrans1
+        }
+      }, n["default"].createElement(h.TouchableOpacity, {
+        style: {
+          borderColor: d.theme.lighta,
+          borderWidth: 3,
+          paddingHorizontal: 10,
+          paddingVertical: 5,
+          backgroundColor: d.theme.transparent,
+          borderRadius: 7
+        },
+        onPress: function () {
+          return e.requestPhotoDiag();
+        }
+      }, n["default"].createElement(h.Text, {
+        style: {
+          color: d.theme.lighta,
+          fontSize: 15
+        }
+      }, (0, d.tr)("Select Photos"))));
+    }
+  });
+});

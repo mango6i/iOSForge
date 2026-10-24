@@ -1,0 +1,219 @@
+// Recovered module 331; analysis path, not original filename.
+// Original SHA-256 c2d3bb2a7e9379957d891566af0fbec135c8eabdb1532706f38d539882da6e10; original byte range [1341007, 1346264).
+__d(331, function (e, t, a, i) {
+  var o = t(311),
+    n = babelHelpers.interopRequireDefault(o),
+    s = t(312),
+    r = t(314);
+  i.MyCameraView = n["default"].createClass({
+    displayName: "MyCameraView",
+    getInitialState: function () {
+      return {
+        open: !1,
+        kaca: !1,
+        cameraType: "back",
+        capMode: "photo",
+        takingVideo: !1,
+        takingVideoTime: 0
+      };
+    },
+    onOpenCamera: function () {
+      "ios" === s.Platform.OS && s.StatusBarIOS.setHidden(!0), this.setState({
+        open: !0
+      });
+    },
+    componentDidMount: function () {
+      r.apps.on("openCamera", this.onOpenCamera);
+    },
+    componentWillUnmount: function () {
+      r.apps.unon("openCamera", this.onOpenCamera);
+    },
+    takePicture: function () {
+      var e = this;
+      "photo" === this.state.capMode ? (this.setState({
+        kaca: !0
+      }), this.camera.capture({}).then(function (t) {
+        (0, r.tlog)("Camera Photo taken", t), e.setState({
+          open: !1,
+          kaca: !1
+        }), "ios" === s.Platform.OS ? t.type = "ALAssetTypePhoto" : t.type = "image/jpeg", r.apps.emit("photoTakened", t), "ios" === s.Platform.OS && s.StatusBarIOS.setHidden(!1);
+      })["catch"]((0, r.errCb)("takePicture"))) : this.state.takingVideo ? (this.setState({
+        takingVideo: !1,
+        takingVideoTime: 0,
+        kaca: !0
+      }), (0, r.tlog)("stop video recording"), this.camera.stopCapture()) : (this.camera.capture({}).then(function (t) {
+        return (0, r.tlog)("Camera Video taken", t), e.cancelVideo ? void (e.cancelVideo = !1) : (e.setState({
+          open: !1,
+          kaca: !1
+        }), "ios" === s.Platform.OS ? t.type = "ALAssetTypeVideo" : t.type = "video/mp4", r.apps.emit("photoTakened", t), void ("ios" === s.Platform.OS && s.StatusBarIOS.setHidden(!1)));
+      })["catch"]((0, r.errCb)("takePicture")), this.setState({
+        takingVideo: !0
+      }, function () {
+        var t = function a() {
+          e.state.takingVideo && e.setState({
+            takingVideoTime: e.state.takingVideoTime + 1
+          }, function () {
+            e.state.takingVideo && setTimeout(a, 1e3);
+          });
+        };
+        setTimeout(t, 1e3);
+      }));
+    },
+    onFocusChanged: function () {},
+    toggleCamMode: function () {
+      var e = this,
+        t = "photo" === this.state.capMode ? "video" : "photo";
+      "video" !== t || r.apps.permissions.microphone ? this.setState({
+        capMode: t,
+        takingVideo: !1,
+        takingVideoTime: 0
+      }) : r.apps.requestCamMicDiag(function (a) {
+        a && e.setState({
+          capMode: t,
+          takingVideo: !1,
+          takingVideoTime: 0
+        });
+      });
+    },
+    render: function () {
+      var e = this;
+      return this.state.open ? n["default"].createElement(s.View, {
+        style: {
+          position: "absolute",
+          left: 0,
+          width: r.theme.winWidth,
+          height: r.theme.winHeight,
+          top: 0
+        }
+      }, n["default"].createElement(r.Camera, {
+        ref: function (t) {
+          return e.camera = t;
+        },
+        captureAudio: !!r.apps.permissions.microphone,
+        captureMode: "photo" === this.state.capMode ? r.Camera.constants.CaptureMode.still : r.Camera.constants.CaptureMode.video,
+        captureQuality: "front" === this.state.cameraType ? "high" : "photo" === this.state.capMode ? "720p" : "480p",
+        type: this.state.cameraType,
+        onFocusChanged: this.onFocusChanged,
+        style: {
+          flex: 1,
+          justifyContent: "flex-end",
+          alignItems: "center"
+        },
+        aspect: r.Camera.constants.Aspect.fill
+      }, n["default"].createElement(s.TouchableOpacity, {
+        style: {
+          flex: 0,
+          backgroundColor: "photo" === this.state.capMode ? "#fff" : this.state.takingVideo ? r.theme.transparent : r.theme.warnTrans6,
+          justifyContent: "center",
+          alignItems: "center",
+          borderWidth: this.state.takingVideo ? 7 : 10,
+          borderColor: r.theme.lightd,
+          borderRadius: 35,
+          width: 70,
+          height: 70,
+          margin: 40
+        },
+        onPress: this.takePicture
+      }, this.state.takingVideo ? n["default"].createElement(s.View, {
+        style: {
+          justifyContent: "center",
+          alignItems: "center",
+          width: 30,
+          height: 30,
+          backgroundColor: r.theme.warnTrans6,
+          borderRadius: 5
+        }
+      }) : null)), this.state.takingVideo ? n["default"].createElement(s.View, {
+        style: {
+          position: "absolute",
+          justifyContent: "center",
+          alignItems: "center",
+          top: r.theme.winHeight - 150,
+          left: 0,
+          width: r.theme.winWidth,
+          height: 30,
+          backgroundColor: "rgba(0,0,0,0)"
+        }
+      }, n["default"].createElement(s.Text, {
+        style: {
+          backgroundColor: r.theme.transparent,
+          color: r.theme.white,
+          fontSize: 19
+        }
+      }, this.state.takingVideoTime + "s")) : null, this.state.takingVideo ? null : n["default"].createElement(s.TouchableOpacity, {
+        style: {
+          backgroundColor: r.theme.transparent,
+          position: "absolute",
+          left: "photo" === this.state.capMode ? r.theme.winWidth / 2 - 20 : r.theme.winWidth / 2 - 25,
+          top: r.theme.winHeight - 165,
+          width: 50,
+          height: 50,
+          justifyContent: "center",
+          alignItems: "center"
+        },
+        onPress: function () {
+          return e.toggleCamMode();
+        }
+      }, n["default"].createElement(r.Ionicons, {
+        name: "photo" === this.state.capMode ? "ios-videocam-outline" : "ios-camera-outline",
+        size: 40,
+        color: r.theme.white
+      })), n["default"].createElement(s.TouchableOpacity, {
+        style: {
+          backgroundColor: r.theme.transparent,
+          position: "absolute",
+          left: (r.theme.winWidth - 70) / 4 - 25,
+          top: r.theme.winHeight - 95,
+          width: 50,
+          height: 50,
+          justifyContent: "center",
+          alignItems: "center"
+        },
+        onPress: function () {
+          return e.setState({
+            cameraType: "front" === e.state.cameraType ? "back" : "front"
+          });
+        }
+      }, n["default"].createElement(r.Ionicons, {
+        name: "ios-reverse-camera-outline",
+        size: 40,
+        color: r.theme.white
+      })), n["default"].createElement(s.TouchableOpacity, {
+        style: {
+          backgroundColor: r.theme.transparent,
+          position: "absolute",
+          right: (r.theme.winWidth - 70) / 4 - 25,
+          top: r.theme.winHeight - 95,
+          width: 50,
+          height: 50,
+          justifyContent: "center",
+          alignItems: "center"
+        },
+        onPress: function () {
+          "ios" === s.Platform.OS && s.StatusBarIOS.setHidden(!1), "photo" === e.state.capMode ? e.setState({
+            open: !1,
+            kaca: !1
+          }) : (e.state.takingVideo && (e.cancelVideo = !0, e.camera.stopCapture()), e.setState({
+            open: !1,
+            takingVideo: !1,
+            takingVideoTime: 0,
+            kaca: !1
+          }));
+        }
+      }, n["default"].createElement(r.Ionicons, {
+        name: "ios-arrow-down",
+        size: 40,
+        color: r.theme.white
+      })), n["default"].createElement(s.View, {
+        style: {
+          backgroundColor: r.theme.lightLessTrans6,
+          position: "absolute",
+          left: 0,
+          width: r.theme.winWidth,
+          height: r.theme.winHeight,
+          top: this.state.kaca ? 0 : r.theme.winHeight + 100
+        }
+      })) : null;
+    }
+  });
+});
