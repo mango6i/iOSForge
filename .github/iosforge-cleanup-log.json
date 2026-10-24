@@ -111,6 +111,22 @@
       "deleted_run_numbers": {
         "40088454916": 337
       }
+    },
+    {
+      "timestamp": "2026-10-24T19:14:23+08:00",
+      "cleanup_run_id": 40088952457,
+      "deleted_run_ids": [
+        40088884036
+      ],
+      "actions_runs_deleted": 1,
+      "repository_items_deleted": 2,
+      "removed_paths": [
+        "sources/Download/树洞-unsigned.ipa",
+        "sources/树洞-用户ID聊天测试版-v22"
+      ],
+      "deleted_run_numbers": {
+        "40088884036": 338
+      }
     }
   ],
   "checks": [
