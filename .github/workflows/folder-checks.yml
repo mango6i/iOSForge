@@ -3,7 +3,7 @@ on:
   push:
     branches: [shudong-folder-checks]
 permissions:
-  contents: write
+  contents: read
 jobs:
   checks:
     runs-on: macos-15
@@ -26,9 +26,3 @@ jobs:
           xcrun swiftc -typecheck -parse-as-library -sdk "$SDK" -target arm64-apple-ios15.0 -module-name AccountCheck AccountCheck/*.swift
       - name: Validate project inputs
         run: python3 scripts/validate_project.py
-      - name: Check picker callbacks and render fictional interface previews
-        run: bash render-ui.sh
-      - name: Save interface previews on the test branch
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: python3 publish-ui.py

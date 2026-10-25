@@ -1,28 +1,7 @@
 import SwiftUI
 
-@MainActor struct ContentView: View {
-    @StateObject private var model: CheckerModel
-    @State private var presentedSheet: AppSheet?
-    @State private var pendingFolderURLs: [URL] = []
-    private let automaticScan: Bool
-    private enum AppSheet: Identifiable {
-        case folders, help, rename(SourceView)
-        var id: String {
-            switch self {
-            case .folders: return "folders"
-            case .help: return "help"
-            case .rename(let source): return "rename:" + source.id
-            }
-        }
-    }
-    init() {
-        _model = StateObject(wrappedValue:CheckerModel())
-        automaticScan = true
-    }
-    init(model:CheckerModel,automaticScan:Bool) {
-        _model = StateObject(wrappedValue:model)
-        self.automaticScan = automaticScan
-    }
+struct ContentView: View {
+    @StateObject private var model = CheckerModel()
     private var appVersion: String {
         (Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String) ?? "—"
     }
@@ -50,8 +29,8 @@ import SwiftUI
                         VStack(alignment:.leading,spacing:14) {
                             Image(systemName:"folder.badge.plus").font(.system(size:30)).foregroundColor(.accentColor)
                             Text("添加你的树洞目录").font(.headline)
-                            Text("点击右上角“一键添加”，选择一个树洞目录；也可以选择包含“树洞①”“树洞②”等目录的父文件夹，批量识别账号。不同位置的目录可分次添加。")
-                            Text("选择文件夹后，点系统右上角“打开”确认。返回本页后会显示添加结果；这里的“打开”表示选用此目录，不会启动树洞应用。")
+                            Text("点击右上角“一键添加”，选择树洞目录；也可以选择包含“树洞①”“树洞②”等目录的父文件夹，批量识别账号。不同位置的目录可分次添加。")
+                            Text("选好目录后，点系统右上角“打开”确认。返回本页后显示添加结果。")
                                 .font(.footnote).foregroundColor(.secondary)
                             Text("授权后，后续启动会自动扫描并检测这些目录。无法读取、空目录和登录受限都会单独提示。")
                                 .font(.footnote).foregroundColor(.secondary)
@@ -65,11 +44,7 @@ import SwiftUI
                                 Image(systemName:"folder.fill").foregroundColor(.accentColor)
                                 Text(source.title).font(.headline).fixedSize(horizontal:false,vertical:true)
                                 Spacer(minLength:8)
-                                Button { presentedSheet = .rename(source) } label: {
-                                    Label("改名",systemImage:"pencil").font(.caption).padding(6)
-                                        .background(Color.accentColor.opacity(0.08)).cornerRadius(8)
-                                }.buttonStyle(.plain)
-                                    .accessibilityLabel("修改\(source.title)的来源名称")
+                                SourceRenameButton(name:source.title) { model.renameSource(source.id,name:$0) }
                                     .disabled(model.checking || model.scanning)
                             }
                             if let issue = source.issue { NoticeCard(text:issue) }
@@ -111,8 +86,8 @@ import SwiftUI
             .navigationTitle("树洞账号检测")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement:.navigationBarLeading) { Button { presentedSheet = .help } label:{ Image(systemName:"questionmark.circle") }.accessibilityLabel("使用说明") }
-                ToolbarItem(placement:.navigationBarTrailing) { Button("一键添加") { pendingFolderURLs = []; presentedSheet = .folders }.disabled(model.checking || model.scanning) }
+                ToolbarItem(placement:.navigationBarLeading) { Button { model.helpVisible = true } label:{ Image(systemName:"questionmark.circle") }.accessibilityLabel("使用说明") }
+                ToolbarItem(placement:.navigationBarTrailing) { Button("一键添加") { model.pickerVisible = true }.disabled(model.checking || model.scanning) }
             }
             .safeAreaInset(edge:.bottom) {
                 VStack(spacing:10) {
@@ -126,28 +101,12 @@ import SwiftUI
                     }
                 }.padding(.horizontal,20).padding(.top,12).padding(.bottom,8).background(.regularMaterial)
             }
-            .sheet(item:$presentedSheet,onDismiss:finishFolderSelection) { sheet in
-                switch sheet {
-                case .folders:
-                    FolderPicker(onPick:{ urls in
-                        pendingFolderURLs = urls
-                        if urls.isEmpty { model.folderSelectionFailed() }
-                        presentedSheet = nil
-                    },onCancel:{ presentedSheet = nil })
-                case .help: HelpView()
-                case .rename(let source):
-                    SourceRenameView(name:source.title) { model.renameSource(source.id,name:$0) }
-                }
+            .sheet(isPresented:$model.pickerVisible) {
+                FolderPicker { urls in model.pickerVisible = false; model.add(urls) }
             }
-            .task { if automaticScan { await model.launch() } }
+            .sheet(isPresented:$model.helpVisible) { HelpView() }
+            .task { await model.launch() }
         }.navigationViewStyle(.stack)
-    }
-    private func finishFolderSelection() {
-        let urls = pendingFolderURLs
-        pendingFolderURLs = []
-        guard !urls.isEmpty else { return }
-        // Wait until the system picker is gone before coordinating reads with its file provider.
-        model.add(urls)
     }
     private var checkAction:some View {
         Button { model.beginCheck() } label:{
@@ -182,23 +141,27 @@ struct MainActionStyle:ButtonStyle {
     }
 }
 
-struct SourceRenameView:View {
-    @Environment(\.dismiss) private var dismiss
-    @State private var name:String
+struct SourceRenameButton:View {
+    let name:String
     let onSave:(String)->Void
-    init(name:String,onSave:@escaping(String)->Void) { _name = State(initialValue:name); self.onSave = onSave }
+    @State private var presented = false
+    @State private var draft = ""
     var body:some View {
-        NavigationView {
-            Form {
-                Section(header:Text("来源名称"),footer:Text("例如：树洞、树洞①、备用账号。仅修改本工具中的显示名称。")) {
-                    TextField("输入便于分辨的名称",text:$name)
-                }
-            }.navigationTitle("修改来源名称").navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement:.cancellationAction) { Button("取消") { dismiss() } }
-                    ToolbarItem(placement:.confirmationAction) { Button("保存") { onSave(name); dismiss() } }
-                }
-        }.navigationViewStyle(.stack)
+        VStack(alignment:.trailing,spacing:6) {
+            if presented {
+                TextField("来源名称",text:$draft).textFieldStyle(.roundedBorder).frame(width:140)
+                    .accessibilityLabel("来源名称")
+                HStack(spacing:16) {
+                    Button("取消") { presented = false }
+                    Button("保存") { onSave(draft); presented = false }
+                }.font(.caption).buttonStyle(.plain)
+            } else {
+                Button { draft = name; presented = true } label: {
+                    Label("改名",systemImage:"pencil").font(.caption).padding(6)
+                        .background(Color.accentColor.opacity(0.08)).cornerRadius(8)
+                }.buttonStyle(.plain).accessibilityLabel("修改\(name)的来源名称")
+            }
+        }
     }
 }
 

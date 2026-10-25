@@ -30,6 +30,8 @@ struct AccountPairGroup: Identifiable {
     @Published var scanning = false
     @Published var checking = false
     @Published var progress = "首次使用请添加树洞目录"
+    @Published var pickerVisible = false
+    @Published var helpVisible = false
     private let access = FolderAccess()
     private var task: Task<Void,Never>?
     private var launched = false

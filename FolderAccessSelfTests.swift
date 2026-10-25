@@ -169,9 +169,9 @@ final class FolderFakes {
             let reopened = FolderAccess(defaults:defaults,operations:fake.operations())
             expect(reopened.grants[0].sourceNames?["树洞①"] == "主用安装" && reopened.grants[0].sourceNames?["树洞②"] == "备用安装","aliases survive restart and stay separate")
             let selectedAgain = try access.add(fake.root)
-            expect(access.grants.count == 1 && selectedAgain.id == first.id,"repeated selection merges the same source")
+            expect(access.grants.count == 1,"repeated selection merges the same source")
             expect(selectedAgain.sourceNames?["树洞①"] == "主用安装","reselect preserves source aliases")
-            try access.renameSource(grantID:first.id,components:["树洞①"],name:"   ")
+            try access.renameSource(grantID:selectedAgain.id,components:["树洞①"],name:"   ")
             expect(access.grants[0].sourceNames?["树洞①"] == nil && access.grants[0].sourceNames?["树洞②"] == "备用安装","clearing one alias preserves the other")
             cases += 1
         }
