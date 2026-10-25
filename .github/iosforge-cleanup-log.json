@@ -66,6 +66,22 @@
       "deleted_run_numbers": {
         "40154120026": 343
       }
+    },
+    {
+      "timestamp": "2026-10-25T10:40:15+08:00",
+      "cleanup_run_id": 40155195612,
+      "deleted_run_ids": [
+        40155097207
+      ],
+      "actions_runs_deleted": 1,
+      "repository_items_deleted": 2,
+      "removed_paths": [
+        "sources/Download/树洞账号检测-unsigned.ipa",
+        "sources/树洞账号检测"
+      ],
+      "deleted_run_numbers": {
+        "40155097207": 344
+      }
     }
   ],
   "checks": [
