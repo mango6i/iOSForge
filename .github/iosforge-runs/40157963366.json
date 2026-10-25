@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "run_id": 40157963366,
+  "repository": "mango6i/iOSForge",
+  "branch": "main",
+  "request_id": "ed4521b71c64780cc2fe1428",
+  "build_type": "ipa",
+  "notify_via_github": true,
+  "created_at": "2026-10-25T03:22:31Z",
+  "source": {
+    "path": "sources/树洞账号检测",
+    "sha": "2a0d79199db282d3087dd1157db4c1b4c83761aa"
+  },
+  "outputs": []
+}
