@@ -3,7 +3,6 @@ import SwiftUI
 @MainActor struct ContentView: View {
     @StateObject private var model: CheckerModel
     @State private var renamingSource: SourceView?
-    @Environment(\.sizeCategory) private var sizeCategory
     private let automaticScan: Bool
     init() {
         _model = StateObject(wrappedValue:CheckerModel())
@@ -40,7 +39,7 @@ import SwiftUI
                         VStack(alignment:.leading,spacing:14) {
                             Image(systemName:"folder.badge.plus").font(.system(size:30)).foregroundColor(.accentColor)
                             Text("添加你的树洞目录").font(.headline)
-                            Text("点击“一键添加”，可一次选择多个树洞目录；也可以选择包含“树洞①”“树洞②”等目录的父文件夹，批量识别账号。")
+                            Text("点击右上角“一键添加”，可一次选择多个树洞目录；也可以选择包含“树洞①”“树洞②”等目录的父文件夹，批量识别账号。")
                             Text("授权后，后续启动会自动扫描并检测这些目录。无法读取、空目录和登录受限都会单独提示。")
                                 .font(.footnote).foregroundColor(.secondary)
                             Text("如果选择器仍无法读取，可把每个来源的数据库分别放到“我的 iPhone → 树洞账号检测”内的“树洞①”“树洞②”等子文件夹，再点“读取本工具目录”。")
@@ -105,13 +104,7 @@ import SwiftUI
             .safeAreaInset(edge:.bottom) {
                 VStack(spacing:10) {
                     if model.checking { Button("停止检测") { model.stop() }.font(.footnote) }
-                    Group {
-                        if sizeCategory.isAccessibilityCategory {
-                            VStack(spacing:10) { addAction; checkAction }
-                        } else {
-                            HStack(spacing:12) { addAction; checkAction }
-                        }
-                    }
+                    checkAction
                     if !model.checking {
                         HStack(spacing:24) {
                             Button("重新扫描目录") { model.rescan() }
@@ -130,17 +123,12 @@ import SwiftUI
             .task { if automaticScan { await model.launch() } }
         }.navigationViewStyle(.stack)
     }
-    private var addAction:some View {
-        Button { model.pickerVisible = true } label:{
-            Label("一键添加",systemImage:"folder.badge.plus").font(.headline).frame(maxWidth:.infinity,minHeight:44)
-        }.buttonStyle(MainActionStyle(filled:false)).disabled(model.checking || model.scanning)
-    }
     private var checkAction:some View {
         Button { model.beginCheck() } label:{
             HStack(spacing:8) {
                 if model.checking { ProgressView().tint(.white) }
                 Text(model.checking ? "检测中" : "一键检测").font(.headline)
-            }.frame(maxWidth:.infinity,minHeight:44)
+            }.frame(maxWidth:.infinity,minHeight:52)
         }.buttonStyle(MainActionStyle(filled:true)).disabled(model.checking || model.scanning || model.rowCount == 0)
     }
 }
