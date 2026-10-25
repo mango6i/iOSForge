@@ -2,7 +2,24 @@
   "version": 1,
   "date": "2026-10-25",
   "timezone": "Asia/Shanghai",
-  "entries": [],
+  "entries": [
+    {
+      "timestamp": "2026-10-25T08:04:29+08:00",
+      "cleanup_run_id": 40145119089,
+      "deleted_run_ids": [
+        40145040898
+      ],
+      "actions_runs_deleted": 1,
+      "repository_items_deleted": 2,
+      "removed_paths": [
+        "sources/Download/树洞账号检测-unsigned.ipa",
+        "sources/树洞账号检测"
+      ],
+      "deleted_run_numbers": {
+        "40145040898": 340
+      }
+    }
+  ],
   "checks": [
     {
       "timestamp": "2026-10-25T08:02:35+08:00",
