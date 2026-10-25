@@ -122,11 +122,11 @@
       "workflow_conclusion": "success"
     },
     {
-      "timestamp": "2026-10-25T10:38:21+08:00",
+      "timestamp": "2026-10-25T10:40:19+08:00",
       "cleanup_run_id": 40155195612,
-      "result": "waiting",
+      "result": "cleaned",
       "run_number": 111,
-      "managed_builds": 1,
+      "managed_builds": 0,
       "detail": "本轮只清理到期编译任务及旧清理检查。当前清理检查 #111 是本轮记录，留待下次检查回收；网页发布和其他工作流记录不在编译清理范围。"
     }
   ],
