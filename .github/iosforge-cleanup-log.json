@@ -127,7 +127,8 @@
       "result": "cleaned",
       "run_number": 111,
       "managed_builds": 0,
-      "detail": "本轮只清理到期编译任务及旧清理检查。当前清理检查 #111 是本轮记录，留待下次检查回收；网页发布和其他工作流记录不在编译清理范围。"
+      "detail": "本轮只清理到期编译任务及旧清理检查。当前清理检查 #111 是本轮记录，留待下次检查回收；网页发布和其他工作流记录不在编译清理范围。",
+      "workflow_conclusion": "success"
     }
   ],
   "system_deletions": [
