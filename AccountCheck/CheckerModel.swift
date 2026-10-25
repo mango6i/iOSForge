@@ -30,8 +30,6 @@ struct AccountPairGroup: Identifiable {
     @Published var scanning = false
     @Published var checking = false
     @Published var progress = "首次使用请添加树洞目录"
-    @Published var pickerVisible = false
-    @Published var helpVisible = false
     private let access = FolderAccess()
     private var task: Task<Void,Never>?
     private var launched = false
@@ -66,7 +64,12 @@ struct AccountPairGroup: Identifiable {
         launched = true
         await scan(checkAfter:!access.grants.isEmpty)
     }
+    func folderSelectionFailed() {
+        progress = "未收到文件夹，请重新选择"
+        notices.append("系统没有返回选中的文件夹。请进入一个实际的树洞目录，再点右上角“打开”确认。")
+    }
     func add(_ urls:[URL]) {
+        guard !urls.isEmpty else { folderSelectionFailed(); return }
         guard !scanning, !checking else { return }
         scanning = true
         progress = "正在读取所选目录…"

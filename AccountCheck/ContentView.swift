@@ -2,8 +2,19 @@ import SwiftUI
 
 @MainActor struct ContentView: View {
     @StateObject private var model: CheckerModel
-    @State private var renamingSource: SourceView?
+    @State private var presentedSheet: AppSheet?
+    @State private var pendingFolderURLs: [URL] = []
     private let automaticScan: Bool
+    private enum AppSheet: Identifiable {
+        case folders, help, rename(SourceView)
+        var id: String {
+            switch self {
+            case .folders: return "folders"
+            case .help: return "help"
+            case .rename(let source): return "rename:" + source.id
+            }
+        }
+    }
     init() {
         _model = StateObject(wrappedValue:CheckerModel())
         automaticScan = true
@@ -23,7 +34,7 @@ import SwiftUI
                         Text("主账号与分身，成对查看")
                             .font(.title3.weight(.bold))
                         Text("\(model.progress)").font(.subheadline).foregroundColor(.secondary)
-                        Text("一次添加多个目录，各自查询昵称与状态。")
+                        Text("选择树洞目录或父文件夹，批量识别账号。")
                             .font(.footnote).foregroundColor(.secondary)
                     }.padding(.top,8)
                     HStack(spacing:0) {
@@ -39,7 +50,9 @@ import SwiftUI
                         VStack(alignment:.leading,spacing:14) {
                             Image(systemName:"folder.badge.plus").font(.system(size:30)).foregroundColor(.accentColor)
                             Text("添加你的树洞目录").font(.headline)
-                            Text("点击右上角“一键添加”，可一次选择多个树洞目录；也可以选择包含“树洞①”“树洞②”等目录的父文件夹，批量识别账号。")
+                            Text("点击右上角“一键添加”，选择一个树洞目录；也可以选择包含“树洞①”“树洞②”等目录的父文件夹，批量识别账号。不同位置的目录可分次添加。")
+                            Text("选择文件夹后，点系统右上角“打开”确认。返回本页后会显示添加结果；这里的“打开”表示选用此目录，不会启动树洞应用。")
+                                .font(.footnote).foregroundColor(.secondary)
                             Text("授权后，后续启动会自动扫描并检测这些目录。无法读取、空目录和登录受限都会单独提示。")
                                 .font(.footnote).foregroundColor(.secondary)
                             Text("如果选择器仍无法读取，可把每个来源的数据库分别放到“我的 iPhone → 树洞账号检测”内的“树洞①”“树洞②”等子文件夹，再点“读取本工具目录”。")
@@ -52,7 +65,7 @@ import SwiftUI
                                 Image(systemName:"folder.fill").foregroundColor(.accentColor)
                                 Text(source.title).font(.headline).fixedSize(horizontal:false,vertical:true)
                                 Spacer(minLength:8)
-                                Button { renamingSource = source } label: {
+                                Button { presentedSheet = .rename(source) } label: {
                                     Label("改名",systemImage:"pencil").font(.caption).padding(6)
                                         .background(Color.accentColor.opacity(0.08)).cornerRadius(8)
                                 }.buttonStyle(.plain)
@@ -98,8 +111,8 @@ import SwiftUI
             .navigationTitle("树洞账号检测")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement:.navigationBarLeading) { Button { model.helpVisible = true } label:{ Image(systemName:"questionmark.circle") }.accessibilityLabel("使用说明") }
-                ToolbarItem(placement:.navigationBarTrailing) { Button("一键添加") { model.pickerVisible = true }.disabled(model.checking || model.scanning) }
+                ToolbarItem(placement:.navigationBarLeading) { Button { presentedSheet = .help } label:{ Image(systemName:"questionmark.circle") }.accessibilityLabel("使用说明") }
+                ToolbarItem(placement:.navigationBarTrailing) { Button("一键添加") { pendingFolderURLs = []; presentedSheet = .folders }.disabled(model.checking || model.scanning) }
             }
             .safeAreaInset(edge:.bottom) {
                 VStack(spacing:10) {
@@ -113,15 +126,28 @@ import SwiftUI
                     }
                 }.padding(.horizontal,20).padding(.top,12).padding(.bottom,8).background(.regularMaterial)
             }
-            .sheet(isPresented:$model.pickerVisible) {
-                FolderPicker { urls in model.pickerVisible = false; model.add(urls) }
-            }
-            .sheet(isPresented:$model.helpVisible) { HelpView() }
-            .sheet(item:$renamingSource) { source in
-                SourceRenameView(name:source.title) { model.renameSource(source.id,name:$0) }
+            .sheet(item:$presentedSheet,onDismiss:finishFolderSelection) { sheet in
+                switch sheet {
+                case .folders:
+                    FolderPicker(onPick:{ urls in
+                        pendingFolderURLs = urls
+                        if urls.isEmpty { model.folderSelectionFailed() }
+                        presentedSheet = nil
+                    },onCancel:{ presentedSheet = nil })
+                case .help: HelpView()
+                case .rename(let source):
+                    SourceRenameView(name:source.title) { model.renameSource(source.id,name:$0) }
+                }
             }
             .task { if automaticScan { await model.launch() } }
         }.navigationViewStyle(.stack)
+    }
+    private func finishFolderSelection() {
+        let urls = pendingFolderURLs
+        pendingFolderURLs = []
+        guard !urls.isEmpty else { return }
+        // Wait until the system picker is gone before coordinating reads with its file provider.
+        model.add(urls)
     }
     private var checkAction:some View {
         Button { model.beginCheck() } label:{
@@ -268,7 +294,8 @@ struct HelpView:View {
             ScrollView {
                 VStack(alignment:.leading,spacing:18) {
                     Text("首次授权，之后自动检查").font(.title2.bold())
-                    Text("一键添加 → 浏览 → 我的 iPhone → 选择树洞目录 → 打开。支持多选的位置可一次选择多个目录，也可以选择包含“树洞①”“树洞②”等子目录的父文件夹，批量识别。重复选择同一目录会合并，之前设置的来源名称会保留。")
+                    Text("一键添加 → 浏览 → 我的 iPhone → 进入一个树洞目录 → 点右上角“打开”确认。这个按钮由 iOS 文件选择器提供，表示选用当前目录。返回本页后会读取并显示添加结果。")
+                    Text("需要批量添加时，可选择包含“树洞①”“树洞②”等子目录的父文件夹；分散在不同位置的目录可分次添加。重复选择同一目录会合并，之前设置的来源名称会保留。")
                     Text("每个来源右侧的铅笔可以修改显示名称，避免多个目录都显示为 Documents。主账号和分身放在同一张卡片中，长昵称会完整换行，账号类型与状态单独显示。")
                     Text("普通 iOS 沙盒不能直接扫描其他应用容器。巨魔安装也不代表本工具已获得这些目录权限。本工具使用系统文件夹授权并保存书签；权限被撤销或书签失效时会要求重新选择。")
                     Text("如果目录在系统选择器中不可见，或仍然被系统拒绝访问，请把每个树洞来源的 mistShared.db 与对应账号数据库，分别复制到“我的 iPhone → 树洞账号检测”中的“树洞①”“树洞②”等独立子文件夹，再点击首页的“读取本工具目录”。这个入口读取本应用自己的文件夹，不依赖跨应用目录授权。复制时保留数据库原名；复制数据只代表复制时的账号与配置。")

@@ -7,6 +7,45 @@ private func argument(_ key:String) -> String? {
     return CommandLine.arguments[index + 1]
 }
 
+@MainActor private func checkFolderPickerCallbacks() {
+    let url = URL(fileURLWithPath:"/example/树洞①",isDirectory:true)
+    var selected:[[URL]] = []
+    var cancelled = 0
+    let delegate = FolderPicker.Coordinator(onPick:{ selected.append($0) },onCancel:{ cancelled += 1 })
+    let controller = FolderPicker.makeController(delegate:delegate)
+    precondition(!controller.allowsMultipleSelection && controller.delegate === delegate,"single folder configuration and retained delegate")
+    delegate.documentPicker(controller,didPickDocumentsAt:[url])
+    delegate.documentPicker(controller,didPickDocumentAt:url)
+    delegate.documentPickerWasCancelled(controller)
+    precondition(selected == [[url]] && cancelled == 0,"modern and legacy duplicate callbacks add only once")
+
+    let legacy = FolderPicker.Coordinator(onPick:{ selected.append($0) },onCancel:{ cancelled += 1 })
+    legacy.documentPicker(controller,didPickDocumentAt:url)
+    legacy.documentPicker(controller,didPickDocumentsAt:[url])
+    precondition(selected == [[url],[url]],"single-URL callback is supported without duplicate additions")
+
+    let cancel = FolderPicker.Coordinator(onPick:{ selected.append($0) },onCancel:{ cancelled += 1 })
+    cancel.documentPickerWasCancelled(controller)
+    cancel.documentPickerWasCancelled(controller)
+    cancel.documentPicker(controller,didPickDocumentsAt:[url])
+    precondition(cancelled == 1 && selected.count == 2,"cancel is delivered once and cannot add a directory")
+
+    var oldCallback = 0, newCallback = 0
+    let updated = FolderPicker.Coordinator(onPick:{ _ in oldCallback += 1 },onCancel:{})
+    updated.onPick = { _ in newCallback += 1 }
+    updated.documentPicker(controller,didPickDocumentsAt:[url])
+    precondition(oldCallback == 0 && newCallback == 1,"updated view receives selection")
+
+    var emptyReported = false
+    let empty = FolderPicker.Coordinator(onPick:{ emptyReported = $0.isEmpty },onCancel:{})
+    empty.documentPicker(controller,didPickDocumentsAt:[])
+    precondition(emptyReported,"empty selection is reported to the view instead of silently dropped")
+    let model = CheckerModel()
+    model.add([])
+    precondition(!model.scanning && model.notices.count == 1 && model.sources.isEmpty,"empty selection produces visible feedback without disk or network work")
+    print("PASS: 7 picker configuration/callback scenarios; no system folder dialog or account data used")
+}
+
 @MainActor private func sampleModel(_ mode:String) -> CheckerModel {
     let model = CheckerModel()
     if mode == "empty" { return model }
@@ -41,6 +80,10 @@ private func argument(_ key:String) -> String? {
     var window:UIWindow?
     private var scheduled = false
     func application(_ application:UIApplication,didFinishLaunchingWithOptions options:[UIApplication.LaunchOptionsKey:Any]?) -> Bool {
+        if CommandLine.arguments.contains("--picker-tests") {
+            checkFolderPickerCallbacks()
+            exit(0)
+        }
         let mode = argument("--sample") ?? "normal"
         let root = ContentView(model:sampleModel(mode),automaticScan:false)
             .environment(\.horizontalSizeClass,.compact)
