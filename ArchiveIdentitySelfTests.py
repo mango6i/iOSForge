@@ -7,10 +7,12 @@ import os
 import plistlib
 import shutil
 import subprocess
+import sys
 import tempfile
 import xml.etree.ElementTree as ET
 
 root = Path(__file__).resolve().parent
+sys.dont_write_bytecode = True
 spec = importlib.util.spec_from_file_location('archive_identity', root / 'scripts/archive_identity.py')
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
@@ -63,6 +65,9 @@ with tempfile.TemporaryDirectory(prefix='account-check-archive-fixture-') as dir
         reference.set('BlueprintName', 'IdentityFixture')
         reference.set('BuildableName', 'IdentityFixture.app')
         reference.set('ReferencedContainer', 'container:IdentityFixture.xcodeproj')
+    action = scheme.find('./ArchiveAction/PostActions/ExecutionAction/ActionContent')
+    action.set('scriptText', 'printf "%s\\n" "$CODE_SIGNING_ALLOWED" "$ARCHIVE_PATH" "$PRODUCT_BUNDLE_IDENTIFIER" > "$SRCROOT/post-action-environment.txt"\n' +
+        action.get('scriptText') + ' > "$SRCROOT/post-action-output.txt" 2>&1')
     scheme.write(schemes / 'IdentityFixture.xcscheme', encoding='UTF-8', xml_declaration=True)
     archive = fixture / 'Fixture.xcarchive'
     bundle = 'com.example.identityfixture.override'
@@ -73,8 +78,13 @@ with tempfile.TemporaryDirectory(prefix='account-check-archive-fixture-') as dir
     result = subprocess.run(command, capture_output=True, text=True, timeout=240)
     if result.returncode:
         raise AssertionError((result.stdout + result.stderr)[-12000:])
+    for name in ('post-action-environment.txt', 'post-action-output.txt'):
+        path = fixture / name
+        print(name + ': ' + (path.read_text() if path.is_file() else 'NOT CREATED'), flush=True)
     app = archive / 'Products/Applications/IdentityFixture.app'
     signature = subprocess.run(['/usr/bin/codesign', '-d', '--entitlements', '-', str(app)], capture_output=True, check=True)
+    if not signature.stdout:
+        raise AssertionError('Archived app has no entitlements. codesign: ' + signature.stderr.decode() + '\n' + result.stdout[-4000:] + result.stderr[-4000:])
     assert plistlib.loads(signature.stdout) == module.entitlements(bundle), 'Archive hook did not sign the final app with its overridden bundle ID'
     subprocess.run(['/usr/bin/codesign', '--verify', '--strict', str(app)], check=True)
     env = dict(os.environ, CODE_SIGNING_ALLOWED='YES')

@@ -22,6 +22,7 @@ extension View {
     private var pending: (removed:String,anchor:String,y:CGFloat)?
 
     func hold(removing:String,frames:[String:CGFloat]) {
+        pending = nil
         guard let scrollView = scrollView else { return }
         let surviving = frames.filter { $0.key != removing }
         let visible = surviving.filter { $0.value >= 0 && $0.value < scrollView.bounds.height }

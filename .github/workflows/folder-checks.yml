@@ -26,11 +26,13 @@ jobs:
           xcrun swiftc -typecheck -parse-as-library -sdk "$SDK" -target arm64-apple-ios15.0 -module-name AccountCheck AccountCheck/*.swift
       - name: Validate project inputs
         run: python3 scripts/validate_project.py
+      - name: Review compact native layouts and removal behavior
+        id: ui
+        run: bash render-ui.sh
       - name: Verify archive identity with a separate tiny macOS fixture
         run: python3 ArchiveIdentitySelfTests.py
-      - name: Review compact native layouts and removal behavior
-        run: bash render-ui.sh
       - name: Save synthetic native previews on the check branch
+        if: ${{ always() && steps.ui.outcome == 'success' }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'

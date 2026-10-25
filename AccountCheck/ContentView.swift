@@ -71,7 +71,8 @@ struct AccountCheckScreen: View {
                                             .fixedSize(horizontal:false,vertical:true)
                                         Spacer()
                                         Button("移除") {
-                                            scrollKeeper.hold(removing:"grant-\(grant.id)",frames:anchorFrames)
+                                            let frames = model.grants.count == 1 ? anchorFrames.filter { $0.key == "footer" } : anchorFrames
+                                            scrollKeeper.hold(removing:"grant-\(grant.id)",frames:frames)
                                             model.remove(grant.id)
                                         }.font(.system(size:12)).frame(minHeight:44)
                                             .disabled(model.checking || model.scanning)
