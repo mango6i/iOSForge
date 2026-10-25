@@ -159,6 +159,22 @@ final class FolderFakes {
             cases += 1
         }
         let underlying = NSError(domain:NSPOSIXErrorDomain,code:2)
+        // Display aliases persist independently for child sources, without changing folder identity.
+        do {
+            let fake = FolderFakes()
+            let (access,defaults,name) = fresh(fake); defer { finish(defaults,name) }
+            let first = try access.add(fake.root)
+            try access.renameSource(grantID:first.id,components:["树洞①"],name:"主用安装")
+            try access.renameSource(grantID:first.id,components:["树洞②"],name:"备用安装")
+            let reopened = FolderAccess(defaults:defaults,operations:fake.operations())
+            expect(reopened.grants[0].sourceNames?["树洞①"] == "主用安装" && reopened.grants[0].sourceNames?["树洞②"] == "备用安装","aliases survive restart and stay separate")
+            let selectedAgain = try access.add(fake.root)
+            expect(access.grants.count == 1 && selectedAgain.id == first.id,"repeated selection merges the same source")
+            expect(selectedAgain.sourceNames?["树洞①"] == "主用安装","reselect preserves source aliases")
+            try access.renameSource(grantID:first.id,components:["树洞①"],name:"   ")
+            expect(access.grants[0].sourceNames?["树洞①"] == nil && access.grants[0].sourceNames?["树洞②"] == "备用安装","clearing one alias preserves the other")
+            cases += 1
+        }
         let wrapper = NSError(domain:NSCocoaErrorDomain,code:256,userInfo:[NSUnderlyingErrorKey:underlying])
         expect(FolderAccessProblem.classify(wrapper) == .missing,"missing path reason")
         expect(FolderAccessProblem.classify(NSError(domain:"NSFileProviderErrorDomain",code:42)) == .provider(42),"provider reason")

@@ -82,7 +82,38 @@ struct AccountRow: Identifiable, Equatable {
     var isShadow: Bool { fullID.hasSuffix("^1") }
     var baseID: String { isShadow ? String(fullID.dropLast(2)) : fullID }
     var role: String { isShadow ? "分身" : "主账号" }
-    var title: String { "\(number)：\(nickname)（账号名称）\(role)" }
+    var title: String { "\(number)：\(nickname)　\(role)" }
+    var statusHeading: String {
+        switch outcome {
+        case .waiting: return "待检测"
+        case .checking: return "检测中"
+        case .normal: return "正常✅"
+        case .abnormal: return "异常❌"
+        case .unknown: return "未知状态"
+        case .missing: return isShadow ? "缺失分身" : "缺失主号"
+        case .failed(let failure):
+            switch failure {
+            case .unreadable, .invalidDatabase: return "无法读取"
+            case .configuration: return "配置缺失"
+            case .noCredential: return "资料缺失"
+            case .network: return "网络错误"
+            case .timeout: return "网络超时"
+            case .tls: return "证书错误"
+            case .authentication: return "认证失败"
+            case .sessionRestricted: return "登录受限"
+            case .protocolError: return "未知状态"
+            case .cancelled: return "已停止"
+            }
+        }
+    }
+    var statusExplanation: String? {
+        switch outcome {
+        case .waiting, .checking, .normal: return nil
+        default:
+            let detail = status.hasPrefix(statusHeading) ? String(status.dropFirst(statusHeading.count)) : status
+            return detail.isEmpty ? nil : detail
+        }
+    }
 }
 
 enum Pairing {

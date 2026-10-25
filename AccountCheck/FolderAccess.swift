@@ -5,6 +5,12 @@ struct FolderGrant: Codable, Identifiable {
     let title: String
     var bookmark: Data
     var localDocuments: Bool? = nil
+    var sourceNames: [String:String]? = nil
+}
+
+enum FolderIdentity {
+    static func key(_ url:URL) -> String { url.resolvingSymlinksInPath().standardizedFileURL.path }
+    static func sourceKey(_ components:[String]) -> String { components.isEmpty ? "." : components.joined(separator:"/") }
 }
 
 enum FolderAccessProblem: Error, Equatable {
@@ -127,22 +133,43 @@ final class FolderAccess {
             let bookmark = local ? Data() : (try? operations.makeBookmark(url)) ?? Data()
             let localized = (try? url.resourceValues(forKeys: [.localizedNameKey]))?.localizedName
             let title = localized.flatMap { $0.isEmpty ? nil : $0 } ?? url.lastPathComponent
-            let grant = FolderGrant(id: UUID(), title:local ? "本工具目录" : title, bookmark: bookmark, localDocuments:local)
-            try state {
+            return try state {
                 var list = grants
+                var previous: FolderGrant?
+                var position: Int?
+                for (index,old) in list.enumerated() {
+                    let existing = old.localDocuments == true ? (try? Self.documentsURL()) : (pickedURLs[old.id] ?? (try? operations.resolveBookmark(old.bookmark).url))
+                    if let existing = existing, FolderIdentity.key(existing) == FolderIdentity.key(url) {
+                        previous = old; position = index; break
+                    }
+                }
                 list.removeAll { old in
                     let existing = old.localDocuments == true ? (try? Self.documentsURL()) : (pickedURLs[old.id] ?? (try? operations.resolveBookmark(old.bookmark).url))
-                    guard existing?.standardizedFileURL == url.standardizedFileURL else { return false }
+                    guard let existing = existing, FolderIdentity.key(existing) == FolderIdentity.key(url) else { return false }
                     pickedURLs.removeValue(forKey: old.id)
                     warnings.removeValue(forKey: old.id)
                     return true
                 }
-                list.append(grant)
+                let grant = FolderGrant(id:previous?.id ?? UUID(),title:local ? "本工具目录" : title,bookmark:bookmark,
+                                        localDocuments:local,sourceNames:previous?.sourceNames)
+                list.insert(grant,at:min(position ?? list.count,list.count))
                 try save(list)
                 // Preserve the actual picker URL for the first scan and subsequent reads this run.
                 pickedURLs[grant.id] = url
+                return grant
             }
-            return grant
+        }
+    }
+    func renameSource(grantID:UUID,components:[String],name:String) throws {
+        try state {
+            var list = grants
+            guard let index = list.firstIndex(where:{$0.id == grantID}) else { return }
+            var names = list[index].sourceNames ?? [:]
+            let key = FolderIdentity.sourceKey(components)
+            let value = name.trimmingCharacters(in:.whitespacesAndNewlines)
+            if value.isEmpty { names.removeValue(forKey:key) } else { names[key] = value }
+            list[index].sourceNames = names.isEmpty ? nil : names
+            try save(list)
         }
     }
     func remove(_ id: UUID) {

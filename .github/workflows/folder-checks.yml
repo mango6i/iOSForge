@@ -1,15 +1,17 @@
-name: Folder access regression checks
+name: Interface and folder regression checks
 on:
   push:
     branches: [shudong-folder-checks]
 permissions:
-  contents: read
+  contents: write
 jobs:
   checks:
     runs-on: macos-15
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Check folder permission behavior
         run: |
           swiftc -parse-as-library AccountCheck/FolderAccess.swift FolderAccessSelfTests.swift -o /tmp/folder-tests
@@ -24,3 +26,9 @@ jobs:
           xcrun swiftc -typecheck -parse-as-library -sdk "$SDK" -target arm64-apple-ios15.0 -module-name AccountCheck AccountCheck/*.swift
       - name: Validate project inputs
         run: python3 scripts/validate_project.py
+      - name: Render native interface previews with fictional accounts
+        run: bash render-ui.sh
+      - name: Save interface previews on the test branch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 publish-ui.py

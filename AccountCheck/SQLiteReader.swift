@@ -79,7 +79,7 @@ struct ScannedSource {
 
 enum DirectoryScanner {
     static func scan(_ folder: URL) -> ScannedSource {
-        let id = folder.standardizedFileURL.path
+        let id = FolderIdentity.key(folder)
         var source = ScannedSource(id:id, title:folder.lastPathComponent, folder:folder, rows:[])
         do {
             let files = try FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: [.isRegularFileKey, .isSymbolicLinkKey], options: [.skipsHiddenFiles])

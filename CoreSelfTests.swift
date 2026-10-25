@@ -58,6 +58,12 @@ import SQLite3
         try Data("not SQLite".utf8).write(to:corrupt)
         let broken = DirectoryScanner.scan(temp).rows.first(where:{$0.fullID == "broken"})
         expect(broken?.localIssue == .invalidDatabase,"unreadable account visible")
+        let parent = temp.appendingPathComponent("batch")
+        for name in ["树洞①","树洞②","其他应用"] {
+            try FileManager.default.createDirectory(at:parent.appendingPathComponent(name),withIntermediateDirectories:true)
+        }
+        let batch = try DirectoryScanner.discover(parent)
+        expect(Set(batch.map(\.lastPathComponent)) == Set(["树洞①","树洞②"]),"one parent selection discovers the tree sources only")
         print("PASS: status mapping, independent names, pairing, sources, configuration, safe protocol, SQLite read-only and empty/error scans")
     }
 }

@@ -6,9 +6,21 @@ struct SourceView: Identifiable {
     let grantID: UUID
     let folder: URL
     let relativeComponents: [String]
-    let title: String
+    var title: String
+    let origin: String
     var rows: [AccountRow]
     var issue: String?
+    var pairs: [AccountPairGroup] {
+        Dictionary(grouping:rows,by:\.baseID).values.map { rows in
+            AccountPairGroup(id:rows[0].sourceID + "|pair|" + rows[0].baseID,
+                             rows:rows.sorted { !$0.isShadow && $1.isShadow })
+        }.sorted { ($0.rows.first?.number ?? 0) < ($1.rows.first?.number ?? 0) }
+    }
+}
+
+struct AccountPairGroup: Identifiable {
+    let id:String
+    let rows:[AccountRow]
 }
 
 @MainActor final class CheckerModel: ObservableObject {
@@ -24,6 +36,30 @@ struct SourceView: Identifiable {
     private var task: Task<Void,Never>?
     private var launched = false
     var rowCount: Int { sources.reduce(0) { $0 + $1.rows.count } }
+    var pairCount: Int { sources.reduce(0) { $0 + Set($1.rows.map(\.baseID)).count } }
+    var normalCount: Int { sources.flatMap(\.rows).filter { $0.outcome == .normal }.count }
+    var abnormalCount: Int { sources.flatMap(\.rows).filter { $0.outcome == .abnormal }.count }
+    func grantLabel(_ grant:FolderGrant) -> String {
+        let names = sources.filter { $0.grantID == grant.id }.map(\.title).joined(separator:"、")
+        return names.isEmpty ? grant.title : names
+    }
+    func sourceLabel(_ grant:FolderGrant,components:[String],folderName:String,position:Int) -> String {
+        if let name = grant.sourceNames?[FolderIdentity.sourceKey(components)] { return name }
+        if grant.localDocuments == true && components.isEmpty { return "本工具目录" }
+        return ["Documents","文稿"].contains(folderName) ? "树洞来源 \(position)" : folderName
+    }
+    func renameSource(_ sourceID:String,name:String) {
+        guard !checking, !scanning, let source = sources.first(where:{$0.id == sourceID}) else { return }
+        do {
+            try access.renameSource(grantID:source.grantID,components:source.relativeComponents,name:name)
+            grants = access.grants
+            guard let index = grants.firstIndex(where:{$0.id == source.grantID}) else { return }
+            for i in sources.indices where sources[i].grantID == source.grantID {
+                sources[i].title = sourceLabel(grants[index],components:sources[i].relativeComponents,
+                                               folderName:sources[i].folder.lastPathComponent,position:index + 1)
+            }
+        } catch { notices.append("来源名称保存失败，请重试。") }
+    }
 
     func launch() async {
         guard !launched else { return }
@@ -97,9 +133,10 @@ struct SourceView: Identifiable {
                         seen.insert(source.id)
                         let rows = Pairing.pairs(source:source.id,accounts:source.rows,firstNumber:next)
                         next += Set(rows.map(\.number)).count
-                        let label = relativeComponents.isEmpty ? grant.title : source.title
+                        let key = FolderIdentity.sourceKey(relativeComponents)
+                        let label = grant.sourceNames?[key] ?? ((grant.localDocuments == true && relativeComponents.isEmpty) ? "本工具目录" : (["Documents","文稿"].contains(source.title) ? "树洞来源 \(grantIndex + 1)" : source.title))
                         sources.append(SourceView(id:source.id,grantID:grant.id,folder:source.folder,
-                            relativeComponents:relativeComponents,title:"来源 \(grantIndex + 1) · \(label)",rows:rows,issue:source.issue))
+                            relativeComponents:relativeComponents,title:label,origin:"来源 \(grantIndex + 1) · \(source.title)",rows:rows,issue:source.issue))
                     }
                 } catch {
                     notices.append("\(grant.title)：\(FolderAccessProblem.classify(error).text) 此目录尚未检测。")
@@ -118,7 +155,7 @@ struct SourceView: Identifiable {
         } else if rowCount == 0 {
             progress = "目录已读取，未发现可识别的账号数据库"
         } else {
-            progress = "发现 \(rowCount) 个账号位置 · 点击一键检测"
+            progress = "已添加 \(sources.count) 个来源、\(pairCount) 组账号 · 点击一键检测"
         }
         if checkAfter, rowCount > 0 { beginCheck() }
     }
