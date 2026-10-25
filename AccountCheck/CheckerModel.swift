@@ -32,9 +32,11 @@ struct AccountPairGroup: Identifiable {
     @Published var progress = "首次使用请添加树洞目录"
     @Published var pickerVisible = false
     @Published var helpVisible = false
-    private let access = FolderAccess()
+    private let access: FolderAccess
+    private var grantNotices: [UUID:[String]] = [:]
     private var task: Task<Void,Never>?
     private var launched = false
+    init(access:FolderAccess = FolderAccess()) { self.access = access }
     var rowCount: Int { sources.reduce(0) { $0 + $1.rows.count } }
     var pairCount: Int { sources.reduce(0) { $0 + Set($1.rows.map(\.baseID)).count } }
     var normalCount: Int { sources.flatMap(\.rows).filter { $0.outcome == .normal }.count }
@@ -106,7 +108,13 @@ struct AccountPairGroup: Identifiable {
     func remove(_ id: UUID) {
         guard !checking, !scanning else { return }
         access.remove(id)
-        task = Task { await scan(checkAfter:false) }
+        grants = access.grants
+        sources.removeAll { $0.grantID == id }
+        for message in grantNotices.removeValue(forKey:id) ?? [] {
+            if let index = notices.firstIndex(of:message) { notices.remove(at:index) }
+        }
+        // Keep the IDs, results and timestamps of every remaining source intact.
+        progress = grants.isEmpty ? "请选择树洞目录" : "剩余 \(sources.count) 个来源、\(pairCount) 组账号"
     }
     func rescan() { task = Task { await scan(checkAfter:false) } }
 
@@ -118,9 +126,9 @@ struct AccountPairGroup: Identifiable {
         grants = access.grants
         let saved = grants
         let folders = access
-        let output = await Task.detached(priority:.userInitiated) { () -> ([SourceView],[String]) in
+        let output = await Task.detached(priority:.userInitiated) { () -> ([SourceView],[UUID:[String]]) in
             var sources: [SourceView] = []
-            var notices: [String] = []
+            var notices: [UUID:[String]] = [:]
             var seen = Set<String>()
             var next = 1
             for (grantIndex, grant) in saved.enumerated() {
@@ -133,7 +141,7 @@ struct AccountPairGroup: Identifiable {
                             return (DirectoryScanner.scan(folder),Array(parts.dropFirst(rootParts.count)))
                         }
                     }
-                    if let warning = folders.warning(for:grant) { notices.append("\(grant.title)：\(warning)") }
+                    if let warning = folders.warning(for:grant) { notices[grant.id,default:[]].append("\(grant.title)：\(warning)") }
                     for (source, relativeComponents) in discovered where !seen.contains(source.id) {
                         seen.insert(source.id)
                         let rows = Pairing.pairs(source:source.id,accounts:source.rows,firstNumber:next)
@@ -144,13 +152,14 @@ struct AccountPairGroup: Identifiable {
                             relativeComponents:relativeComponents,title:label,origin:"来源 \(grantIndex + 1) · \(source.title)",rows:rows,issue:source.issue))
                     }
                 } catch {
-                    notices.append("\(grant.title)：\(FolderAccessProblem.classify(error).text) 此目录尚未检测。")
+                    notices[grant.id,default:[]].append("\(grant.title)：\(FolderAccessProblem.classify(error).text) 此目录尚未检测。")
                 }
             }
             return (sources,notices)
         }.value
         sources = output.0
-        notices.append(contentsOf:output.1)
+        grantNotices = output.1
+        notices.append(contentsOf:saved.flatMap { output.1[$0.id] ?? [] })
         grants = access.grants
         scanning = false
         if saved.isEmpty {

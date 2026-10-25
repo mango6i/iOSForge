@@ -2,47 +2,50 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var model = CheckerModel()
+    var body: some View { AccountCheckScreen(model:model).task { await model.launch() } }
+}
+
+struct AccountCheckScreen: View {
+    @ObservedObject var model: CheckerModel
+    @StateObject private var scrollKeeper = ScrollPositionKeeper()
+    @State private var anchorFrames: [String:CGFloat] = [:]
     private var appVersion: String {
         (Bundle.main.object(forInfoDictionaryKey:"CFBundleShortVersionString") as? String) ?? "—"
     }
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(alignment:.leading,spacing:18) {
-                    VStack(alignment:.leading,spacing:8) {
-                        Text("主账号与分身，成对查看")
-                            .font(.title3.weight(.bold))
-                        Text("\(model.progress)").font(.subheadline).foregroundColor(.secondary)
-                        Text("选择树洞目录或父文件夹，批量识别账号。")
-                            .font(.footnote).foregroundColor(.secondary)
+                VStack(alignment:.leading,spacing:12) {
+                    VStack(alignment:.leading,spacing:5) {
+                        HStack(spacing:10) {
+                            Text("\(model.sources.count) 个来源 · \(model.pairCount) 组账号")
+                                .foregroundColor(.secondary)
+                            Spacer(minLength:0)
+                            Text("正常 \(model.normalCount)").foregroundColor(.green)
+                            Text("异常 \(model.abnormalCount)").foregroundColor(.red)
+                        }.font(.system(size:12,weight:.medium))
+                        Text(model.progress).font(.system(size:12)).foregroundColor(.secondary)
+                            .fixedSize(horizontal:false,vertical:true)
                     }.padding(.top,8)
-                    HStack(spacing:0) {
-                        CountItem(title:"来源",value:model.sources.count,color:.primary)
-                        CountItem(title:"账号组",value:model.pairCount,color:.primary)
-                        CountItem(title:"正常",value:model.normalCount,color:.green)
-                        CountItem(title:"异常",value:model.abnormalCount,color:.red)
-                    }.padding(.vertical,12).background(Color(.secondarySystemGroupedBackground)).cornerRadius(14)
                     ForEach(Array(model.notices.enumerated()),id:\.offset) { _,notice in
                         NoticeCard(text:notice)
                     }
                     if model.sources.isEmpty && !model.scanning {
-                        VStack(alignment:.leading,spacing:14) {
-                            Image(systemName:"folder.badge.plus").font(.system(size:30)).foregroundColor(.accentColor)
-                            Text("添加你的树洞目录").font(.headline)
-                            Text("点击右上角“一键添加”，选择树洞目录；也可以选择包含“树洞①”“树洞②”等目录的父文件夹，批量识别账号。不同位置的目录可分次添加。")
-                            Text("选好目录后，点系统右上角“打开”确认。返回本页后显示添加结果。")
-                                .font(.footnote).foregroundColor(.secondary)
-                            Text("授权后，后续启动会自动扫描并检测这些目录。无法读取、空目录和登录受限都会单独提示。")
-                                .font(.footnote).foregroundColor(.secondary)
-                            Text("如果选择器仍无法读取，可把每个来源的数据库分别放到“我的 iPhone → 树洞账号检测”内的“树洞①”“树洞②”等子文件夹，再点“读取本工具目录”。")
-                                .font(.footnote).foregroundColor(.secondary)
-                        }.padding(20).frame(maxWidth:.infinity,alignment:.leading).background(Color(.secondarySystemGroupedBackground)).cornerRadius(18)
+                        HStack(alignment:.top,spacing:12) {
+                            Image(systemName:"folder.badge.plus").font(.system(size:24)).foregroundColor(.accentColor)
+                            VStack(alignment:.leading,spacing:5) {
+                                Text("先添加树洞目录").font(.system(size:15,weight:.semibold))
+                                Text("点右上角“一键添加”，选择树洞目录或它的父文件夹，支持批量识别。")
+                                    .font(.system(size:13)).foregroundColor(.secondary)
+                            }
+                        }.padding(14).frame(maxWidth:.infinity,alignment:.leading)
+                            .background(Color(.secondarySystemGroupedBackground)).cornerRadius(12)
                     }
                     ForEach(model.sources) { source in
-                        VStack(alignment:.leading,spacing:12) {
-                            HStack(alignment:.top) {
-                                Image(systemName:"folder.fill").foregroundColor(.accentColor)
-                                Text(source.title).font(.headline).fixedSize(horizontal:false,vertical:true)
+                        VStack(alignment:.leading,spacing:8) {
+                            HStack(alignment:.center,spacing:6) {
+                                Image(systemName:"folder.fill").font(.system(size:12)).foregroundColor(.accentColor)
+                                Text(source.title).font(.system(size:14,weight:.semibold)).fixedSize(horizontal:false,vertical:true)
                                 Spacer(minLength:8)
                                 SourceRenameButton(name:source.title) { model.renameSource(source.id,name:$0) }
                                     .disabled(model.checking || model.scanning)
@@ -51,36 +54,47 @@ struct ContentView: View {
                             ForEach(source.pairs) { pair in
                                 VStack(spacing:0) {
                                     ForEach(Array(pair.rows.enumerated()),id:\.element.id) { index,row in
-                                        AccountRowView(row:row,source:source.title + " · " + source.origin).padding(14)
-                                        if index + 1 < pair.rows.count { Divider().padding(.horizontal,14) }
+                                        AccountRowView(row:row,source:source.title + " · " + source.origin)
+                                        if index + 1 < pair.rows.count { Divider().padding(.horizontal,12) }
                                     }
-                                }.background(Color(.secondarySystemGroupedBackground)).cornerRadius(14)
-                                    .overlay(RoundedRectangle(cornerRadius:14).stroke(Color(.separator).opacity(0.3),lineWidth:1))
+                                }.background(Color(.secondarySystemGroupedBackground)).cornerRadius(12)
+                                    .overlay(RoundedRectangle(cornerRadius:12).stroke(Color(.separator).opacity(0.22),lineWidth:0.5))
                             }
                         }
                     }
                     if !model.grants.isEmpty {
                         DisclosureGroup("已选择目录（\(model.grants.count)）") {
-                            VStack(alignment:.leading,spacing:12) {
+                            VStack(alignment:.leading,spacing:0) {
                                 ForEach(model.grants) { grant in
-                                    HStack(alignment:.top) {
+                                    HStack(alignment:.center,spacing:8) {
                                         Text(model.grantLabel(grant))
                                             .fixedSize(horizontal:false,vertical:true)
                                         Spacer()
-                                        Button("移除授权") { model.remove(grant.id) }
-                                            .font(.footnote).disabled(model.checking || model.scanning)
-                                    }
+                                        Button("移除") {
+                                            scrollKeeper.hold(removing:"grant-\(grant.id)",frames:anchorFrames)
+                                            model.remove(grant.id)
+                                        }.font(.system(size:12)).frame(minHeight:44)
+                                            .disabled(model.checking || model.scanning)
+                                            .accessibilityLabel("移除\(model.grantLabel(grant))的授权")
+                                    }.scrollAnchor("grant-\(grant.id)")
                                 }
-                                Text("移除只会清除本工具保存的授权书签，不会删除或修改树洞文件。")
-                                    .font(.caption).foregroundColor(.secondary)
-                            }.padding(.top,10)
-                        }.font(.subheadline)
+                                Text("仅移除授权，文件和其他检测结果会保留。")
+                                    .font(.system(size:11)).foregroundColor(.secondary)
+                            }.padding(.top,4)
+                        }.font(.system(size:13)).scrollAnchor("grants-heading")
                     }
-                    Text("只读检测 · 不发送聊天 · 不修改账号标记\n服务器特殊标记仅代表检测事实，本工具不解除限制。")
-                        .font(.caption).foregroundColor(.secondary).frame(maxWidth:.infinity).multilineTextAlignment(.center).padding(.vertical,8)
-                    Text("版本 \(appVersion)")
-                        .font(.caption2).foregroundColor(.secondary).frame(maxWidth:.infinity)
-                }.padding(.horizontal,16).padding(.bottom,12)
+                    HStack {
+                        Text("只读检测，不修改账号")
+                        Spacer()
+                        Text("v\(appVersion)")
+                    }.font(.system(size:11)).foregroundColor(.secondary).scrollAnchor("footer")
+                }.padding(.horizontal,14).padding(.bottom,10)
+                    .background(ScrollViewProbe(keeper:scrollKeeper))
+            }
+            .coordinateSpace(name:"account-scroll")
+            .onPreferenceChange(ScrollAnchorKey.self) { frames in
+                anchorFrames = frames
+                scrollKeeper.update(frames)
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("树洞账号检测")
@@ -90,22 +104,21 @@ struct ContentView: View {
                 ToolbarItem(placement:.navigationBarTrailing) { Button("一键添加") { model.pickerVisible = true }.disabled(model.checking || model.scanning) }
             }
             .safeAreaInset(edge:.bottom) {
-                VStack(spacing:10) {
+                VStack(spacing:8) {
                     if model.checking { Button("停止检测") { model.stop() }.font(.footnote) }
                     checkAction
                     if !model.checking {
                         HStack(spacing:24) {
                             Button("重新扫描目录") { model.rescan() }
                             Button("读取本工具目录") { model.useLocalDocuments() }
-                        }.font(.footnote).buttonStyle(.plain).foregroundColor(.accentColor).disabled(model.scanning)
+                        }.font(.system(size:12)).buttonStyle(.plain).foregroundColor(.accentColor).disabled(model.scanning)
                     }
-                }.padding(.horizontal,20).padding(.top,12).padding(.bottom,8).background(.regularMaterial)
+                }.padding(.horizontal,16).padding(.top,8).padding(.bottom,6).background(.regularMaterial)
             }
             .sheet(isPresented:$model.pickerVisible) {
                 FolderPicker { urls in model.pickerVisible = false; model.add(urls) }
             }
             .sheet(isPresented:$model.helpVisible) { HelpView() }
-            .task { await model.launch() }
         }.navigationViewStyle(.stack)
     }
     private var checkAction:some View {
@@ -115,18 +128,6 @@ struct ContentView: View {
                 Text(model.checking ? "检测中" : "一键检测").font(.headline)
             }.frame(maxWidth:.infinity,minHeight:52)
         }.buttonStyle(MainActionStyle(filled:true)).disabled(model.checking || model.scanning || model.rowCount == 0)
-    }
-}
-
-struct CountItem:View {
-    let title:String
-    let value:Int
-    let color:Color
-    var body:some View {
-        VStack(spacing:4) {
-            Text(String(value)).font(.title3.weight(.semibold)).foregroundColor(color)
-            Text(title).font(.caption).foregroundColor(.secondary)
-        }.frame(maxWidth:.infinity)
     }
 }
 
@@ -157,8 +158,7 @@ struct SourceRenameButton:View {
                 }.font(.caption).buttonStyle(.plain)
             } else {
                 Button { draft = name; presented = true } label: {
-                    Label("改名",systemImage:"pencil").font(.caption).padding(6)
-                        .background(Color.accentColor.opacity(0.08)).cornerRadius(8)
+                    Image(systemName:"pencil").font(.system(size:12)).frame(width:44,height:28)
                 }.buttonStyle(.plain).accessibilityLabel("修改\(name)的来源名称")
             }
         }
@@ -178,14 +178,20 @@ struct AccountRowView: View {
         }
     }
     var body:some View {
-        VStack(alignment:.leading,spacing:10) {
-            AccountLine(row:row,color:color)
+        VStack(alignment:.leading,spacing:0) {
+            Button { expanded.toggle() } label: {
+                HStack(spacing:6) {
+                    AccountLine(row:row,color:color)
+                    Image(systemName:expanded ? "chevron.up" : "chevron.down")
+                        .font(.system(size:9,weight:.semibold)).foregroundColor(.secondary)
+                }.frame(minHeight:44).contentShape(Rectangle())
+            }.buttonStyle(.plain).accessibilityValue(expanded ? "详情已展开" : "点按查看详情")
             if let explanation = row.statusExplanation {
-                Text(explanation).font(.subheadline).foregroundColor(color)
+                Text(explanation).font(.system(size:12)).foregroundColor(color).padding(.bottom,9)
                     .lineLimit(nil).fixedSize(horizontal:false,vertical:true).textSelection(.enabled)
             }
-            DisclosureGroup(isExpanded:$expanded) { 
-                VStack(alignment:.leading,spacing:8) {
+            if expanded {
+                VStack(alignment:.leading,spacing:5) {
                     Text("完整 ID：\(row.fullID)")
                     Text("来源：\(source)")
                     Text("数据库：\(row.databaseURL?.lastPathComponent ?? "未发现对应文件")")
@@ -197,10 +203,10 @@ struct AccountRowView: View {
                     if let date = row.checkedAt {
                         Text("检测时间：\(date.formatted(date:.numeric,time:.standard))")
                     } else { Text("检测时间：尚未完成") }
-                }.font(.caption).textSelection(.enabled).foregroundColor(.secondary).padding(.top,8)
+                }.font(.system(size:12)).textSelection(.enabled).foregroundColor(.secondary).padding(.bottom,10)
                     .fixedSize(horizontal:false,vertical:true)
-            } label:{ Text("查看详情").font(.caption).foregroundColor(.secondary) }
-        }.frame(maxWidth:.infinity,alignment:.leading)
+            }
+        }.padding(.horizontal,12).frame(maxWidth:.infinity,alignment:.leading)
     }
 }
 
@@ -209,15 +215,18 @@ struct AccountLine:View {
     let row:AccountRow
     let color:Color
     @Environment(\.sizeCategory) private var sizeCategory
+    @ScaledMetric(relativeTo:.body) private var nameSize:CGFloat = 15
+    @ScaledMetric(relativeTo:.subheadline) private var statusSize:CGFloat = 13
+    @ScaledMetric(relativeTo:.caption) private var roleSize:CGFloat = 11
     var body:some View {
         Group {
             if sizeCategory.isAccessibilityCategory {
-                VStack(alignment:.leading,spacing:8) {
+                VStack(alignment:.leading,spacing:5) {
                     HStack(alignment:.firstTextBaseline,spacing:6) { number; name; role }
                     result
                 }
             } else {
-                HStack(alignment:.firstTextBaseline,spacing:8) {
+                HStack(alignment:.firstTextBaseline,spacing:5) {
                     number
                     name
                     role
@@ -226,15 +235,16 @@ struct AccountLine:View {
             }
         }.accessibilityElement(children:.ignore).accessibilityLabel(row.title + "，" + row.status)
     }
-    private var number:some View { Text("\(row.number)：").font(.body.weight(.semibold)).fixedSize().layoutPriority(1) }
+    private var number:some View { Text("\(row.number)").font(.system(size:13,weight:.medium)).foregroundColor(.secondary).fixedSize().layoutPriority(1) }
     private var name:some View {
-        Text(row.nickname).font(.body.weight(.semibold)).lineLimit(nil).fixedSize(horizontal:false,vertical:true)
-            .frame(maxWidth:.infinity,alignment:.leading).textSelection(.enabled)
+        Text(row.nickname).font(.system(size:nameSize,weight:.semibold)).lineLimit(nil).fixedSize(horizontal:false,vertical:true)
+            .frame(maxWidth:.infinity,alignment:.leading).foregroundColor(.primary)
     }
-    private var role:some View { Text(row.role).font(.subheadline).fixedSize().foregroundColor(.secondary).layoutPriority(1) }
+    private var role:some View { Text(row.role).font(.system(size:roleSize)).fixedSize().foregroundColor(.secondary).layoutPriority(1) }
     private var result:some View {
-        HStack(alignment:.top,spacing:8) {
-            Text(row.statusHeading).font(.subheadline.weight(.medium)).foregroundColor(color).fixedSize()
+        HStack(alignment:.top,spacing:5) {
+            if row.outcome == .checking { ProgressView().scaleEffect(0.7).frame(width:12,height:12) }
+            Text(row.statusHeading).font(.system(size:statusSize,weight:.medium)).foregroundColor(color).fixedSize()
         }
     }
 }

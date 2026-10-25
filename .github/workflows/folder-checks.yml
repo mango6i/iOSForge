@@ -3,7 +3,7 @@ on:
   push:
     branches: [shudong-folder-checks]
 permissions:
-  contents: read
+  contents: write
 jobs:
   checks:
     runs-on: macos-15
@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          persist-credentials: true
       - name: Check folder permission behavior
         run: |
           swiftc -parse-as-library AccountCheck/FolderAccess.swift FolderAccessSelfTests.swift -o /tmp/folder-tests
@@ -26,3 +26,14 @@ jobs:
           xcrun swiftc -typecheck -parse-as-library -sdk "$SDK" -target arm64-apple-ios15.0 -module-name AccountCheck AccountCheck/*.swift
       - name: Validate project inputs
         run: python3 scripts/validate_project.py
+      - name: Verify archive identity with a separate tiny macOS fixture
+        run: python3 ArchiveIdentitySelfTests.py
+      - name: Review compact native layouts and removal behavior
+        run: bash render-ui.sh
+      - name: Save synthetic native previews on the check branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ui-previews
+          git diff --cached --quiet || git commit -m 'Save synthetic compact interface previews'
+          git push origin HEAD:shudong-folder-checks

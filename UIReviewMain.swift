@@ -7,43 +7,65 @@ private func argument(_ key:String) -> String? {
     return CommandLine.arguments[index + 1]
 }
 
-@MainActor private func checkFolderPickerCallbacks() {
-    let url = URL(fileURLWithPath:"/example/树洞①",isDirectory:true)
-    var selected:[[URL]] = []
-    var cancelled = 0
-    let delegate = FolderPicker.Coordinator(onPick:{ selected.append($0) },onCancel:{ cancelled += 1 })
-    let controller = FolderPicker.makeController(delegate:delegate)
-    precondition(!controller.allowsMultipleSelection && controller.delegate === delegate,"single folder configuration and retained delegate")
-    delegate.documentPicker(controller,didPickDocumentsAt:[url])
-    delegate.documentPicker(controller,didPickDocumentAt:url)
-    delegate.documentPickerWasCancelled(controller)
-    precondition(selected == [[url]] && cancelled == 0,"modern and legacy duplicate callbacks add only once")
+@MainActor private func checkSupportBehavior() async throws {
+    let suite = "account-check-model-tests." + UUID().uuidString
+    let defaults = UserDefaults(suiteName:suite)!
+    defer { defaults.removePersistentDomain(forName:suite) }
+    var reads = 0
+    let operations = FolderAccessOperations(
+        startAccess:{ _ in reads += 1; return false },stopAccess:{ _ in },
+        probe:{ _ in reads += 1 },coordinate:{ url,body in reads += 1; body(url) },
+        makeBookmark:{ _ in reads += 1; return Data() },
+        resolveBookmark:{ _ in reads += 1; throw FolderAccessProblem.bookmarkUnavailable })
+    let access = FolderAccess(defaults:defaults,operations:operations)
+    let grants = (1...3).map { FolderGrant(id:UUID(),title:"Example \($0)",bookmark:Data()) }
+    defaults.set(try JSONEncoder().encode(grants),forKey:"authorizedFolderBookmarks.v1")
+    let model = CheckerModel(access:access)
+    model.grants = grants
+    model.sources = grants.enumerated().map { index,grant in
+        let folder = URL(fileURLWithPath:"/synthetic/\(index)")
+        var row = AccountRow(sourceID:folder.path,fullID:"fixture\(index)",number:index + 1,
+            nickname:"Example",databaseURL:folder.appendingPathComponent("fixture.db"))
+        let result = ProfileResult.parse(["forbid":index == 2 ? 10 : 2,"name":"Example"])
+        row.result = result; row.status = result.text; row.outcome = result.outcome
+        row.checkedAt = Date(timeIntervalSince1970:12345); row.nicknameFromServer = true
+        return SourceView(id:folder.path,grantID:grant.id,folder:folder,relativeComponents:[],
+            title:grant.title,origin:"Synthetic",rows:[row])
+    }
+    let before = model.sources
+    model.remove(grants[1].id)
+    precondition(model.grants.map(\.id) == [grants[0].id,grants[2].id])
+    precondition(model.sources.map(\.id) == [before[0].id,before[2].id])
+    precondition(model.sources[0].rows == before[0].rows && model.sources[1].rows == before[2].rows,
+        "removing a source preserves IDs, numbering, names, marks and timestamps of other sources")
+    precondition(model.normalCount == 1 && model.abnormalCount == 1 && !model.scanning && reads == 0,
+        "removing a grant never rescans or reads files")
+    model.checking = true; model.remove(grants[0].id)
+    precondition(model.grants.count == 2,"cannot remove during a check")
+    model.checking = false
+    model.remove(grants[0].id); model.remove(grants[2].id)
+    precondition(model.grants.isEmpty && model.sources.isEmpty && access.grants.isEmpty && reads == 0)
 
-    let legacy = FolderPicker.Coordinator(onPick:{ selected.append($0) },onCancel:{ cancelled += 1 })
-    legacy.documentPicker(controller,didPickDocumentAt:url)
-    legacy.documentPicker(controller,didPickDocumentsAt:[url])
-    precondition(selected == [[url],[url]],"single-URL callback is supported without duplicate additions")
-
-    let cancel = FolderPicker.Coordinator(onPick:{ selected.append($0) },onCancel:{ cancelled += 1 })
-    cancel.documentPickerWasCancelled(controller)
-    cancel.documentPickerWasCancelled(controller)
-    cancel.documentPicker(controller,didPickDocumentsAt:[url])
-    precondition(cancelled == 1 && selected.count == 2,"cancel is delivered once and cannot add a directory")
-
-    var oldCallback = 0, newCallback = 0
-    let updated = FolderPicker.Coordinator(onPick:{ _ in oldCallback += 1 },onCancel:{})
-    updated.onPick = { _ in newCallback += 1 }
-    updated.documentPicker(controller,didPickDocumentsAt:[url])
-    precondition(oldCallback == 0 && newCallback == 1,"updated view receives selection")
-
-    var emptyReported = false
-    let empty = FolderPicker.Coordinator(onPick:{ emptyReported = $0.isEmpty },onCancel:{})
-    empty.documentPicker(controller,didPickDocumentsAt:[])
-    precondition(emptyReported,"empty selection is reported to the view instead of silently dropped")
-    let model = CheckerModel()
-    model.add([])
-    precondition(!model.scanning && model.notices.count == 1 && model.sources.isEmpty,"empty selection produces visible feedback without disk or network work")
-    print("PASS: 7 picker configuration/callback scenarios; no system folder dialog or account data used")
+    let keeper = ScrollPositionKeeper()
+    let scroll = UIScrollView(frame:CGRect(x:0,y:0,width:375,height:500))
+    scroll.contentSize = CGSize(width:375,height:2000)
+    scroll.contentOffset = CGPoint(x:0,y:1000)
+    keeper.scrollView = scroll
+    keeper.hold(removing:"removed",frames:["removed":10,"next":54,"footer":100])
+    scroll.contentSize.height = 1900
+    keeper.update(["next":-46,"footer":0])
+    await withCheckedContinuation { continuation in DispatchQueue.main.async { continuation.resume() } }
+    precondition(scroll.contentOffset.y == 900,"surviving row stays at its screen position")
+    keeper.update(["next":54,"footer":100])
+    precondition(scroll.contentOffset.y == 900,"later layout changes do not repeat compensation")
+    precondition(ScrollPositionKeeper.offset(current:200,delta:-800,contentHeight:300,
+        viewportHeight:500,top:20,bottom:10) == -20,"short remaining content clamps to inset")
+    precondition(ScrollPositionKeeper.offset(current:1100,delta:0,contentHeight:1400,
+        viewportHeight:500,top:0,bottom:20) == 920,"last row removal respects bottom limit")
+    let probe = ScrollViewProbe.Probe(); let container = UIView()
+    scroll.addSubview(container); container.addSubview(probe); probe.keeper = keeper; keeper.scrollView = nil
+    probe.connect(); precondition(keeper.scrollView === scroll,"probe finds its public scroll-view ancestor")
+    print("PASS: removal preserves remaining results without file/network work; scroll compensation and bounds")
 }
 
 @MainActor private func sampleModel(_ mode:String) -> CheckerModel {
@@ -69,6 +91,9 @@ private func argument(_ key:String) -> String? {
         pair(1,"小溪","小溪的分身",2)
         pair(2,"另一位朋友","分身昵称",10)
     }
+    if mode == "dense" {
+        for number in 3...8 { pair(number,"示例账号 \(number)","示例分身 \(number)",number == 4 ? 10 : 2) }
+    }
     model.sources = [SourceView(id:folder.path,grantID:grantID,folder:folder,relativeComponents:[],title:"树洞①",origin:"来源 1 · Documents",rows:rows)]
     model.grants = [FolderGrant(id:grantID,title:"Documents",bookmark:Data("example-only".utf8))]
     model.progress = mode == "checking" ? "正在检测…" : "检测完成 · 正常 \(model.normalCount) · 异常 \(model.abnormalCount) · 其他 0"
@@ -80,15 +105,19 @@ private func argument(_ key:String) -> String? {
     var window:UIWindow?
     private var scheduled = false
     func application(_ application:UIApplication,didFinishLaunchingWithOptions options:[UIApplication.LaunchOptionsKey:Any]?) -> Bool {
-        if CommandLine.arguments.contains("--picker-tests") {
-            checkFolderPickerCallbacks()
-            exit(0)
+        if CommandLine.arguments.contains("--support-tests") {
+            Task { @MainActor in
+                do { try await checkSupportBehavior(); exit(0) }
+                catch { print(error); exit(1) }
+            }
+            return true
         }
         let mode = argument("--sample") ?? "normal"
-        let root = ContentView(model:sampleModel(mode),automaticScan:false)
+        let root = AccountCheckScreen(model:sampleModel(mode))
             .environment(\.horizontalSizeClass,.compact)
             .environment(\.sizeCategory,mode == "large" ? .accessibilityExtraLarge : .large)
             .tint(Color(red:0.10,green:0.43,blue:0.38))
+            .preferredColorScheme(mode == "dark" ? .dark : .light)
             .frame(width:390,height:800)
         let window = UIWindow(frame:CGRect(x:0,y:0,width:390,height:800))
         window.rootViewController = UIHostingController(rootView:root)

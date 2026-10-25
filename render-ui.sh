@@ -15,13 +15,13 @@ import plistlib,sys
 from pathlib import Path
 info={'CFBundleExecutable':'UIReview','CFBundleIdentifier':'com.shudong.accountcheck.uireview',
       'CFBundleName':'UIReview','CFBundleDisplayName':'树洞账号检测', 'CFBundlePackageType':'APPL',
-      'CFBundleVersion':'4','CFBundleShortVersionString':'1.0.3','CFBundleSupportedPlatforms':['MacOSX'],
+      'CFBundleVersion':'6','CFBundleShortVersionString':'1.0.5','CFBundleSupportedPlatforms':['MacOSX'],
       'LSMinimumSystemVersion':'12.0','LSUIElement':True,'NSHighResolutionCapable':True,
       'UIDeviceFamily':[6],'UILaunchScreen':{}}
 (Path(sys.argv[1])/'Contents/Info.plist').write_bytes(plistlib.dumps(info))
 PY
 codesign --force --sign - "$BUNDLE"
-"$BUNDLE/Contents/MacOS/UIReview" --picker-tests
-for mode in normal long checking large empty; do
+"$BUNDLE/Contents/MacOS/UIReview" --support-tests
+for mode in normal long checking large empty dark dense; do
   "$BUNDLE/Contents/MacOS/UIReview" --sample "$mode" --output "$PWD/ui-previews/$mode.png"
 done
