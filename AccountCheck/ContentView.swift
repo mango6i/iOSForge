@@ -3,6 +3,7 @@ import SwiftUI
 @MainActor struct ContentView: View {
     @StateObject private var model: CheckerModel
     @State private var renamingSource: SourceView?
+    @Environment(\.sizeCategory) private var sizeCategory
     private let automaticScan: Bool
     init() {
         _model = StateObject(wrappedValue:CheckerModel())
@@ -52,7 +53,10 @@ import SwiftUI
                                 Image(systemName:"folder.fill").foregroundColor(.accentColor)
                                 Text(source.title).font(.headline).fixedSize(horizontal:false,vertical:true)
                                 Spacer(minLength:8)
-                                Button { renamingSource = source } label: { Image(systemName:"pencil") }
+                                Button { renamingSource = source } label: {
+                                    Label("改名",systemImage:"pencil").font(.caption).padding(6)
+                                        .background(Color.accentColor.opacity(0.08)).cornerRadius(8)
+                                }.buttonStyle(.plain)
                                     .accessibilityLabel("修改\(source.title)的来源名称")
                                     .disabled(model.checking || model.scanning)
                             }
@@ -101,22 +105,18 @@ import SwiftUI
             .safeAreaInset(edge:.bottom) {
                 VStack(spacing:10) {
                     if model.checking { Button("停止检测") { model.stop() }.font(.footnote) }
-                    HStack(spacing:12) {
-                        Button { model.pickerVisible = true } label:{
-                            Label("一键添加",systemImage:"folder.badge.plus").font(.headline).frame(maxWidth:.infinity,minHeight:44)
-                        }.buttonStyle(.bordered).disabled(model.checking || model.scanning)
-                        Button { model.beginCheck() } label:{
-                            HStack(spacing:8) {
-                                if model.checking { ProgressView().tint(.white) }
-                                Text(model.checking ? "检测中" : "一键检测").font(.headline)
-                            }.frame(maxWidth:.infinity,minHeight:44)
-                        }.buttonStyle(.borderedProminent).disabled(model.checking || model.scanning || model.rowCount == 0)
+                    Group {
+                        if sizeCategory.isAccessibilityCategory {
+                            VStack(spacing:10) { addAction; checkAction }
+                        } else {
+                            HStack(spacing:12) { addAction; checkAction }
+                        }
                     }
                     if !model.checking {
                         HStack(spacing:24) {
                             Button("重新扫描目录") { model.rescan() }
                             Button("读取本工具目录") { model.useLocalDocuments() }
-                        }.font(.footnote).disabled(model.scanning)
+                        }.font(.footnote).buttonStyle(.plain).foregroundColor(.accentColor).disabled(model.scanning)
                     }
                 }.padding(.horizontal,20).padding(.top,12).padding(.bottom,8).background(.regularMaterial)
             }
@@ -130,6 +130,19 @@ import SwiftUI
             .task { if automaticScan { await model.launch() } }
         }.navigationViewStyle(.stack)
     }
+    private var addAction:some View {
+        Button { model.pickerVisible = true } label:{
+            Label("一键添加",systemImage:"folder.badge.plus").font(.headline).frame(maxWidth:.infinity,minHeight:44)
+        }.buttonStyle(MainActionStyle(filled:false)).disabled(model.checking || model.scanning)
+    }
+    private var checkAction:some View {
+        Button { model.beginCheck() } label:{
+            HStack(spacing:8) {
+                if model.checking { ProgressView().tint(.white) }
+                Text(model.checking ? "检测中" : "一键检测").font(.headline)
+            }.frame(maxWidth:.infinity,minHeight:44)
+        }.buttonStyle(MainActionStyle(filled:true)).disabled(model.checking || model.scanning || model.rowCount == 0)
+    }
 }
 
 struct CountItem:View {
@@ -141,6 +154,17 @@ struct CountItem:View {
             Text(String(value)).font(.title3.weight(.semibold)).foregroundColor(color)
             Text(title).font(.caption).foregroundColor(.secondary)
         }.frame(maxWidth:.infinity)
+    }
+}
+
+struct MainActionStyle:ButtonStyle {
+    let filled:Bool
+    @Environment(\.isEnabled) private var enabled
+    func makeBody(configuration:Configuration) -> some View {
+        configuration.label.frame(maxWidth:.infinity,minHeight:50)
+            .foregroundColor(enabled ? (filled ? .white : .accentColor) : .secondary)
+            .background(filled ? (enabled ? Color.accentColor : Color(.tertiarySystemFill)) : Color.accentColor.opacity(enabled ? 0.08 : 0.03))
+            .cornerRadius(12).opacity(configuration.isPressed ? 0.75 : 1)
     }
 }
 
@@ -233,7 +257,6 @@ struct AccountLine:View {
     private var role:some View { Text(row.role).font(.subheadline).fixedSize().foregroundColor(.secondary).layoutPriority(1) }
     private var result:some View {
         HStack(alignment:.top,spacing:8) {
-            if row.outcome == .checking { ProgressView().padding(.top,2) }
             Text(row.statusHeading).font(.subheadline.weight(.medium)).foregroundColor(color).fixedSize()
         }
     }

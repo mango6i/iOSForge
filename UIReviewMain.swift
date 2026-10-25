@@ -63,15 +63,18 @@ private func argument(_ key:String) -> String? {
             window.windowScene?.sizeRestrictions?.maximumSize = CGSize(width:390,height:800)
             window.frame = CGRect(x:0,y:0,width:390,height:800)
             window.layoutIfNeeded()
-            let image = UIGraphicsImageRenderer(bounds:window.bounds).image { renderer in
-                if !window.drawHierarchy(in:window.bounds,afterScreenUpdates:true) { window.layer.render(in:renderer.cgContext) }
+            DispatchQueue.main.asyncAfter(deadline:.now() + 1) {
+                window.layoutIfNeeded()
+                let image = UIGraphicsImageRenderer(bounds:window.bounds).image { renderer in
+                    if !window.drawHierarchy(in:window.bounds,afterScreenUpdates:true) { window.layer.render(in:renderer.cgContext) }
+                }
+                do {
+                    guard let png = image.pngData() else { exit(3) }
+                    try png.write(to:URL(fileURLWithPath:output))
+                    print("UI preview saved: \(window.bounds.width)x\(window.bounds.height)")
+                    exit(0)
+                } catch { exit(4) }
             }
-            do {
-                guard let png = image.pngData() else { exit(3) }
-                try png.write(to:URL(fileURLWithPath:output))
-                print("UI preview saved: \(window.bounds.width)x\(window.bounds.height)")
-                exit(0)
-            } catch { exit(4) }
         }
     }
 }
