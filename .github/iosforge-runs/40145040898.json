@@ -11,5 +11,12 @@
     "path": "sources/树洞账号检测",
     "sha": "61434c1d251f71880eabf3c546e5bf3bb4fed12f"
   },
-  "outputs": []
+  "outputs": [
+    {
+      "path": "sources/Download/树洞账号检测-unsigned.ipa",
+      "sha": "a02f7d2ffbdc2aad0ceb319dbc541ced9f359351"
+    }
+  ],
+  "status": "success",
+  "completed_at": "2026-10-25T00:02:13Z"
 }
