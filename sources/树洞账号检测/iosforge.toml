@@ -1,0 +1,12 @@
+[project]
+name = "树洞账号检测"
+kind = "app"
+minimum_ios = "15.0"
+
+[app]
+project = "树洞账号检测.xcodeproj"
+scheme = "树洞账号检测"
+configuration = "Release"
+
+[build]
+prepare_script = "ci/prepare.sh"
