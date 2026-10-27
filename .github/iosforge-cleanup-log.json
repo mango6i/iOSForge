@@ -12,5 +12,17 @@
       "managed_builds": 1,
       "detail": "本轮只清理到期编译任务及旧清理检查。当前清理检查 #114 是本轮记录，留待下次检查回收；网页发布和其他工作流记录不在编译清理范围。"
     }
+  ],
+  "notification_deletions": [
+    {
+      "timestamp": "2026-10-27T23:15:34+08:00",
+      "removed": [
+        {
+          "run_id": 40527734787,
+          "issue_number": 4,
+          "body_reset": true
+        }
+      ]
+    }
   ]
 }
