@@ -1,0 +1,55 @@
+// Recovered module 271; analysis path, not original filename.
+// Original SHA-256 212a3b9921700fd721e153afce9e097238d12d0582f7f6fee986721cad82a64a; original byte range [543607, 544529).
+__d(271, function (e, n, t, i) {
+  "use strict";
+
+  var a = (n(29), n(46)),
+    r = n(31),
+    l = (r.IntentAndroid, r.LinkingManager),
+    s = l,
+    u = n(380),
+    o = n(150),
+    v = new o(),
+    L = "openURL",
+    c = function () {
+      function e() {
+        babelHelpers.classCallCheck(this, e);
+      }
+      return babelHelpers.createClass(e, null, [{
+        key: "addEventListener",
+        value: function (e, n) {
+          u("url" === e, "Linking only supports `url` events");
+          var t = a.addListener(L, n);
+          v.set(n, t);
+        }
+      }, {
+        key: "removeEventListener",
+        value: function (e, n) {
+          u("url" === e, "Linking only supports `url` events");
+          var t = v.get(n);
+          t && (t.remove(), v["delete"](n));
+        }
+      }, {
+        key: "openURL",
+        value: function (e) {
+          return this._validateURL(e), s.openURL(e);
+        }
+      }, {
+        key: "canOpenURL",
+        value: function (e) {
+          return this._validateURL(e), s.canOpenURL(e);
+        }
+      }, {
+        key: "getInitialURL",
+        value: function () {
+          return Promise.resolve(l.initialURL);
+        }
+      }, {
+        key: "_validateURL",
+        value: function (e) {
+          u("string" == typeof e, "Invalid URL: should be a string. Was: " + e), u(e, "Invalid URL: cannot be empty");
+        }
+      }]), e;
+    }();
+  t.exports = c;
+});

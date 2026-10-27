@@ -1,0 +1,205 @@
+// Recovered module 197; analysis path, not original filename.
+// Original SHA-256 57a38ede83538aa44161b1ae6c9c9ee1f5fb9a0e4b89a70482f3831d0521aa62; original byte range [399464, 404564).
+__d(197, function (n, r, a, t) {
+  for (var e = r(405), o = e({
+      x: null
+    }), i = e({
+      y: null
+    }), u = e({
+      z: null
+    }), f = e({
+      w: null
+    }), l = e({
+      transformRotateRadians: null
+    }), s = {
+      transformRotateRadians: !0,
+      transformScale: !0,
+      transformTranslate: !0
+    }, c = {
+      transformRotateRadians: [0, 0, 0, 1],
+      transformTranslate: [0, 0, 0],
+      transformScale: [1, 1, 1]
+    }, m = /([^\s,]+)/g, v = function (n, r) {
+      var a = n.toString(),
+        t = a.slice(a.indexOf("(") + 1, a.indexOf(")")).match(m) || [],
+        e = t.map(function (n) {
+          return "\\b" + n + "\\b";
+        }).join("|"),
+        o = new RegExp(e, "g"),
+        i = a.substring(a.indexOf("{") + 1, a.lastIndexOf("}")),
+        u = i.replace(o, function (n) {
+          var a = t.indexOf(n),
+            e = r[a];
+          return e;
+        });
+      return u.split("\n");
+    }, d = {
+      unroll: function (n, r, a, t, e, o, i, u, f, l, s, c, m, v, d, p, x) {
+        r = n[0], a = n[1], t = n[2], e = n[3], o = n[4], i = n[5], u = n[6], f = n[7], l = n[8], s = n[9], c = n[10], m = n[11], v = n[12], d = n[13], p = n[14], x = n[15];
+      },
+      matrixDiffers: function (n, r, a, t, e, o, i, u, f, l, s, c, m, v, d, p, x, h) {
+        n = n || a !== r[0] || t !== r[1] || e !== r[2] || o !== r[3] || i !== r[4] || u !== r[5] || f !== r[6] || l !== r[7] || s !== r[8] || c !== r[9] || m !== r[10] || v !== r[11] || d !== r[12] || p !== r[13] || x !== r[14] || h !== r[15];
+      },
+      transformScale: function (n, r) {
+        var a = r[0],
+          t = r[1],
+          e = r[2];
+        n[0] = n[0] * a, n[1] = n[1] * a, n[2] = n[2] * a, n[3] = n[3] * a, n[4] = n[4] * t, n[5] = n[5] * t, n[6] = n[6] * t, n[7] = n[7] * t, n[8] = n[8] * e, n[9] = n[9] * e, n[10] = n[10] * e, n[11] = n[11] * e, n[12] = n[12], n[13] = n[13], n[14] = n[14], n[15] = n[15];
+      },
+      transformTranslate: function (n, r) {
+        var a = r[0],
+          t = r[1],
+          e = r[2];
+        n[12] = n[0] * a + n[4] * t + n[8] * e + n[12], n[13] = n[1] * a + n[5] * t + n[9] * e + n[13], n[14] = n[2] * a + n[6] * t + n[10] * e + n[14], n[15] = n[3] * a + n[7] * t + n[11] * e + n[15];
+      },
+      transformRotateRadians: function (n, r) {
+        var a = r[0],
+          t = r[1],
+          e = r[2],
+          o = r[3],
+          i = a + a,
+          u = t + t,
+          f = e + e,
+          l = a * i,
+          s = a * u,
+          c = a * f,
+          m = t * u,
+          v = t * f,
+          d = e * f,
+          p = o * i,
+          x = o * u,
+          h = o * f,
+          S = 1 - (m + d),
+          g = s + h,
+          R = c - x,
+          V = s - h,
+          y = 1 - (l + d),
+          O = v + p,
+          C = c + x,
+          M = v - p,
+          T = 1 - (l + m),
+          b = n[0],
+          j = n[1],
+          w = n[2],
+          D = n[3],
+          _ = n[4],
+          z = n[5],
+          E = n[6],
+          F = n[7],
+          I = n[8],
+          J = n[9],
+          N = n[10],
+          k = n[11],
+          q = S,
+          A = g,
+          B = R;
+        n[0] = q * b + A * _ + B * I, n[1] = q * j + A * z + B * J, n[2] = q * w + A * E + B * N, n[3] = q * D + A * F + B * k, q = V, A = y, B = O, n[4] = q * b + A * _ + B * I, n[5] = q * j + A * z + B * J, n[6] = q * w + A * E + B * N, n[7] = q * D + A * F + B * k, q = C, A = M, B = T, n[8] = q * b + A * _ + B * I, n[9] = q * j + A * z + B * J, n[10] = q * w + A * E + B * N, n[11] = q * D + A * F + B * k;
+      }
+    }, p = {
+      transformScale: function (n, r) {
+        n[0] = r[0], n[1] = 0, n[2] = 0, n[3] = 0, n[4] = 0, n[5] = r[1], n[6] = 0, n[7] = 0, n[8] = 0, n[9] = 0, n[10] = r[2], n[11] = 0, n[12] = 0, n[13] = 0, n[14] = 0, n[15] = 1;
+      },
+      transformTranslate: function (n, r) {
+        n[0] = 1, n[1] = 0, n[2] = 0, n[3] = 0, n[4] = 0, n[5] = 1, n[6] = 0, n[7] = 0, n[8] = 0, n[9] = 0, n[10] = 1, n[11] = 0, n[12] = r[0], n[13] = r[1], n[14] = r[2], n[15] = 1;
+      },
+      transformRotateRadians: function (n, r) {
+        var a = r[0],
+          t = r[1],
+          e = r[2],
+          o = r[3],
+          i = a + a,
+          u = t + t,
+          f = e + e,
+          l = a * i,
+          s = a * u,
+          c = a * f,
+          m = t * u,
+          v = t * f,
+          d = e * f,
+          p = o * i,
+          x = o * u,
+          h = o * f,
+          S = 1 - (m + d),
+          g = s + h,
+          R = c - x,
+          V = s - h,
+          y = 1 - (l + d),
+          O = v + p,
+          C = c + x,
+          M = v - p,
+          T = 1 - (l + m),
+          b = S,
+          j = g,
+          w = R;
+        n[0] = b, n[1] = j, n[2] = w, n[3] = 0, b = V, j = y, w = O, n[4] = b, n[5] = j, n[6] = w, n[7] = 0, b = C, j = M, w = T, n[8] = b, n[9] = j, n[10] = w, n[11] = 0, n[12] = 0, n[13] = 0, n[14] = 0, n[15] = 1;
+      }
+    }, x = function (n, r) {
+      return "  if (!didChange) {\n    var prevVal = result." + n + ";\n    result." + n + " = " + r + ";\n    didChange = didChange  || (" + r + " !== prevVal);\n  } else {\n    result." + n + " = " + r + ";\n  }\n";
+    }, h = function (n, r, a, t) {
+      var e = "round" in n,
+        o = n.round,
+        i = "  ratio = (value - " + n.min + ") / " + (n.max - n.min) + ";\n";
+      n.extrapolate || (i += "  ratio = ratio > 1 ? 1 : (ratio < 0 ? 0 : ratio);\n");
+      var u = e ? "Math.round(" + o + " * " : "",
+        f = e ? ") / " + o : "";
+      return i += "  " + t + " = " + u + "(" + r + " * (1 - ratio) + " + a + " * ratio)" + f + ";\n";
+    }, S = function (n) {
+      return h(n, n.from, n.to, "nextScalarVal");
+    }, g = function (n) {
+      var r = JSON.stringify(n.value);
+      return "  nextScalarVal = " + r + ";\n";
+    }, R = function (n) {
+      return "  nextScalarVal = value >= " + (n.threshold + " ? " + n.to + " : " + n.from) + ";\n";
+    }, V = function (n) {
+      return "  nextScalarVal = value;\n";
+    }, y = function (n) {
+      return n + "ReuseOp";
+    }, O = function (n) {
+      var r = "";
+      for (var a in n) s[a] && (r += "var " + y(a) + " = [];\n");
+      return r;
+    }, C = function (n) {
+      return "\n" + n.join("\n") + "\n";
+    }, M = function (n, r, a, t) {
+      var e = y(r) + "[" + t + "]";
+      return void 0 !== n.from[a] && void 0 !== n.to[a] ? "  " + n.from[a] !== n.to[a] ? h(n, n.from[a], n.to[a], e) : e + " = " + n.from[a] + ";" : "  " + e + " = " + c[r][t] + ";";
+    }, T = [], b = 0; 16 > b; b++) T.push("m" + b);
+  var j = function (n) {
+      var r = ["  var transform = result.transform !== undefined ? result.transform : (result.transform = [{ matrix: [] }]);  var transformMatrix = transform[0].matrix;"];
+      r.push.apply(r, v(d.unroll, ["transformMatrix"].concat(T)));
+      for (var a = 0; a < n.length; a++) {
+        var t = n[a];
+        0 === a ? r.push.apply(r, v(p[t], ["transformMatrix", y(t)])) : r.push.apply(r, v(d[t], ["transformMatrix", y(t)]));
+      }
+      return r.push.apply(r, v(d.matrixDiffers, ["didChange", "transformMatrix"].concat(T))), r;
+    },
+    w = {
+      transformTranslate: !0,
+      transformRotateRadians: !0,
+      transformScale: !0
+    },
+    D = function (n) {
+      var r = [],
+        a = "return (function() {\n";
+      a += O(n), a += "return function(result, value) {\n", a += "  var didChange = false;\n", a += "  var nextScalarVal;\n", a += "  var ratio;\n";
+      for (var t in n) {
+        var e = n[t];
+        if ("linear" === e.type) {
+          if (w[t]) {
+            r.push(t);
+            var s = [M(e, t, o, 0), M(e, t, i, 1), M(e, t, u, 2)];
+            t === l && s.push(M(e, t, f, 3)), a += C(s);
+          } else a += S(e, "nextScalarVal"), a += x(t, "nextScalarVal");
+        } else "constant" === e.type ? (a += g(e), a += x(t, "nextScalarVal")) : "step" === e.type ? (a += R(e), a += x(t, "nextScalarVal")) : "identity" === e.type && (a += V(e), a += x(t, "nextScalarVal"));
+      }
+      return r.length && (a += C(j(r))), a += "  return didChange;\n", a += "};\n", a += "})()";
+    },
+    _ = function (n) {
+      function r(r, t) {
+        return null === a && (a = Function(D(n))()), a(r, t);
+      }
+      var a = null;
+      return r;
+    };
+  a.exports = _;
+});

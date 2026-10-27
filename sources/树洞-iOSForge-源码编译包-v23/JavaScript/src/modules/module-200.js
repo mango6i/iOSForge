@@ -1,0 +1,665 @@
+// Recovered module 200; analysis path, not original filename.
+// Original SHA-256 99c689e4f9df1c43152d3ef9816fb35d7b4fd8bd415da7c051afeadf2447bd59; original byte range [409276, 415760).
+__d(200, function (e, t, a, o) {
+  "use strict";
+
+  var r = t(45),
+    n = t(44),
+    i = t(197),
+    l = r.get("window").width,
+    s = r.get("window").height,
+    p = {
+      transformTranslate: {
+        from: {
+          x: 0,
+          y: 0,
+          z: 0
+        },
+        to: {
+          x: .3 * -l,
+          y: 0,
+          z: 0
+        },
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      },
+      opacity: {
+        value: 1,
+        type: "constant"
+      }
+    },
+    m = {
+      transformTranslate: {
+        from: {
+          x: 0,
+          y: 0,
+          z: 0
+        },
+        to: {
+          x: -Math.round(.3 * r.get("window").width),
+          y: 0,
+          z: 0
+        },
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      },
+      transformScale: {
+        from: {
+          x: 1,
+          y: 1,
+          z: 1
+        },
+        to: {
+          x: .95,
+          y: .95,
+          z: 1
+        },
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0
+      },
+      opacity: {
+        from: 1,
+        to: .3,
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !1,
+        round: 100
+      },
+      translateX: {
+        from: 0,
+        to: -Math.round(.3 * r.get("window").width),
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      },
+      scaleX: {
+        from: 1,
+        to: .95,
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0
+      },
+      scaleY: {
+        from: 1,
+        to: .95,
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0
+      }
+    },
+    x = babelHelpers["extends"]({}, m, {
+      transformTranslate: {
+        from: {
+          x: 0,
+          y: 0,
+          z: 0
+        },
+        to: {
+          x: Math.round(.3 * l),
+          y: 0,
+          z: 0
+        }
+      },
+      translateX: {
+        from: 0,
+        to: Math.round(.3 * l)
+      }
+    }),
+    d = {
+      opacity: {
+        from: 0,
+        to: 1,
+        min: .5,
+        max: 1,
+        type: "linear",
+        extrapolate: !1,
+        round: 100
+      }
+    },
+    u = {
+      opacity: {
+        from: 1,
+        to: 0,
+        min: 0,
+        max: .5,
+        type: "linear",
+        extrapolate: !1,
+        round: 100
+      }
+    },
+    y = {
+      transformTranslate: {
+        from: {
+          x: 0,
+          y: 0,
+          z: 0
+        },
+        to: {
+          x: -r.get("window").width,
+          y: 0,
+          z: 0
+        },
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      },
+      opacity: {
+        value: 1,
+        type: "constant"
+      },
+      translateX: {
+        from: 0,
+        to: -r.get("window").width,
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      }
+    },
+    g = {
+      transformTranslate: {
+        from: {
+          x: 0,
+          y: 0,
+          z: 0
+        },
+        to: {
+          x: 0,
+          y: -r.get("window").height + 90,
+          z: 0
+        },
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      },
+      opacity: {
+        value: 1,
+        type: "constant"
+      },
+      translateY: {
+        from: 0,
+        to: -r.get("window").height,
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      }
+    },
+    c = {
+      transformTranslate: {
+        from: {
+          x: 0,
+          y: 0,
+          z: 0
+        },
+        to: {
+          x: 0,
+          y: r.get("window").height,
+          z: 0
+        },
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      },
+      opacity: {
+        value: 1,
+        type: "constant"
+      },
+      translateY: {
+        from: 0,
+        to: r.get("window").height,
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      }
+    },
+    b = {
+      opacity: {
+        value: 1,
+        type: "constant"
+      },
+      transformTranslate: {
+        from: {
+          x: r.get("window").width,
+          y: 0,
+          z: 0
+        },
+        to: {
+          x: 0,
+          y: 0,
+          z: 0
+        },
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      },
+      translateX: {
+        from: r.get("window").width,
+        to: 0,
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      },
+      scaleX: {
+        value: 1,
+        type: "constant"
+      },
+      scaleY: {
+        value: 1,
+        type: "constant"
+      }
+    },
+    f = babelHelpers["extends"]({}, b, {
+      transformTranslate: {
+        from: {
+          x: -l,
+          y: 0,
+          z: 0
+        },
+        to: {
+          x: 0,
+          y: 0,
+          z: 0
+        },
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      },
+      translateX: {
+        from: -l,
+        to: 0,
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      }
+    }),
+    w = babelHelpers["extends"]({}, b, {
+      transformTranslate: {
+        from: {
+          y: s - 90,
+          x: 0,
+          z: 0
+        },
+        to: {
+          x: 0,
+          y: 0,
+          z: 0
+        },
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      },
+      translateY: {
+        from: s,
+        to: 0,
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      }
+    }),
+    h = babelHelpers["extends"]({}, b, {
+      transformTranslate: {
+        from: {
+          y: -s,
+          x: 0,
+          z: 0
+        },
+        to: {
+          x: 0,
+          y: 0,
+          z: 0
+        },
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      },
+      translateY: {
+        from: -s,
+        to: 0,
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      }
+    }),
+    H = {
+      transformTranslate: {
+        from: {
+          x: 0,
+          y: 0,
+          z: 0
+        },
+        to: {
+          x: 0,
+          y: 0,
+          z: 0
+        },
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      },
+      transformScale: {
+        from: {
+          x: 1,
+          y: 1,
+          z: 1
+        },
+        to: {
+          x: .95,
+          y: .95,
+          z: 1
+        },
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0
+      },
+      opacity: {
+        from: 1,
+        to: .3,
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !1,
+        round: 100
+      },
+      scaleX: {
+        from: 1,
+        to: .95,
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0
+      },
+      scaleY: {
+        from: 1,
+        to: .95,
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0
+      }
+    },
+    z = {
+      opacity: {
+        value: 1,
+        type: "constant"
+      },
+      transformTranslate: {
+        from: {
+          x: 0,
+          y: r.get("window").height,
+          z: 0
+        },
+        to: {
+          x: 0,
+          y: 0,
+          z: 0
+        },
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      },
+      translateY: {
+        from: r.get("window").height,
+        to: 0,
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      },
+      scaleX: {
+        value: 1,
+        type: "constant"
+      },
+      scaleY: {
+        value: 1,
+        type: "constant"
+      }
+    },
+    v = {
+      opacity: {
+        value: 1,
+        type: "constant"
+      }
+    },
+    F = {
+      opacity: {
+        from: 0,
+        to: 1,
+        min: .5,
+        max: 1,
+        type: "linear",
+        extrapolate: !1,
+        round: 100
+      },
+      transformTranslate: {
+        from: {
+          x: 0,
+          y: 100,
+          z: 0
+        },
+        to: {
+          x: 0,
+          y: 0,
+          z: 0
+        },
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      },
+      translateY: {
+        from: 100,
+        to: 0,
+        min: 0,
+        max: 1,
+        type: "linear",
+        extrapolate: !0,
+        round: n.get()
+      }
+    },
+    D = {
+      frictionConstant: 1,
+      frictionByDistance: 1.5
+    },
+    T = {
+      isDetachable: !1,
+      gestureDetectMovement: 2,
+      notMoving: .3,
+      directionRatio: .66,
+      snapVelocity: 2,
+      edgeHitWidth: 40,
+      stillCompletionRatio: .2,
+      fullDistance: l,
+      direction: "left-to-right"
+    },
+    I = babelHelpers["extends"]({}, T, {
+      direction: "right-to-left"
+    }),
+    Y = babelHelpers["extends"]({}, T, {
+      fullDistance: s,
+      direction: "down-to-up"
+    }),
+    X = babelHelpers["extends"]({}, T, {
+      fullDistance: s,
+      direction: "up-to-down"
+    }),
+    j = {
+      gestures: {
+        pop: T
+      },
+      springFriction: 26,
+      springTension: 200,
+      defaultTransitionVelocity: 16,
+      animationInterpolators: {
+        into: i(b),
+        out: i(m)
+      }
+    },
+    W = {
+      PushFromRight: babelHelpers["extends"]({}, j, {
+        animationInterpolators: {
+          into: i(b),
+          out: i(p)
+        }
+      }),
+      FloatFromRight: babelHelpers["extends"]({}, j),
+      FloatFromLeft: babelHelpers["extends"]({}, j, {
+        gestures: {
+          pop: I
+        },
+        animationInterpolators: {
+          into: i(f),
+          out: i(x)
+        }
+      }),
+      FloatFromBottom: babelHelpers["extends"]({}, j, {
+        gestures: {
+          pop: babelHelpers["extends"]({}, T, {
+            edgeHitWidth: 150,
+            direction: "top-to-bottom",
+            fullDistance: s
+          })
+        },
+        animationInterpolators: {
+          into: i(z),
+          out: i(H)
+        }
+      }),
+      FloatFromBottomAndroid: babelHelpers["extends"]({}, j, {
+        gestures: null,
+        defaultTransitionVelocity: 3,
+        springFriction: 20,
+        animationInterpolators: {
+          into: i(F),
+          out: i(v)
+        }
+      }),
+      FadeAndroid: babelHelpers["extends"]({}, j, {
+        gestures: null,
+        animationInterpolators: {
+          into: i(d),
+          out: i(u)
+        }
+      }),
+      HorizontalSwipeJump: babelHelpers["extends"]({}, j, {
+        gestures: {
+          jumpBack: babelHelpers["extends"]({}, T, {
+            overswipe: D,
+            edgeHitWidth: null,
+            isDetachable: !0
+          }),
+          jumpForward: babelHelpers["extends"]({}, I, {
+            overswipe: D,
+            edgeHitWidth: null,
+            isDetachable: !0
+          })
+        },
+        animationInterpolators: {
+          into: i(b),
+          out: i(y)
+        }
+      }),
+      HorizontalSwipeJumpFromRight: babelHelpers["extends"]({}, j, {
+        gestures: {
+          jumpBack: babelHelpers["extends"]({}, I, {
+            overswipe: D,
+            edgeHitWidth: null,
+            isDetachable: !0
+          }),
+          jumpForward: babelHelpers["extends"]({}, T, {
+            overswipe: D,
+            edgeHitWidth: null,
+            isDetachable: !0
+          }),
+          pop: I
+        },
+        animationInterpolators: {
+          into: i(f),
+          out: i(x)
+        }
+      }),
+      VerticalUpSwipeJump: babelHelpers["extends"]({}, j, {
+        gestures: {
+          jumpBack: babelHelpers["extends"]({}, Y, {
+            overswipe: D,
+            stillCompletionRatio: .1,
+            isDetachable: !0
+          }),
+          jumpForward: babelHelpers["extends"]({}, Y, {
+            overswipe: D,
+            stillCompletionRatio: .1,
+            isDetachable: !0
+          })
+        },
+        animationInterpolators: {
+          into: i(w),
+          out: i(g)
+        }
+      }),
+      VerticalDownSwipeJump: babelHelpers["extends"]({}, j, {
+        gestures: {
+          jumpBack: babelHelpers["extends"]({}, X, {
+            overswipe: D,
+            edgeHitWidth: null,
+            isDetachable: !0
+          }),
+          jumpForward: babelHelpers["extends"]({}, X, {
+            overswipe: D,
+            edgeHitWidth: null,
+            isDetachable: !0
+          })
+        },
+        animationInterpolators: {
+          into: i(h),
+          out: i(c)
+        }
+      })
+    };
+  a.exports = W;
+});
