@@ -17,6 +17,21 @@
       "deleted_run_numbers": {
         "41012126788": 350
       }
+    },
+    {
+      "timestamp": "2026-10-30T15:01:02+08:00",
+      "cleanup_run_id": 41017430528,
+      "deleted_run_ids": [
+        41017279951
+      ],
+      "actions_runs_deleted": 1,
+      "repository_items_deleted": 1,
+      "removed_paths": [
+        "sources/hailuo-ios-v1.0.0"
+      ],
+      "deleted_run_numbers": {
+        "41017279951": 351
+      }
     }
   ],
   "checks": [
