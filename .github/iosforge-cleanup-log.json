@@ -19,7 +19,16 @@
       }
     }
   ],
-  "checks": [],
+  "checks": [
+    {
+      "timestamp": "2026-10-30T14:08:03+08:00",
+      "cleanup_run_id": 41012256808,
+      "result": "cleaned",
+      "run_number": 117,
+      "managed_builds": 0,
+      "detail": "本轮只清理到期编译任务及旧清理检查。当前清理检查 #117 是本轮记录，留待下次检查回收；网页发布和其他工作流记录不在编译清理范围。"
+    }
+  ],
   "system_deletions": [
     {
       "timestamp": "2026-10-30T14:07:48+08:00",
