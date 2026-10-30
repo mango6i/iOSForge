@@ -4,7 +4,7 @@
   "profile": "full",
   "files": {
     ".github/actions/setup-ios/action.yml": "1e99eceac6242a758c856b4e39860dc9f998a7d64cda2b682ecc40ffde8c40f3",
-    ".github/scripts/cleanup.py": "c5f2504130eac414f76a55d77c2df383080a9f91272d5b3875c52651fd3d1ee3",
+    ".github/scripts/cleanup.py": "4e8050c926946a2f9a228475e2c579fc5210a5b9ddf354cd312b4318620c209c",
     ".github/scripts/publish_outputs.py": "538f791bfd089c7794ebc86010ba323c11e55138f5f8fa0028a64f4eb3ee944e",
     ".github/scripts/site_config.py": "c8fd18fcc8003dac714b8b40a8bc2b2ebff620c4218f2ab320095e57a08c5c67",
     ".github/scripts/sync_upstream.py": "af1ba18696a85eaeae2b3ff318fea245db43be140814c8c4c9154140f564ac94",
@@ -29,20 +29,20 @@
     "iosforge/source_parts.py": "811b76e2c93a1ee2f05b12da5ce9946f0da1a3e8e1ddcb8368fe163da5a8f697",
     "pyproject.toml": "af80275f5c75b2b18aa0bb079ba6eb35191567c185eae45e5a101736aaa13b2e",
     "scripts/make_release.py": "247b60d607a025a0dcc922faed99c557df10308f7a85871be1c7c2a20543e1fc",
-    "scripts/make_starter.py": "d048fe97e3ca80572125cb0e2ac5052430adf51328ccc12d25a79ab5ddc45de1",
-    "web/app.js": "72f7db59a26fc3e8c79c2e071454498fcffe9efc60faa95d89967f164db1f944",
-    "web/build-logs.js": "ddc46da321d6fe13f19a1931e7a51837d2ca1b7fc450c1e00a9ada911ac339b9",
+    "scripts/make_starter.py": "3145e3dedf06942f6a682a248a1908daebab34929281063e45bfa05a105f1ff6",
+    "web/app.js": "e457009e4dc0016f025aef7b3cd7a2cd3cfcdb45c6731a7cfd4a37f3cec88cc9",
+    "web/build-logs.js": "85b460e02d7557dc5122a2c289c7028555384421471063805baa083f8e88feb0",
     "web/favicon.svg": "f0cdf3f14a17132759bd0682b672f07eb4d97f7710fd1a0af47121e42be2aa83",
-    "web/guide.html": "f16956c62e2bd0b355b6684d6d68f48492fca62c88028f2001893bc391461e06",
+    "web/guide.html": "d267738dfbb26d5da91dca91cc2f85091888670461c6768ae9ea1d825a33cdbe",
     "web/guide.js": "d03f9a226bd992af8f34f4223a50660bdc2b22e8e4f1f0d1ba59d944ec89ced7",
-    "web/host-context.js": "71d3110860be398b0ccc9a1514eac9aed85e98405419e8a8de4c60a1798297bc",
-    "web/index.html": "0e8b16ac768cd4f274836fc45648306c265dda0ddd63e2e30bb244c56ac1769d",
+    "web/host-context.js": "6a16646ca115c8096666ffa2895f260fccd364a54e6c381ffbdc496f698a431e",
+    "web/index.html": "6cd613ccf06b34664c2c8bb44245d6b31333199fe74713671718c8f1e54ea185",
     "web/source-upload.js": "76070cca96fcccb01229c93ce30a1fbe2fa2d091474a53ea77f197ac3c0ba73e",
     "web/styles.css": "e26a08ee22da3445a3e4638d0863eeb93dafa1ef6d46a07d77e206dcce3e3601",
     "web/vendor/fflate-0.8.2.js": "e05ff56381f2e5cb2b1054d45e5bf06f6e119313dc71e193df2fdd15eebe0a57",
     "web/vendor/fflate-LICENSE.txt": "370679c457d36555127bbcefe8f57361f7852f04df0f2329a065f566f26f0d76"
   },
   "documentation": {
-    "docs/private-build.md": "e05bafa35d8efbcb6a13ceb1307a15d546f341f7d0f2fe35a290501f628d45b5"
+    "docs/private-build.md": "6367f65381b10ce9d94448c569e0ecf7f9d47aabba68af1aca4b636ab6764c9d"
   }
 }
