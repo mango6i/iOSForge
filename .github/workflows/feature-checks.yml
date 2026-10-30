@@ -7,6 +7,8 @@ on:
       - 'web/source-upload.js'
       - 'web/app.js'
       - '.github/scripts/cleanup.py'
+      - '.github/scripts/publish_outputs.py'
+      - '.github/workflows/build.yml'
       - '.github/workflows/feature-checks.yml'
   workflow_dispatch:
 permissions:
@@ -30,6 +32,7 @@ jobs:
       - run: node tests/upload-concurrency.cjs
       - run: node tests/xcode-detect.cjs
       - run: node tests/session-auth.cjs
+      - run: node tests/private-build.cjs
       - run: node tests/capacity-upload.cjs
       - run: node tests/binary-batch.cjs
       - run: node tests/chunked-source.cjs

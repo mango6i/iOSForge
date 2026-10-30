@@ -222,6 +222,10 @@ class GitHubApi:
         *,
         allow_404: bool = False,
     ) -> dict | list | None:
+        if method != "GET":
+            repository = self.request("GET", "")
+            if not isinstance(repository, dict) or repository.get("private") is not True or repository.get("full_name", "").casefold() != self.repository.casefold():
+                raise RuntimeError("Cleanup requires the same PRIVATE build repository; stopped before modifying files, records or notifications.")
         body = json.dumps(payload).encode("utf-8") if payload is not None else None
         request = Request(
             self.base + path,

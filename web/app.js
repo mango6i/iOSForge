@@ -77,7 +77,8 @@ function currentCleanupKey() {
 
 function rememberedUploadConsent() {
   const key = currentRepoKey();
-  return key ? readPreferences().uploadConsent[key] || null : null;
+  const record = key ? readPreferences().uploadConsent[key] : null;
+  return record?.visibility === "private" && Number.isSafeInteger(record.repositoryId) ? record : null;
 }
 
 function updateUploadConsentMemory() {
@@ -90,10 +91,12 @@ function updateUploadConsentMemory() {
 
 function rememberUploadConsent(visibility, repositoryId) {
   const key = currentRepoKey();
-  if (!key) return;
+  if (!key || visibility !== "private" || !Number.isSafeInteger(repositoryId)) {
+    uploadConsentInput.checked = true; uploadConsentMemory.hidden = true; clearUploadConsentError();
+    return;
+  }
   const preferences = readPreferences();
-  const previous = preferences.uploadConsent[key] || {};
-  preferences.uploadConsent[key] = { rememberedAt: Date.now(), visibility: visibility || previous.visibility || "unknown", repositoryId: Number.isSafeInteger(repositoryId) ? repositoryId : previous.repositoryId || null };
+  preferences.uploadConsent[key] = { rememberedAt: Date.now(), visibility, repositoryId };
   if (writePreferences(preferences)) updateUploadConsentMemory();
   else { uploadConsentInput.checked = true; uploadConsentMemory.hidden = true; clearUploadConsentError(); }
 }
@@ -115,14 +118,29 @@ function resetUploadConsent() {
   clearUploadConsentError();
 }
 
+function privateTargetKey() {
+  const location = globalThis.location;
+  return location ? `${location.origin}${location.pathname.replace(/[^/]*$/, "")}` : "local-workspace";
+}
+
+function rememberPrivateTarget(repository) {
+  const preferences = readPreferences();
+  preferences.privateTargets ||= {};
+  preferences.privateTargets[privateTargetKey()] = { repository: repository.full_name, repositoryId: repository.id, branch: state.branch };
+  writePreferences(preferences);
+}
+
 function applyHostingIdentity(identity) {
-  if (!identity || !parseRepo(identity.repository)) return;
-  repoInput.value = identity.repository;
-  repoInput.placeholder = identity.repository;
-  branchInput.value = identity.branch || "main";
-  const help = $("#repository-help"), text = [...help.childNodes].find(node => node.nodeType === 3);
-  if (text) text.textContent = `当前工作台默认使用 ${identity.repository}；请核对账号与仓库权限。需要保护源码时，请先改为 Private 私有仓库。`;
-  $("#workspace-status").textContent = `当前网站对应 ${identity.repository} · ${branchInput.value}。请填写仅授权自己仓库的 Token，并检查仓库。`;
+  const saved = readPreferences().privateTargets?.[privateTargetKey()];
+  const target = identity?.explicit ? identity : Number.isSafeInteger(saved?.repositoryId) ? saved : null;
+  // Hosting identity describes the public website, never an upload destination.
+  if (target && parseRepo(target.repository)) {
+    repoInput.value = target.repository;
+    branchInput.value = target.branch || "main";
+  }
+  $("#workspace-status").textContent = repoInput.value
+    ? "请检查自己的私有构建仓库；通过核验后才能上传。Token 仅用于当前页面。"
+    : "网页保持公开；源码只上传到你自己的 Private 私有构建仓库，请先填写并检查。";
   updateDestination(); updateLinks(); resetCleanupSettings();
 }
 
@@ -166,6 +184,21 @@ function encodePath(path) {
 
 async function githubOnce(path, options = {}) {
   if(state.closed || !state.token)throw new Error("当前页面会话已结束或 Token 已清空，操作已停止；请重新填写 Token 并检查仓库。若离开过工作台，请重新选择源码。这不代表令牌已到期。");
+  if (options.method && options.method.toUpperCase() !== "GET") {
+    const match = /^\/repos\/([^/]+)\/([^/?]+)\//.exec(path);
+    const expected = state.repo && `${state.repo.owner}/${state.repo.name}`;
+    const base = match && `/repos/${match[1]}/${match[2]}`;
+    if (!base || !expected || `${decodeURIComponent(match[1])}/${decodeURIComponent(match[2])}`.toLowerCase() !== expected.toLowerCase()) throw new Error("写入目标与当前私有构建仓库不一致，已停止操作。");
+    const token = state.token, branch = state.branch, repositoryId = state.workspace?.id;
+    // Recheck immediately before each write, including blobs uploaded in parallel.
+    // A visibility change or a failed read must never fall back to public upload.
+    const repository = await githubOnce(base);
+    if (repository.private !== true || repository.full_name?.toLowerCase() !== expected.toLowerCase() || !Number.isSafeInteger(repository.id)
+      || repository.owner?.type !== "User" || repository.owner?.login?.toLowerCase() !== state.repo?.owner.toLowerCase()
+      || repository.archived || repository.disabled || repository.permissions?.push === false
+      || repositoryId && repositoryId !== repository.id) throw new Error("目标必须是你自己的 Private 私有构建仓库；当前不可确认私有状态，已停止写入。公开项目和网页无需改为私有。");
+    if (state.closed || state.token !== token || state.branch !== branch || `${state.repo?.owner}/${state.repo?.name}` !== expected) throw new Error("页面会话或仓库发生变化，已停止写入，请重新检查。");
+  }
   let response;
   try { response = await fetch(`https://api.github.com${path}`, {
     ...options,
@@ -406,17 +439,16 @@ function invalidateWorkspace() {
 
 const workspaceCacheMs = 60 * 1000;
 
-async function verifyWorkspace({ upload = false, fresh = false } = {}) {
+async function verifyWorkspace({ upload = false, fresh = false, requireBuild = true } = {}) {
   const cached = state.workspace;
-  if (!fresh && cached && historyMatchesInputs() && Date.now() - cached.checkedAt < workspaceCacheMs) {
+  if (!fresh && cached?.private === true && (!requireBuild || cached.buildReady) && historyMatchesInputs() && Date.now() - cached.checkedAt < workspaceCacheMs) {
     if (upload && !requireUploadConsent()) throw new Error("请先阅读上传说明，并勾选唯一的“确认提交”选项。");
     return cached.repository;
   }
   const base = repoBase(), previous = state.workspace;
-  const [user, repository, workflow] = await Promise.all([
+  const [user, repository] = await Promise.all([
     github("/user"),
     github(base),
-    github(`${base}/actions/workflows/build.yml`),
   ]);
   if (state.closed || !historyMatchesInputs()) throw new Error("账号或仓库输入已变化，请重新检查。");
   if (!Number.isSafeInteger(user.id) || !user.login || repository.owner?.id !== user.id || repository.owner?.type !== "User" || repository.owner.login.toLowerCase() !== user.login.toLowerCase()) {
@@ -426,18 +458,26 @@ async function verifyWorkspace({ upload = false, fresh = false } = {}) {
   if (!Number.isSafeInteger(repository.id) || repository.full_name?.toLowerCase() !== `${state.repo.owner}/${state.repo.name}`.toLowerCase() || typeof repository.private !== "boolean") {
     invalidateWorkspace(); throw new Error("无法确认目标仓库或可见性，已停止操作。");
   }
+  if (repository.private !== true) {
+    invalidateWorkspace(); forgetUploadConsent();
+    $("#workspace-status").dataset.visibility = "public";
+    $("#public-upload-warning").hidden = false;
+    throw new Error("当前是 Public 公开仓库，已禁止上传和构建。请使用独立的 Private 私有构建仓库；iOSForge 项目和网页可以继续公开。");
+  }
   if (repository.archived || repository.disabled || repository.permissions?.push === false) throw new Error("这个仓库已归档、停用或不可写，请选择可用的个人仓库。");
-  if (!Number.isSafeInteger(workflow.id) || workflow.state !== "active") throw new Error("编译工作流尚未安装或未启用。请按指南导入纯净初始化包，并在自己的仓库 Actions 中启用工作流。");
+  const workflow = requireBuild ? await github(`${base}/actions/workflows/build.yml`) : null;
+  if (requireBuild && (!Number.isSafeInteger(workflow.id) || workflow.state !== "active")) throw new Error("编译工作流尚未安装或未启用。请按指南导入纯净初始化包，并在自己的仓库 Actions 中启用工作流。");
   if (state.closed || !historyMatchesInputs()) throw new Error("页面会话已变化，已停止操作。");
   const remembered = rememberedUploadConsent();
   const visibility = repository.private ? "private" : "public";
   const rememberedChanged = remembered && ((remembered.visibility !== "unknown" && remembered.visibility !== visibility) || (remembered.repositoryId && remembered.repositoryId !== repository.id));
   if (rememberedChanged || (previous && (previous.id !== repository.id || previous.private !== repository.private))) forgetUploadConsent();
   else if (uploadConsentInput.checked) rememberUploadConsent(visibility, repository.id);
-  state.workspace = { id: repository.id, private: repository.private, login: user.login, repository, checkedAt: Date.now() };
+  state.workspace = { id: repository.id, private: repository.private, login: user.login, repository, buildReady: !!workflow, checkedAt: Date.now() };
+  rememberPrivateTarget(repository);
   $("#workspace-status").dataset.visibility = repository.private ? "private" : "public";
-  $("#workspace-status").textContent = `已核对 ${user.login} · ${repository.full_name} · ${repository.private ? "Private 私有" : "Public 公开"} · 编译工作流已启用。`;
-  $("#workspace-status").title = "公开仓库中的源码所有人可见；写入权限仍以实际提交结果为准。完整说明见“仓库与源码隐私说明”。";
+  $("#workspace-status").textContent = `已核对 ${user.login} · ${repository.full_name} · Private 私有 · ${workflow ? "编译工作流已启用" : "可独立保存清理规则"}。`;
+  $("#workspace-status").title = "源码、构建日志和产物使用当前私有仓库；公开网站只提供操作界面。写入前会再次核验私有状态。";
   $("#public-upload-warning").hidden = repository.private;
   updateLinks();
   buildLogs?.connect?.({ base, repoName: repository.full_name, branch: state.branch, token: state.token });
@@ -950,6 +990,15 @@ $("#save-cleanup").addEventListener("click", async () => {
   $("#save-cleanup").textContent = "正在保存…";
   let configSaved = false;
   try {
+    const changed = !state.repo || repoBase(repo) !== repoBase() || state.branch !== branch;
+    if (changed || state.token !== token) state.workspace = null;
+    if (changed) {
+      buildLogs?.close(); state.history = []; selectedRuns.clear(); historyPage = 0; historyHasMore = false;
+      state.runId = null; state.artifacts = []; artifactList.hidden = true; runMeta.hidden = true;
+      resetProjects("已切换私有构建仓库，请重新读取项目。"); renderHistory();
+    }
+    state.repo = repo; state.token = token; state.branch = branch; state.closed = false;
+    await verifyWorkspace({ fresh: true, requireBuild: false });
     let current = null;
     try { current = await request(`${base}/contents/${encodePath(cleanupConfigPath)}?ref=${encodeURIComponent(branch)}`); }
     catch (error) { if (error?.status !== 404) throw error; }
@@ -1330,7 +1379,7 @@ $("#history-list").addEventListener("click", async event => {
 function confirmDelete(artifact) {
   const target = `${artifact.name} · ${state.repo.owner}/${state.repo.name} · 运行 ID ${state.runId}`;
   const dialog = $("#delete-dialog");
-  if (typeof dialog.showModal !== "function") return Promise.resolve(window.confirm(`从仓库 sources/Download 永久删除：${target}？\n不会删除源码、构建记录或已经下载到本地的文件。删除后需重新编译才能生成。`));
+  if (typeof dialog.showModal !== "function") return Promise.resolve(window.confirm(`从当前私有仓库分支的 sources/Download 删除：${target}？\n不会删除源码、构建记录、Git 历史或已经下载到本地的文件。`));
   $("#delete-target").textContent = target;
   return new Promise(resolve => {
     let confirmed = false;

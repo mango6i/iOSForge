@@ -19,6 +19,7 @@ concurrency:
 
 jobs:
   cleanup:
+    if: github.event.repository.private == true
     name: Clean expired builds
     runs-on: ubuntu-latest
     timeout-minutes: 10

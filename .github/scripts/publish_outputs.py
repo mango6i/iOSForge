@@ -58,9 +58,14 @@ class GitHubApi:
             raise RuntimeError("IOSFORGE_REPOSITORY must be owner/repository.")
         owner, name = repository.split("/", 1)
         self.base = f"https://api.github.com/repos/{quote(owner, safe='')}/{quote(name, safe='')}"
+        self.repository = repository
         self.token = token
 
     def request(self, method: str, path: str, payload: dict | None = None) -> dict:
+        if method != "GET":
+            repository = self.request("GET", "")
+            if repository.get("private") is not True or repository.get("full_name", "").casefold() != self.repository.casefold():
+                raise RuntimeError("Output publication requires the same PRIVATE build repository; stopped before writing any binary.")
         body = json.dumps(payload).encode("utf-8") if payload is not None else None
         request = Request(
             self.base + path,

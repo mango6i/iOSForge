@@ -20,6 +20,7 @@ BASE_FILES = {
     ".github/workflows/cleanup.yml", ".github/workflows/environment.yml",
     ".github/workflows/pages.yml", ".github/workflows/upstream-sync.yml",
     "scripts/make_starter.py", "scripts/make_release.py", "pyproject.toml",
+    "docs/private-build.md",
     "web/index.html", "web/app.js", "web/build-logs.js", "web/styles.css",
     "web/guide.html", "web/guide.js", "web/source-upload.js", "web/favicon.svg", "web/host-context.js",
     "web/vendor/fflate-0.8.2.js", "web/vendor/fflate-LICENSE.txt",
