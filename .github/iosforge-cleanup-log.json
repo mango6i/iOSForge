@@ -1,62 +1,6 @@
 {
   "version": 1,
-  "date": "2026-10-28",
+  "date": "2026-10-30",
   "timezone": "Asia/Shanghai",
-  "entries": [
-    {
-      "timestamp": "2026-10-28T09:49:50+08:00",
-      "cleanup_run_id": 40617155115,
-      "deleted_run_ids": [
-        40617058058
-      ],
-      "actions_runs_deleted": 1,
-      "repository_items_deleted": 2,
-      "removed_paths": [
-        "sources/Download/树洞-unsigned.ipa",
-        "sources/树洞-iOSForge-源码编译包-v25"
-      ],
-      "deleted_run_numbers": {
-        "40617058058": 349
-      }
-    }
-  ],
-  "checks": [
-    {
-      "timestamp": "2026-10-28T09:49:52+08:00",
-      "cleanup_run_id": 40617155115,
-      "result": "cleaned",
-      "run_number": 116,
-      "managed_builds": 0,
-      "detail": "本轮只清理到期编译任务及旧清理检查。当前清理检查 #116 是本轮记录，留待下次检查回收；网页发布和其他工作流记录不在编译清理范围。"
-    }
-  ],
-  "system_deletions": [
-    {
-      "timestamp": "2026-10-28T09:47:56+08:00",
-      "cleanup_run_id": 40617155115,
-      "deleted_run_ids": [
-        40532578436
-      ],
-      "deleted_runs": [
-        {
-          "id": 40532578436,
-          "run_number": 115
-        }
-      ],
-      "retained_run_id": 40617155115,
-      "retained_run_number": 116
-    }
-  ],
-  "notification_deletions": [
-    {
-      "timestamp": "2026-10-28T09:49:49+08:00",
-      "removed": [
-        {
-          "run_id": 40617058058,
-          "comment_id": 6458465854,
-          "issue_number": 5
-        }
-      ]
-    }
-  ]
+  "entries": []
 }
