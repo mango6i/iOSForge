@@ -11,5 +11,8 @@
     "path": "sources/hailuo-ios-v1.0.0",
     "sha": "66e9706c2497459ec204aea1bd044c14f3a47f02"
   },
-  "outputs": []
+  "outputs": [],
+  "cleanup_pending": {
+    "actions_record": true
+  }
 }
