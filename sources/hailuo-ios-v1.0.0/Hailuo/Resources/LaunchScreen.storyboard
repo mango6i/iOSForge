@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23501" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="launch-controller">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23501"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <scene sceneID="launch-scene">
+            <objects>
+                <viewController id="launch-controller" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="launch-view">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="LaunchGradient" translatesAutoresizingMaskIntoConstraints="NO" id="launch-gradient">
+                                <rect key="frame" x="0" y="0" width="393" height="852"/>
+                            </imageView>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="0" translatesAutoresizingMaskIntoConstraints="NO" id="launch-stack">
+                                <rect key="frame" x="72" y="329" width="249" height="194"/>
+                                <subviews>
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="conch" translatesAutoresizingMaskIntoConstraints="NO" id="launch-icon">
+                                        <rect key="frame" x="88.5" y="0" width="72" height="72"/>
+                                        <constraints><constraint firstAttribute="width" constant="72" id="icon-width"/><constraint firstAttribute="height" constant="72" id="icon-height"/></constraints>
+                                    </imageView>
+                                    <view opaque="NO" translatesAutoresizingMaskIntoConstraints="NO" id="launch-logo-gap"><constraints><constraint firstAttribute="height" constant="8" id="launch-logo-gap-height"/></constraints></view>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="海螺" textAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="launch-title">
+                                        <rect key="frame" x="96" y="80" width="57" height="34"/>
+                                        <fontDescription key="fontDescription" type="system" weight="bold" pointSize="28"/>
+                                        <constraints><constraint firstAttribute="height" constant="34" id="launch-title-height"/></constraints>
+                                        <color key="textColor" red="0.102" green="0.180" blue="0.157" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                    </label>
+                                    <view opaque="NO" translatesAutoresizingMaskIntoConstraints="NO" id="launch-title-gap"><constraints><constraint firstAttribute="height" constant="6" id="launch-title-gap-height"/></constraints></view>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="匿名 · 真实 · 不尴尬" textAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="launch-subtitle">
+                                        <rect key="frame" x="60" y="120" width="129" height="18"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                        <constraints><constraint firstAttribute="height" constant="18" id="launch-subtitle-height"/></constraints>
+                                        <color key="textColor" red="0.102" green="0.180" blue="0.157" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                    </label>
+                                    <view opaque="NO" translatesAutoresizingMaskIntoConstraints="NO" id="launch-progress-space"><constraints><constraint firstAttribute="height" constant="56" id="launch-progress-height"/></constraints></view>
+                                </subviews>
+                            </stackView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="launch-safe-area"/>
+                        <color key="backgroundColor" name="LaunchBackground"/>
+                        <constraints>
+                            <constraint firstItem="launch-gradient" firstAttribute="leading" secondItem="launch-view" secondAttribute="leading" id="gradient-left"/>
+                            <constraint firstItem="launch-gradient" firstAttribute="trailing" secondItem="launch-view" secondAttribute="trailing" id="gradient-right"/>
+                            <constraint firstItem="launch-gradient" firstAttribute="top" secondItem="launch-view" secondAttribute="top" id="gradient-top"/>
+                            <constraint firstItem="launch-gradient" firstAttribute="bottom" secondItem="launch-view" secondAttribute="bottom" id="gradient-bottom"/>
+                            <constraint firstItem="launch-stack" firstAttribute="centerX" secondItem="launch-view" secondAttribute="centerX" id="launch-center-x"/>
+                            <constraint firstItem="launch-stack" firstAttribute="centerY" secondItem="launch-view" secondAttribute="centerY" id="launch-center-y"/>
+                            <constraint firstItem="launch-stack" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="launch-safe-area" secondAttribute="leading" constant="24" id="launch-left"/>
+                            <constraint firstItem="launch-safe-area" firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="launch-stack" secondAttribute="trailing" constant="24" id="launch-right"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="launch-responder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+    </scenes>
+    <resources><image name="conch" width="1024" height="1024"/><image name="LaunchGradient" width="393" height="852"/><namedColor name="LaunchBackground"><color red="0.965" green="0.984" blue="0.992" alpha="1" colorSpace="custom" customColorSpace="sRGB"/></namedColor></resources>
+</document>
