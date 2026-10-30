@@ -25,6 +25,8 @@ README = '''# 我的 iOSForge 私有构建仓库
 
 删除产物、删除项目、删除任务记录的范围不同；普通文件删除仍保留 Git 提交历史，已经发出的邮件也不会被撤回。每次操作先看教程和确认框中的私有仓库及路径。
 
+空的机器人通知容器会自动关闭，GitHub 的 Closed 历史保留。想收到成功工作流邮件，还需在 GitHub 通知设置的 Actions 中取消 Failed workflows only；具体操作见中文教程。Token 检查优先返回当前仓库结果，其他仓库可按需展开，后台读取清理设置不会阻塞核验。
+
 ## Technical reference
 
 This clean package contains only the iOSForge build environment. It does not contain user projects, tokens, certificates, artifacts, or repository history.

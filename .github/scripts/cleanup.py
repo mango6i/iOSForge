@@ -507,7 +507,7 @@ def retention_label(minutes: int) -> str:
     return f"{minutes} 分钟"
 
 
-def notification_issue(api: GitHubApi, title: str, first_body: str) -> tuple[int, bool]:
+def notification_issue(api: GitHubApi, title: str, first_body: str, owner: str = "") -> tuple[int, bool]:
     match = None
     for page in range(1, 101):
         path = "/issues?state=all&per_page=100" + (f"&page={page}" if page > 1 else "")
@@ -520,7 +520,7 @@ def notification_issue(api: GitHubApi, title: str, first_body: str) -> tuple[int
         if not isinstance(number, int):
             raise RuntimeError("The iOSForge notification issue is invalid.")
         if match.get("state") != "open":
-            api.request("PATCH", f"/issues/{number}", {"state": "open"})
+            api.request("PATCH", f"/issues/{number}", {"state": "open", "title": title, **({"assignees": [owner]} if owner else {})})
         return number, False
     created = api.request(
         "POST",
@@ -528,6 +528,7 @@ def notification_issue(api: GitHubApi, title: str, first_body: str) -> tuple[int
         {
             "title": title,
             "body": NOTIFICATION_MARKER + "\n" + first_body,
+            **({"assignees": [owner]} if owner else {}),
         },
     )
     number = created.get("number") if isinstance(created, dict) else None
@@ -597,7 +598,7 @@ def notify_builds(
     owner = repository.split("/", 1)[0]
     first = min(candidates, key=lambda item: item["id"])
     first_body = build_notification_body(owner, config, first, manifests[first["id"]])
-    issue_number, created = notification_issue(api, build_notification_title(first, manifests[first["id"]]), first_body)
+    issue_number, created = notification_issue(api, build_notification_title(first, manifests[first["id"]]), first_body, owner)
     notified = notified_run_ids(api, issue_number)
     if created:
         notified.add(first["id"])
@@ -656,6 +657,26 @@ def build_notification_body(owner: str, config: dict, run: dict, manifest: dict)
             cleanup_copy,
         ]
     )
+
+
+def close_empty_notification_issue(api: GitHubApi, number: int) -> bool:
+    """Close only a bot-owned empty result container; preserve every conversation."""
+    current = api.request("GET", f"/issues/{number}", allow_404=True)
+    if not own_notification_issue(current) or current.get("state") != "open":
+        return False
+    body = str(current.get("body", "")).strip()
+    old_empty = NOTIFICATION_MARKER + "\n\n该任务的构建通知已随记录清理。已送达邮箱的邮件不会被撤回。"
+    legacy_empty = current.get("title") == NOTIFICATION_ISSUE_TITLE and "此 Issue 接收 iOSForge 构建成功、失败和自动清理通知" in body and not NOTIFICATION_RUN.search(body)
+    if body not in {notification_hub_body().strip(), old_empty} and not legacy_empty:
+        return False
+    comments = api.request("GET", f"/issues/{number}/comments?per_page=1")
+    if comments != []:
+        return False
+    fresh = api.request("GET", f"/issues/{number}", allow_404=True)
+    if not own_notification_issue(fresh) or fresh.get("body") != current.get("body") or fresh.get("state") != "open" or fresh.get("comments", 0) != 0:
+        return False
+    api.request("PATCH", f"/issues/{number}", {"state": "closed", "state_reason": "completed", "title": "iOSForge 构建通知（结果已清理）"})
+    return True
 
 
 def prune_build_notifications(api: GitHubApi, branch: str, run_ids: set[int] | None = None) -> int:
@@ -730,6 +751,11 @@ def prune_build_notifications(api: GitHubApi, branch: str, run_ids: set[int] | N
                     errors.append(f"Notification issue {number}: {error}")
             except Exception as error:
                 errors.append(f"Notification issue {number}: {error}")
+        try:
+            if close_empty_notification_issue(api, number):
+                removed.append({"issue_number": number, "container_closed": True})
+        except Exception as error:
+            errors.append(f"Notification container {number}: {error}")
     if removed:
         log, _ = daily_cleanup_log(api, branch, utc_now())
         records = log.setdefault("notification_deletions", [])

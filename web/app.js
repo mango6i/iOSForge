@@ -204,8 +204,10 @@ async function githubOnce(path, options = {}) {
     if (state.closed || state.token !== token || state.branch !== branch || `${state.repo?.owner}/${state.repo?.name}` !== expected) throw new Error("页面会话或仓库发生变化，已停止写入，请重新检查。");
   }
   let response;
+  const readSignal = (!options.method || options.method.toUpperCase() === "GET") && !options.signal ? globalThis.AbortSignal?.timeout?.(10000) : null;
   try { response = await fetch(`https://api.github.com${path}`, {
     ...options,
+    ...(readSignal ? { signal: readSignal } : {}),
     cache: "no-store",
     headers: {
       Accept: "application/vnd.github+json",
@@ -216,6 +218,7 @@ async function githubOnce(path, options = {}) {
   }); } catch (cause) {
     const error = new Error("与 GitHub 的网络连接中断或被拦截，请检查网络／代理后重试；这不是源码编译错误。原始提示：" + (cause.message || "Failed to fetch"));
     error.network = true;
+    error.timeout = ["TimeoutError", "AbortError"].includes(cause.name);
     throw error;
   }
   if (!response.ok) {
@@ -239,7 +242,7 @@ async function github(path, options = {}) {
     catch (error) {
       // Never retry workflow dispatch, commits, deletes or branch updates here.
       // Their result may be uncertain and a repeated request could duplicate work.
-      if (!readOnly || !error.network || attempt >= 2) throw error;
+      if (!readOnly || !error.network || error.timeout || attempt >= 2) throw error;
       await new Promise(resolve => setTimeout(resolve, 800 * (attempt + 1)));
     }
   }
@@ -382,17 +385,19 @@ function updateCleanupControls() {
 
 async function loadCleanupSettings() {
   const sequence = ++cleanupPreviewSequence;
+  const scope = currentCleanupKey(), token = state.token;
+  const current = () => sequence === cleanupPreviewSequence && !state.cleanupBusy && !state.closed && state.token === token && currentCleanupKey() === scope;
   if (state.cleanupBusy) return;
   setCleanupState("", "读取中", "正在读取仓库中的后台清理设置…");
   try {
     const item = await github(`${repoBase()}/contents/${encodePath(cleanupConfigPath)}?ref=${encodeURIComponent(state.branch)}`);
-    if (sequence !== cleanupPreviewSequence || state.cleanupBusy) return;
+    if (!current()) return;
     const config = showCleanupConfig(JSON.parse(decodeGitHubText(item.content)));
     state.cleanupSha = item.sha || "";
     rememberCleanupConfig(config, state.cleanupSha);
     setCleanupState(config.enabled ? "success" : "", config.enabled ? "已启用" : "已停用", `独立后台规则已读取。没有任务时保持空闲；检测到新构建后自动执行。失败任务${config.delete_failed_runs ? "完成后立即清理" : "保留"}；成功任务保留 ${cleanupRetentionLabel(config.success_retention_minutes)}。${config.notify_via_github ? "结果通过 GitHub Issue 通知。" : "GitHub 结果通知已关闭。"}`);
   } catch (error) {
-    if (sequence !== cleanupPreviewSequence || state.cleanupBusy) return;
+    if (!current()) return;
     if (error?.status !== 404) throw error;
     state.cleanupSha = "";
     forgetCleanupConfig();
@@ -445,16 +450,19 @@ function invalidateWorkspace() {
 
 const workspaceCacheMs = 60 * 1000;
 
-async function verifyWorkspace({ upload = false, fresh = false, requireBuild = true } = {}) {
+async function verifyWorkspace({ upload = false, fresh = false, requireBuild = true, detected = null } = {}) {
+  if (state.closed || !state.token) throw new Error("页面会话已结束，请重新填写 Token。");
   const cached = state.workspace;
   if (!fresh && typeof cached?.private === "boolean" && (!requireBuild || cached.buildReady) && historyMatchesInputs() && Date.now() - cached.checkedAt < workspaceCacheMs) {
     if (upload && !requireUploadConsent()) throw new Error("请先阅读上传说明，并勾选唯一的“确认提交”选项。");
     return cached.repository;
   }
   const base = repoBase(), previous = state.workspace;
-  const [user, repository] = await Promise.all([
-    github("/user"),
-    github(base),
+  const proof = detected && Date.now() - detected.checkedAt >= 0 && Date.now() - detected.checkedAt < 10000 ? detected : null;
+  const [user, repository, workflow] = await Promise.all([
+    proof ? proof.user : github("/user"),
+    proof ? proof.repository : github(base),
+    !requireBuild ? null : proof ? proof.workflow : github(`${base}/actions/workflows/build.yml`),
   ]);
   if (state.closed || !historyMatchesInputs()) throw new Error("账号或仓库输入已变化，请重新检查。");
   if (!Number.isSafeInteger(user.id) || !user.login || repository.owner?.id !== user.id || repository.owner?.type !== "User" || repository.owner.login.toLowerCase() !== user.login.toLowerCase()) {
@@ -465,8 +473,7 @@ async function verifyWorkspace({ upload = false, fresh = false, requireBuild = t
     invalidateWorkspace(); throw new Error("无法确认目标仓库或可见性，已停止操作。");
   }
   if (repository.archived || repository.disabled || repository.permissions?.push === false) throw new Error("这个仓库已归档、停用或不可写，请选择可用的个人仓库。");
-  const workflow = requireBuild ? await github(`${base}/actions/workflows/build.yml`) : null;
-  if (requireBuild && (!Number.isSafeInteger(workflow.id) || workflow.state !== "active")) throw new Error("编译工作流尚未安装或未启用。请按指南导入纯净初始化包，并在自己的仓库 Actions 中启用工作流。");
+  if (requireBuild && (!Number.isSafeInteger(workflow?.id) || workflow.state !== "active")) throw new Error("编译工作流尚未安装或未启用。请按指南导入纯净初始化包，并在自己的仓库 Actions 中启用工作流。");
   if (state.closed || !historyMatchesInputs()) throw new Error("页面会话已变化，已停止操作。");
   const remembered = rememberedUploadConsent();
   const visibility = repository.private ? "private" : "public";
@@ -949,11 +956,18 @@ async function useDetectedRepository(repository) {
   state.runId = null; state.artifacts = []; artifactList.hidden = true; runMeta.hidden = true;
   state.history = []; selectedRuns.clear(); historyPage = 0; historyHasMore = false; renderHistory();
   resetUploadConsent(); updateDestination(); updateLinks(); resetCleanupSettings();
-  await verifyWorkspace({ fresh: true });
-  await loadCleanupSettings();
+  await verifyWorkspace({ fresh: true, detected: repository.verification });
+  refreshCleanupInBackground();
 }
 
-async function detectTokenRepository() {
+function refreshCleanupInBackground() {
+  const scope = currentCleanupKey(), token = state.token;
+  loadCleanupSettings().catch(error => {
+    if (!state.closed && state.token === token && currentCleanupKey() === scope) setCleanupState("error", "读取暂缓", `仓库已核验通过；后台规则暂未读到，请稍后重试。${error.message}`);
+  });
+}
+
+async function detectTokenRepository({ scanAll = false } = {}) {
   if (state.busy || state.cleanupBusy || !globalThis.IOSForgeRepositories) return;
   const token = tokenInput.value.trim(), sequence = ++tokenDetectionSequence;
   if (!token) return;
@@ -962,14 +976,15 @@ async function detectTokenRepository() {
   setBusy(true, "正在检测 Token 对应仓库…");
   $("#workspace-status").textContent = "正在检测 Token 所属账号、可写的 iOSForge 仓库及公开范围…";
   try {
-    const result = await globalThis.IOSForgeRepositories.discover({ token });
+    const result = await globalThis.IOSForgeRepositories.discover({ token, preferred: currentRepoKey(), scanAll });
     if (sequence !== tokenDetectionSequence || tokenInput.value.trim() !== token || state.closed) return;
     detectedRepositories = result.repositories;
     picker?.replaceChildren(element("option", "", "选择当前 Token 对应的构建仓库"));
     if (picker) {
       picker.firstChild.value = "";
       result.repositories.forEach(repo => { const option = element("option", "", `${repo.full_name} · ${repo.private ? "私有（隐藏）" : "公开"}`); option.value = String(repo.id); picker.append(option); });
-      picker.hidden = result.repositories.length < 2;
+      if (result.moreAvailable) { const more = element("option", "", "查找其他构建仓库…"); more.value = "__scan_all__"; picker.append(more); }
+      picker.hidden = result.repositories.length < 2 && !result.moreAvailable;
     }
     if (result.incomplete) throw new Error("部分仓库检测未完成，未自动切换目标。请重试，或核对后选择已检测的仓库。");
     if (!result.repositories.length) throw new Error("没有检测到本账号可写且已初始化的 iOSForge 仓库。请检查 Token 的仓库范围与 Contents 读写权限，或按指南初始化后手动填写仓库检查。");
@@ -984,6 +999,7 @@ async function detectTokenRepository() {
 
 $("#workspace-picker")?.addEventListener("change", async event => {
   if (state.busy || state.cleanupBusy) return;
+  if (event.target.value === "__scan_all__") { await detectTokenRepository({ scanAll: true }); return; }
   const repository = detectedRepositories.find(repo => String(repo.id) === event.target.value);
   if (!repository) return;
   setBusy(true, "正在核对选中仓库…");
@@ -1007,7 +1023,7 @@ $("#check-workspace").addEventListener("click", async () => {
   if (!repo) { $("#workspace-status").textContent = "请填写你自己的用户名/仓库名后检查。"; return; }
   state.repo = repo; state.token = token; state.branch = branchInput.value.trim() || "main"; state.closed = false;
   setBusy(true, "正在核对仓库…");
-  try { await verifyWorkspace({ fresh: true }); await loadCleanupSettings(); }
+  try { await verifyWorkspace({ fresh: true }); refreshCleanupInBackground(); }
   catch (error) { $("#workspace-status").textContent = `未通过检查：${error.message}`; }
   finally { setBusy(false); }
 });
@@ -1378,8 +1394,21 @@ async function removeRunNotifications(runIds, base, branch) {
       if (match && targets.has(Number(match[1]))) {
         const current = await request(`${base}/issues/${issue.number}`);
         if (own(current) && current.body === issue.body) {
-          await request(`${base}/issues/${issue.number}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body: "<!-- iosforge-notifications:v2 -->\n\n该任务的构建通知已随记录清理。已送达邮箱的邮件不会被撤回。" }) });
+          await request(`${base}/issues/${issue.number}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body: "<!-- iosforge-notifications:v2 -->\n\n构建结果会直接写入此通知线程。对应任务清理后，其结果记录也会同步移除；已送达邮箱的邮件不会被撤回。" }) });
           removed++;
+        }
+      }
+      const current = await request(`${base}/issues/${issue.number}`);
+      const neutral = ["<!-- iosforge-notifications:v2 -->\n\n构建结果会直接写入此通知线程。对应任务清理后，其结果记录也会同步移除；已送达邮箱的邮件不会被撤回。", "<!-- iosforge-notifications:v2 -->\n\n该任务的构建通知已随记录清理。已送达邮箱的邮件不会被撤回。"];
+      const empty = neutral.includes(String(current.body || "").trim()) || current.title === "iOSForge 构建通知" && /此 Issue 接收 iOSForge 构建成功、失败和自动清理通知/.test(current.body || "") && !marker(current.body);
+      if (own(current) && current.state === "open" && empty) {
+        const remaining = await request(`${base}/issues/${issue.number}/comments?per_page=1`);
+        if (Array.isArray(remaining) && !remaining.length) {
+          const fresh = await request(`${base}/issues/${issue.number}`);
+          if (own(fresh) && fresh.state === "open" && fresh.body === current.body && !fresh.comments) {
+            await request(`${base}/issues/${issue.number}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ state: "closed", state_reason: "completed", title: "iOSForge 构建通知（结果已清理）" }) });
+            removed++;
+          }
         }
       }
     }
@@ -1418,7 +1447,7 @@ $("#delete-selected-runs").addEventListener("click", async () => {
     }
     let notification = "";
     if (removedBuildIds.length) {
-      try { const count = await removeRunNotifications(removedBuildIds, base, branch); notification = `已同步清理 ${count} 条对应 GitHub 通知结果。`; }
+      try { const count = await removeRunNotifications(removedBuildIds, base, branch); notification = `已同步清理 ${count} 条 GitHub 通知记录；空通知容器自动关闭。`; }
       catch (error) { notification = `通知记录尚未全部清理：${error.message} 手动同步需要 Token 的 Issues 读写权限，后台会在下次检查时重试。`; }
     }
     $("#history-message").textContent = `已永久删除 ${removed} 条 Actions 记录及对应日志。${notification}${skipped ? `另有 ${skipped} 条状态已变化，未删除。` : ""}sources/Download 产物和源码保留。请刷新记录查看最新列表。`;

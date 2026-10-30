@@ -162,7 +162,17 @@
       if (actualLines.length && !errorsOnly) result.push(["今日实际清理", actualLines.join("\n\n")]);
       const systemLines = (cleanupRecord?.system_deletions || []).map(item => `[${exactTime(item.timestamp)}] 已删除 ${item.deleted_run_ids?.length || 0} 条旧清理检查记录及对应 GitHub 日志\n  已删除：${(item.deleted_run_ids || []).map(id => { const record = item.deleted_runs?.find(run => Number(run.id) === Number(id)); return record?.run_number ? `#${record.run_number}（ID ${id}）` : `运行 ID ${id}`; }).join("、")}\n  本轮检查 ${item.retained_run_number ? `#${item.retained_run_number}` : `ID ${item.cleanup_run_id}`} 保留至下一次回收。\n  未删除源码和产物；当天检查明细仍保留。`);
       if (systemLines.length && !errorsOnly) result.push(["今日清理检查记录回收", systemLines.join("\n\n")]);
-      const notificationLines = (cleanupRecord?.notification_deletions || []).map(item => `[${exactTime(item.timestamp)}] 已同步清理 ${item.removed?.length || 0} 条 GitHub 构建通知结果\n  对应运行 ID：${[...new Set((item.removed || []).map(record => record.run_id))].join("、")}\n  未删除其他 Issue 或留言；已送达邮箱的邮件不会撤回。`);
+      const notificationLines = (cleanupRecord?.notification_deletions || []).map(item => {
+        const removed = item.removed || [], ids = [...new Set(removed.map(record => record.run_id).filter(Number.isSafeInteger))];
+        const closed = [...new Set(removed.filter(record => record.container_closed).map(record => record.issue_number).filter(Number.isSafeInteger))];
+        const actions = [];
+        if (ids.length) actions.push(`已清理 ${ids.length} 项构建通知结果`);
+        if (closed.length) actions.push(`已关闭 ${closed.length} 个空通知容器`);
+        return [`[${exactTime(item.timestamp)}] ${actions.join("；") || "通知记录已处理"}`,
+          ...(ids.length ? [`  对应运行 ID：${ids.join("、")}`] : []),
+          ...(closed.length ? [`  已关闭 Issue：${closed.map(number => `#${number}`).join("、")}（结果已清理）`] : []),
+          "  人工留言、其他任务结果与已送达邮件保留；Closed 历史仍由 GitHub 保存。"].join("\n");
+      });
       if (notificationLines.length && !errorsOnly) result.push(["今日通知记录清理", notificationLines.join("\n\n")]);
       const visibleChecks = cleanupChecks().filter(item => !errorsOnly || ["failure", "cancelled", "timed_out", "action_required", "startup_failure"].includes(item.conclusion));
       const checkLines = visibleChecks.map(item => {

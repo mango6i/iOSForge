@@ -2,9 +2,9 @@ const assert = require('node:assert/strict');
 const { discover } = require('../web/host-context.js');
 const user = { id: 5, login: 'owner' };
 const repo = (id, name, privateRepo = true) => ({ id, full_name: `owner/${name}`, private: privateRepo, default_branch: 'main', owner: { ...user, type: 'User' }, permissions: { push: true } });
-async function fixture(repositories, { deny = [], network = [], changedVisibility = [] } = {}) {
+async function fixture(repositories, { deny = [], network = [], changedVisibility = [], preferred = '', scanAll = false } = {}) {
   const calls = [];
-  const result = await discover({ token: 'fixture-only-token', fetch: async (url, options) => {
+  const result = await discover({ token: 'fixture-only-token', preferred, scanAll, fetch: async (url, options) => {
     calls.push({ url, options });
     assert.equal(options.headers.Authorization, 'Bearer fixture-only-token');
     assert.equal(new URL(url).origin, 'https://api.github.com');
@@ -36,6 +36,16 @@ async function main() {
   assert.equal((await fixture([privateRepo])).result.repositories[0].private, true, 'Private-scoped token stays private');
   const both = await fixture([publicRepo, privateRepo]);
   assert.deepEqual(both.result.repositories.map(r => r.private), [true, false]);
+  const fast = await fixture([publicRepo, privateRepo], { preferred: privateRepo.full_name });
+  assert.equal(fast.result.repositories.length, 1);
+  assert.equal(fast.result.repositories[0].private, true);
+  assert.equal(fast.result.moreAvailable, true);
+  assert(!fast.calls.some(c => new URL(c.url).pathname.startsWith('/repos/owner/iOSForge/')), 'Current target succeeds without scanning other repositories');
+  const expanded = await fixture([publicRepo, privateRepo], { preferred: privateRepo.full_name, scanAll: true });
+  assert.equal(expanded.result.repositories.length, 2, 'Other targets remain discoverable on request');
+  const uncertainPreferred = await fixture([publicRepo, privateRepo], { preferred: privateRepo.full_name, network: [2] });
+  assert.equal(uncertainPreferred.result.incomplete, true);
+  assert.equal(uncertainPreferred.result.repositories.length, 0, 'Failed preferred private check never switches to public');
   assert.equal((await fixture([publicRepo, privateRepo], { deny: [1] })).result.repositories.length, 1, 'User ownership alone cannot prove Token write authorization');
   const unknown = await fixture([publicRepo, privateRepo], { network: [2] });
   assert.equal(unknown.result.incomplete, true, 'Partial discovery cannot silently fall back from hidden to public');

@@ -18,6 +18,8 @@
 
 **从零开始请看 [完整中文教程](docs/private-build.md)**：每一步点击位置、Token 权限、私有仓库接入、包名、上传、下载、三种手动删除、自动清理、通知和工具自动更新均有说明。初始化包也附带这份教程。
 
+Token 检查优先核验当前仓库，其他仓库按需查找；清理设置在后台读取，不再阻塞核验结果。通知结果清空且没有剩余评论时，空机器人 Issue 自动关闭并移除旧成功/失败标题；GitHub 的 Closed 历史仍保留。需要成功工作流邮件时，请在 GitHub 通知设置的 Actions 中取消 `Failed workflows only`，仅开启 Watching Email 并不等于开启成功工作流邮件。
+
 首次使用：[下载纯净初始化包](https://mango6i.github.io/iOSForge/downloads/iosforge-starter.zip) → 解压 → 新建自己的 Private 仓库 → 将包内所有内容（包含 `.github/`）提交到仓库根目录 → 启用 Actions → 创建仅授权该仓库的 Token → 回工作台填写自己的仓库并点击“检查我的仓库”。完整步骤见[个人仓库配置指南](https://mango6i.github.io/iOSForge/guide.html#own-repository)。初始化包按明确文件清单生成，只包含编译工具与配置，不含 `sources/`、其他用户项目、测试示例、凭据或提交历史。
 
 自己的私有构建仓库无需开启 Pages，也不需要 Fork 作者的整个仓库。私有仓库降低公开泄露风险，但不能排除不可信代码/依赖、协作者、浏览器扩展或令牌泄露风险；此前已推送到公开仓库的代码不会因此从公开历史中消失。GitHub Actions 使用仓库所属账号的额度。
