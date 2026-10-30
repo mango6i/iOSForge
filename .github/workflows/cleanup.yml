@@ -16,10 +16,11 @@ permissions:
 concurrency:
   group: iosforge-cleanup-${{ github.repository }}
   cancel-in-progress: false
+env:
+  IOSFORGE_EXPECTED_VISIBILITY: ${{ github.event.repository.private && 'private' || 'public' }}
 
 jobs:
   cleanup:
-    if: github.event.repository.private == true
     name: Clean expired builds
     runs-on: ubuntu-latest
     timeout-minutes: 10

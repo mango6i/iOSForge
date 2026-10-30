@@ -1,6 +1,7 @@
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import unittest
 from unittest.mock import patch
@@ -22,7 +23,7 @@ class PrivatePublisherTests(unittest.TestCase):
         with patch.object(cleanup, 'urlopen', respond):
             api = cleanup.GitHubApi('owner/build', 'fixture-only-token')
             for method, path in [('DELETE', '/actions/runs/1'), ('DELETE', '/issues/comments/1'), ('PATCH', '/git/refs/heads/main'), ('POST', '/git/commits')]:
-                with self.assertRaisesRegex(RuntimeError, 'PRIVATE'):
+                with self.assertRaisesRegex(RuntimeError, 'visibility'):
                     api.request(method, path)
         self.assertEqual([r.method for r in requests], ['GET'] * 4)
 
@@ -33,7 +34,7 @@ class PrivatePublisherTests(unittest.TestCase):
                 requests.append(request)
                 return io.BytesIO(json.dumps(repository).encode())
             with self.subTest(repository=repository), patch.object(publisher, 'urlopen', respond):
-                with self.assertRaisesRegex(RuntimeError, 'PRIVATE'):
+                with self.assertRaisesRegex(RuntimeError, 'visibility'):
                     publisher.GitHubApi('owner/build', 'fixture-only-token').request('POST', '/git/blobs', {'content': 'fixture'})
             self.assertEqual([r.method for r in requests], ['GET'])
             self.assertIsNone(requests[0].data)
@@ -48,6 +49,18 @@ class PrivatePublisherTests(unittest.TestCase):
             api = publisher.GitHubApi('owner/build', 'fixture-only-token')
             self.assertEqual(api.request('POST', '/git/blobs', {'content': 'fixture'})['sha'], 'fixture')
         self.assertEqual([r.method for r in requests], ['GET', 'POST'])
+
+    def test_public_workflow_stays_in_its_public_repository(self):
+        for module in [publisher, cleanup]:
+            requests = []
+            def respond(request, **kwargs):
+                requests.append(request)
+                data = dict(private=False, full_name='owner/build') if request.method == 'GET' else dict(sha='fixture')
+                return io.BytesIO(json.dumps(data).encode())
+            with self.subTest(module=module.__name__), patch.dict(os.environ, {'IOSFORGE_EXPECTED_VISIBILITY': 'public'}), patch.object(module, 'urlopen', respond):
+                api = module.GitHubApi('owner/build', 'fixture-only-token')
+                self.assertEqual(api.request('POST', '/git/blobs', {'content': 'fixture'})['sha'], 'fixture')
+            self.assertEqual([r.method for r in requests], ['GET', 'POST'])
 
 
 if __name__ == '__main__':

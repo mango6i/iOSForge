@@ -17,7 +17,7 @@ FILES = [
 ]
 README = '''# 我的 iOSForge 私有构建仓库
 
-公开的 iOSForge 项目和网页继续提供工具；这个独立仓库必须保持 Private，用来保存你上传的源码、构建日志、通知、清理设置和成品。
+公开的 iOSForge 项目和网页继续提供工具。要隐藏上传的源码，请把这个独立构建仓库设为 Private，并只为它授权 Token。工作台也支持公开模式：Token 自动检测到公开目标时，源码、日志、清理和产物都使用该公开仓库；私有目标则显示“私有（隐藏）”。
 
 从零操作请打开 [完整中文教程](docs/private-build.md)，包含创建仓库、导入环境、逐项创建 Token、上传、下载、每一种删除操作、自动清理、通知、更新和故障排查。建议按教程顺序操作，不要把公开主仓库直接当作上传目标。
 
@@ -39,7 +39,7 @@ Guide: https://mango6i.github.io/iOSForge/guide.html#own-repository
 
 Automatic tool updates: after enabling Actions, Update iOSForge tools checks the trusted upstream hourly. This build-only installation updates the build environment; the shared web interface already follows the main website. Sources, products, tokens and personal cleanup settings are excluded. Local tool edits stop an update rather than being overwritten. To allow future workflow-definition updates, add a repository secret IOSFORGE_SYNC_TOKEN for only this repository, with Contents, Actions and Workflows -> Read and write. Without it, ordinary code-only updates work, but workflow updates stop with instructions. Disable this workflow in Actions to opt out. A Git clone on your own computer still needs git pull.
 
-The web UI uses the GitHub API directly. The public project and website stay public; enter a separate PRIVATE build repository for source, logs and products. The website never uses its own public hosting repository as an upload destination. Only a verified private target is remembered locally; tokens are not stored. Public or unknown targets are rejected before writes, and the build workflow and output publisher require private repositories. Private repositories reduce public exposure, but do not remove risks from untrusted source, dependencies, workflow code, credentials, collaborators, or browser extensions. GitHub Actions uses your own account's quota.
+The web UI uses the GitHub API directly. It detects initialized writable repositories for the current Token and displays public or private visibility. Multiple eligible targets require selection. Hosting metadata alone never becomes an upload destination. Source, builds, logs, cleanup, notifications and products use the selected repository; failed checks or a visibility change stop writes rather than falling back. Choose a separate PRIVATE repository to hide source. Tokens are not stored. Private repositories reduce public exposure, but do not remove risks from untrusted source, dependencies, workflow code, credentials, collaborators, or browser extensions. GitHub Actions uses your own account's quota.
 
 The web uploader accepts ZIP files up to 1 GiB, expanded/folder source up to 2 GiB, 100,000 files, and individual source files up to 500 MiB. Large source files are split into sub-100-MiB Git objects; large binary-heavy projects also use batched text transport. The build entrypoints verify and restore their original bytes automatically. After cloning such a source project locally, run python -m iosforge.source_parts --source-dir sources/YourProject before using it. Do not commit the restored oversized originals as ordinary Git blobs. These source-upload limits do not raise GitHub artifact, storage or API quotas.
 

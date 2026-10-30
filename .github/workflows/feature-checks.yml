@@ -6,6 +6,7 @@ on:
       - 'tests/**'
       - 'web/source-upload.js'
       - 'web/app.js'
+      - 'web/host-context.js'
       - '.github/scripts/cleanup.py'
       - '.github/scripts/publish_outputs.py'
       - '.github/workflows/build.yml'
@@ -33,6 +34,7 @@ jobs:
       - run: node tests/xcode-detect.cjs
       - run: node tests/session-auth.cjs
       - run: node tests/private-build.cjs
+      - run: node tests/repo-detect.cjs
       - run: node tests/capacity-upload.cjs
       - run: node tests/binary-batch.cjs
       - run: node tests/chunked-source.cjs

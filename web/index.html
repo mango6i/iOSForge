@@ -7,12 +7,12 @@
   <meta name="description" content="iOSForge 编译工作台。在 GitHub 上构建面向 iOS 15+ 的动态库、插件包和应用。" />
   <title>iOSForge · 编译工作台</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="./styles.css?v=studio-fit-500-2" />
+  <link rel="stylesheet" href="./styles.css?v=token-target-1" />
   <script src="./vendor/fflate-0.8.2.js" defer></script>
-  <script src="./host-context.js?v=own-repository-1" defer></script>
+  <script src="./host-context.js?v=token-target-1" defer></script>
   <script src="./source-upload.js?v=upload-1gb-100k-1" defer></script>
   <script src="./build-logs.js?v=read-recovery-1" defer></script>
-  <script src="./app.js?v=private-build-1" defer></script>
+  <script src="./app.js?v=token-target-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#workspace">跳到编译工作台</a>
@@ -82,12 +82,12 @@
 
               <div class="source-section">
                 <h3 class="form-section-title"><span class="step-number">02</span>配置源码</h3>
-                <p id="workspace-status" role="status" data-visibility="unknown">网页保持公开；源码只上传到你自己的 Private 私有构建仓库，请先填写并检查。</p>
+                <p id="workspace-status" role="status" data-visibility="unknown">粘贴 Token 后自动检测对应构建仓库；公开与私有（隐藏）会明确显示，所有操作使用当前目标。</p>
                 <div class="source-target-card">
                   <div class="source-card-heading"><span>UPLOAD TARGET</span><strong>上传目标仓库</strong></div>
                   <fieldset class="source-switch"><legend class="sr-only">源码来源</legend><label><input type="radio" name="source_mode" value="upload" checked /><span>上传本地源码</span></label><label><input type="radio" name="source_mode" value="repository" /><span>使用仓库源码</span></label></fieldset>
                   <div class="source-fields">
-                    <label class="field"><span>你自己的私有构建仓库</span><span class="input-wrap"><svg class="icon"><use href="#i-repo"/></svg><input id="repo" name="repo" value="" placeholder="你的用户名/私有构建仓库" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="repository-help" required /></span></label>
+                    <label class="field"><span class="repository-label">构建仓库 <span id="repository-visibility" class="repository-visibility" data-visibility="unknown" role="status">未检测</span></span><span class="input-wrap"><svg class="icon"><use href="#i-repo"/></svg><input id="repo" name="repo" value="" placeholder="Token 自动检测，也可手动填写" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="repository-help" required /></span></label>
                     <label class="field"><span>分支</span><span class="input-wrap"><svg class="icon"><use href="#i-branch"/></svg><input id="branch" name="branch" value="main" placeholder="main" autocomplete="off" autocapitalize="none" spellcheck="false" required /></span></label>
                   </div>
                   <label id="source-directory-field" class="field source-directory-field"><span>源码目录 · 可选</span><input id="source-directory" placeholder="留空搜索仓库，或填写 sources/MyProject" autocomplete="off" spellcheck="false" /></label>
@@ -106,14 +106,14 @@
                     </div>
                   </div>
                 </div>
-                <details class="repository-help-dialog inline-help" data-desktop-dialog><summary>仓库与源码隐私说明</summary><div class="help-content"><p id="repository-help" class="field-hint repository-context">iOSForge 项目和网页保持公开。请另外建立自己的 Private 私有构建仓库，用来保存源码、日志和产物；公开仓库不能作为上传目标。通过检查的私有仓库地址会记在当前浏览器，Token 不会保存。<a href="./guide.html#own-repository" target="_blank" rel="noreferrer">首次使用：建立自己的构建仓库 ↗</a></p><p id="form-footnote" class="form-footnote">使用仓库已有源码，或切换到“上传本地源码”。</p><p><strong>你的源码，你的构建。</strong> 本页面调用私有仓库中已有的编译流程。此前传到公开仓库的源码，不会因切换仓库而从旧提交中消失。</p></div></details>
+                <details class="repository-help-dialog inline-help" data-desktop-dialog><summary>仓库与源码隐私说明</summary><div class="help-content"><p id="repository-help" class="field-hint repository-context">iOSForge 项目和网页继续公开。Token 对应公开构建仓库时使用公开模式，对应私有构建仓库时使用私有（隐藏）模式；多个可写目标会显示选择框。Token 不会改变仓库本身的可见性。<a href="./guide.html#own-repository" target="_blank" rel="noreferrer">首次使用：建立自己的构建仓库 ↗</a></p><p id="form-footnote" class="form-footnote">使用仓库已有源码，或切换到“上传本地源码”。</p><p><strong>所有操作跟随当前仓库。</strong> 源码、构建、日志、通知、清理和产物都使用显示的目标，私有目标失败时不会自动改用公开仓库。此前传到公开仓库的源码不会因切换仓库而从旧提交中消失。</p></div></details>
                 <div id="upload-panel" class="upload-panel" hidden>
                   <div class="upload-panel-heading"><span>UPLOAD DETAILS</span><strong>上传设置</strong></div>
                   <div class="upload-details-column">
                     <label class="field"><span>项目文件夹名称</span><input id="upload-project" placeholder="例如 MyProject" autocomplete="off" spellcheck="false" maxlength="64" /></label>
                     <p id="upload-destination" class="field-hint"></p>
-                    <div class="upload-consent-block"><label class="upload-consent"><input id="upload-consent" type="checkbox" /><span>确认提交到我自己的私有构建仓库，源码不含密码、Token 或证书密钥。</span></label><div id="upload-consent-memory" class="upload-consent-memory" hidden><span>已为当前仓库记住，下次自动确认</span><button id="forget-upload-consent" type="button">取消记住</button></div></div>
-                    <div id="public-upload-warning" class="public-upload-warning" hidden><strong>公开仓库已禁止上传，请填写私有构建仓库。</strong><details class="inline-help" data-desktop-dialog><summary>源码隐私说明</summary><div class="help-content"><p>公开的 iOSForge 项目和网页无需改动。源码、构建日志和产物只进入独立的 Private 仓库；任何核验失败都会停止写入。普通删除不能清除旧提交；此前已公开的源码需要另行处理。</p></div></details></div>
+                    <div class="upload-consent-block"><label class="upload-consent"><input id="upload-consent" type="checkbox" /><span id="upload-consent-copy">确认提交到当前显示的仓库，源码不含密码、Token 或证书密钥。</span></label><div id="upload-consent-memory" class="upload-consent-memory" hidden><span>已为当前仓库记住，下次自动确认</span><button id="forget-upload-consent" type="button">取消记住</button></div></div>
+                    <div id="public-upload-warning" class="public-upload-warning" hidden><strong>当前是公开仓库：上传的源码和产物所有人可见。</strong><details class="inline-help" data-desktop-dialog><summary>需要隐藏源码时怎么做</summary><div class="help-content"><p>创建独立的 Private 仓库并只为它授权 Token，检测后界面会显示“私有（隐藏）”。不会自动修改已有仓库的可见性。普通文件删除不能清除旧提交中曾经公开的内容。</p></div></details></div>
                     <label class="upload-consent"><input id="upload-replace" type="checkbox" /><span>如果目录已存在，允许更新本次同名文件；未上传的旧文件不会删除。</span></label>
                     <label class="upload-consent build-notify-option"><input id="build-notify" type="checkbox" checked /><span><strong>构建完成后发送邮件通知</strong><small>成功／失败均通知，需启用 GitHub Email。</small></span></label>
                     <details class="inline-help" data-desktop-dialog><summary>支持的文件与上传限制</summary><div class="help-content"><p class="field-hint">支持完整 Theos / Xcode 源码，不是现成 IPA、deb 或 dylib。ZIP 上限 1 GB，解压后 / 文件夹上限 2 GB、100000 个文件，单文件上限 500 MB；支持 ZIP64。超过 100 MB 的文件自动分块保存，构建前校验并还原原路径和内容，无需 Git LFS。大工程逐文件检查与上传，请保持网页打开；遇到 GitHub 限流会等待。<a href="./guide.html#upload">查看上传说明 ↗</a></p></div></details>
@@ -141,7 +141,7 @@
               <div class="token-section">
                 <div class="token-label"><label for="token">GitHub Token</label><span><svg class="icon small-icon"><use href="#i-lock"/></svg>仅当前会话</span></div>
                 <div class="input-wrap token-input-wrap"><svg class="icon"><use href="#i-lock"/></svg><input id="token" name="token" type="password" placeholder="粘贴你的访问令牌" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="token-help" required /><button id="token-toggle" class="icon-button" type="button" aria-label="显示访问令牌" aria-pressed="false"><svg class="icon"><use href="#i-eye"/></svg></button></div>
-                <div class="workspace-connection"><button id="check-workspace" class="secondary-button" type="button">检查我的仓库</button></div>
+                <div class="workspace-connection"><button id="check-workspace" class="secondary-button" type="button">检查我的仓库</button><select id="workspace-picker" aria-label="选择 Token 对应的构建仓库" hidden></select></div>
                 <details class="token-help" id="token-help"><summary>没有 Token？跟着步骤获取<svg class="icon small-icon"><use href="#i-info"/></svg></summary><div class="token-help-content"><p>先建立自己的构建仓库，再创建只授权该仓库的 Token。它不是 GitHub 登录密码。</p><ol><li>打开下方预填页面，确认登录的是<strong>你自己的 GitHub 账号</strong>。</li><li>选择 <strong>Only select repositories</strong>，仅勾选<strong>你自己的构建仓库</strong>。</li><li>确认仓库权限 <strong>Actions</strong> 和 <strong>Contents</strong> 都为 <strong>Read and write</strong>。</li><li>点 <strong>Generate token</strong>，复制生成的字符，切回本页粘贴后点“检查我的仓库”。</li></ol><a href="https://github.com/settings/personal-access-tokens/new?name=iOSForge&amp;description=iOSForge+web+build+and+source+upload&amp;expires_in=30&amp;actions=write&amp;contents=write" target="_blank" rel="noreferrer">打开预填创建页面（仍需确认）↗</a><a href="./guide.html#own-repository" target="_blank" rel="noreferrer">还没有自己的仓库？从这里开始 ↗</a><a href="./guide.html#token-guide" target="_blank" rel="noreferrer">查看完整 Token 教程 ↗</a><a href="./guide.html#token-repair" target="_blank" rel="noreferrer">已有 Token 报权限错误？按这里补齐 ↗</a><p>不会预填网站作者的账号，也不会自动创建或读取你的令牌。令牌仅在本页内存中使用；<strong>不要发给 AI 或截图分享</strong>。</p></div></details>
               </div>
 
@@ -200,7 +200,7 @@
     </div>
   </div>
   <dialog id="upload-consent-dialog" class="delete-dialog consent-dialog" aria-labelledby="upload-consent-dialog-title" aria-describedby="upload-consent-dialog-description"><span class="section-overline">UPLOAD CONFIRMATION</span><h2 id="upload-consent-dialog-title">请先勾选上传确认</h2><p id="upload-consent-dialog-description">请确认源码提交位置和公开范围，再勾选“确认提交”。未确认前不会上传任何源码。</p><div class="dialog-actions"><button id="close-upload-consent-dialog" type="button" class="primary-button" autofocus>知道了，去勾选</button></div></dialog>
-  <dialog id="delete-dialog" class="delete-dialog" aria-labelledby="delete-title" aria-describedby="delete-description"><span class="section-overline">DOWNLOAD FILE</span><h2 id="delete-title">删除这份构建产物？</h2><p id="delete-target" class="delete-target"></p><p id="delete-description">这会从当前私有仓库分支的 sources/Download 中删除该文件。源码、Actions 记录、Git 提交历史和已下载文件保留；旧提交仍可能保留历史副本。最后一个文件删除后，空的 Download 文件夹会消失。</p><div class="dialog-actions"><button id="cancel-delete" type="button" class="secondary-button" autofocus>保留文件</button><button id="confirm-delete" type="button" class="danger-button">确认删除文件</button></div></dialog>
+  <dialog id="delete-dialog" class="delete-dialog" aria-labelledby="delete-title" aria-describedby="delete-description"><span class="section-overline">DOWNLOAD FILE</span><h2 id="delete-title">删除这份构建产物？</h2><p id="delete-target" class="delete-target"></p><p id="delete-description">这会从当前目标仓库分支的 sources/Download 中删除该文件。源码、Actions 记录、Git 提交历史和已下载文件保留；旧提交仍可能保留历史副本。最后一个文件删除后，空的 Download 文件夹会消失。</p><div class="dialog-actions"><button id="cancel-delete" type="button" class="secondary-button" autofocus>保留文件</button><button id="confirm-delete" type="button" class="danger-button">确认删除文件</button></div></dialog>
   <dialog id="delete-runs-dialog" class="delete-dialog" aria-labelledby="delete-runs-title" aria-describedby="delete-runs-description"><span class="section-overline">ACTIONS HISTORY</span><h2 id="delete-runs-title">永久删除所选 Actions 记录？</h2><p id="delete-runs-scope" class="delete-target"></p><ul id="delete-runs-targets" class="delete-runs-targets"></ul><p id="delete-runs-description">所选编译、网页发布或环境检查记录及对应日志会被删除，无法恢复。sources/Download 中的真实产物、项目源码、提交历史、已经发布的网页和本地下载不受影响；正在运行或排队的任务不会被选择。已删除编译记录的对应机器人通知结果会同步移除；通知容器和已发送邮件保留。手动同步需要 Token 的 Issues 读写权限。</p><div class="dialog-actions"><button id="cancel-delete-runs" type="button" class="secondary-button" autofocus>保留记录</button><button id="confirm-delete-runs" type="button" class="danger-button">确认永久删除</button></div></dialog>
   <dialog id="delete-project-dialog" class="delete-dialog" aria-labelledby="delete-project-title" aria-describedby="delete-project-description"><span class="section-overline">WHOLE PROJECT</span><h2 id="delete-project-title">删除整个项目？</h2><p id="delete-project-target" class="delete-target"></p><p id="delete-project-description">这会在一次提交中删除所选 sources/项目名 下的全部上传源码，并删除共享的 sources/Download 文件夹及其中所有 IPA、DEB、DYLIB。其他项目的源码不受影响；构建记录与日志继续保留。文件仍可能存在于 Git 历史中。</p><div class="dialog-actions"><button id="cancel-delete-project" type="button" class="secondary-button" autofocus>保留项目</button><button id="confirm-delete-project" type="button" class="danger-button">确认删除全部</button></div></dialog>
   <noscript><p class="noscript-message">请开启 JavaScript 以使用编译工作台。也可以到你自己的 GitHub 仓库，在 Actions 中发起构建。</p></noscript>

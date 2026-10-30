@@ -22,8 +22,12 @@ def release(profile="full", paths=None):
         path = ROOT / name
         if path.is_symlink() or not path.is_file() or not path.resolve().is_relative_to(ROOT):
             raise ValueError("Invalid tool release file: "+name)
-        files[name] = updater.digest(path.read_bytes())
-    return {"version":1,"upstream":updater.UPSTREAM,"profile":profile,"files":files}
+        if name != updater.DOCUMENTATION:
+            files[name] = updater.digest(path.read_bytes())
+    value = {"version":1,"upstream":updater.UPSTREAM,"profile":profile,"files":files}
+    if updater.DOCUMENTATION in candidates:
+        value["documentation"] = {updater.DOCUMENTATION: updater.digest((ROOT/updater.DOCUMENTATION).read_bytes())}
+    return value
 
 def publish(api, branch, value):
     """Refresh only the upstream release index; preserve all unrelated writes."""
@@ -31,7 +35,7 @@ def publish(api, branch, value):
         raise RuntimeError("Only the trusted upstream can publish a tool release baseline.")
     payload = (json.dumps(value, ensure_ascii=False, indent=2)+"\n").encode()
     expected = {p: hashlib.sha1(b"blob "+str(len(data)).encode()+b"\0"+data).hexdigest()
-                for p in value["files"] for data in [(ROOT/p).read_bytes()]}
+                for p in (value["files"] | value.get("documentation", {})) for data in [(ROOT/p).read_bytes()]}
     for attempt in range(3):
         head = api.call("GET", "/git/ref/heads/"+quote(branch,safe=""))["object"]["sha"]
         tree_sha, entries = api.tree(head)

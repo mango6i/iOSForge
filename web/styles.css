@@ -910,6 +910,11 @@ input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):focus { bord
 #workspace-status { margin: 0; padding: 8px 12px; border: 1px solid var(--border); border-radius: 7px; background: #f4f8ff; color: var(--muted); font-size: .8125rem; line-height: 1.5; overflow-wrap: anywhere; }
 #workspace-status[data-visibility="public"] { background: #fff8ef; border-color: #e8c48f; color: #825719; }
 #workspace-status[data-visibility="private"] { background: #f1fcf7; border-color: #afd9c5; color: #27674c; }
+.repository-label { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.repository-visibility { padding: 1px 7px; border: 1px solid var(--border); border-radius: 5px; font-size: .7rem; font-weight: 500; white-space: nowrap; color: var(--muted); }
+.repository-visibility[data-visibility="private"] { background: #f1fcf7; color: #27674c; border-color: #afd9c5; }
+.repository-visibility[data-visibility="public"] { background: #fff8ef; color: #825719; border-color: #e8c48f; }
+#workspace-picker { grid-column: 1 / -1; width: 100%; min-width: 0; min-height: 34px; font-size: .75rem; }
 
 .app-shell:has(> .app-navigation) { display: flex; flex-direction: column; }
 .app-navigation { min-height: 58px; padding: 8px 24px; display: flex; align-items: center; gap: 28px; border-bottom: 1px solid var(--border); background: #f9fbff; }

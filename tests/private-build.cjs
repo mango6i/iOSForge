@@ -5,7 +5,7 @@ const targetCode = source.slice(source.indexOf('function privateTargetKey('), so
 const consentCode = source.slice(source.indexOf('function rememberedUploadConsent('), source.indexOf('function updateUploadConsentMemory('));
 
 async function main() {
-  const state = { token: 'fixture-only-token', repo: { owner: 'owner', name: 'PrivateBuild' }, branch: 'main', workspace: { id: 7 } };
+  const state = { token: 'fixture-only-token', repo: { owner: 'owner', name: 'PrivateBuild' }, branch: 'main', workspace: { id: 7, private: true } };
   let repository = { id: 7, full_name: 'owner/PrivateBuild', private: true, owner: { login: 'owner', type: 'User' } }, reads = 0;
   const writes = [];
   let onRead;
@@ -19,22 +19,28 @@ async function main() {
     await c.githubOnce('/repos/owner/PrivateBuild' + path, { method: 'POST', body: '{}' });
   }
   assert.equal(writes.length, 6); assert.equal(reads, 6, 'Every private write gets a fresh visibility read');
+  state.workspace.private = false; repository.private = false;
+  await c.githubOnce('/repos/owner/PrivateBuild/git/blobs', { method: 'POST', body: '{}' });
+  assert.equal(writes.length, 7, 'An explicitly verified public target can receive its own writes');
+  repository.private = true;
+  await assert.rejects(c.githubOnce('/repos/owner/PrivateBuild/git/blobs', { method: 'POST' }), /变化/);
+  state.workspace.private = true;
   for (const visibility of [false, undefined]) {
     repository = { ...repository, private: visibility };
-    for (const method of ['POST', 'PUT', 'PATCH', 'DELETE']) await assert.rejects(c.githubOnce('/repos/owner/PrivateBuild/git/blobs', { method }), /PRIVATE|Private/);
-    assert.equal(writes.length, 6, 'Public and unknown targets receive no source body');
+    for (const method of ['POST', 'PUT', 'PATCH', 'DELETE']) await assert.rejects(c.githubOnce('/repos/owner/PrivateBuild/git/blobs', { method }), /变化/);
+    assert.equal(writes.length, 7, 'Changed and unknown visibility receive no source body');
   }
   repository = { ...repository, private: true, id: 8 };
-  await assert.rejects(c.githubOnce('/repos/owner/PrivateBuild/git/blobs', { method: 'POST' }), /Private/);
+  await assert.rejects(c.githubOnce('/repos/owner/PrivateBuild/git/blobs', { method: 'POST' }), /变化/);
   repository.id = 7;
   await assert.rejects(c.githubOnce('/repos/owner/PublicProject/git/blobs', { method: 'POST' }), /不一致/);
   onRead = () => { state.closed = true; };
   await assert.rejects(c.githubOnce('/repos/owner/PrivateBuild/git/blobs', { method: 'POST' }), /会话/);
-  assert.equal(writes.length, 6);
+  assert.equal(writes.length, 7);
   state.closed = false; onRead = null;
   c.fetch = async () => { throw new TypeError('Failed to fetch'); };
   await assert.rejects(c.githubOnce('/repos/owner/PrivateBuild/git/blobs', { method: 'POST' }), /网络/);
-  assert.equal(writes.length, 6);
+  assert.equal(writes.length, 7);
 
   let preferences = { version: 1, uploadConsent: {}, cleanup: {} };
   const repoInput = { value: '' }, branchInput = { value: 'main' }, message = {};
@@ -65,9 +71,9 @@ async function main() {
     rememberPrivateTarget() {}, updateLinks() {},
     github: async path => { verificationCalls.push(path); return path === '/user' ? { id: 9, login: 'owner' } : path.endsWith('/build.yml') ? { id: 8, state: 'active' } : repository; } });
   vm.runInContext(verifyCode, verification);
-  await assert.rejects(verification.verifyWorkspace({ fresh: true }), /Public/);
-  assert(!verificationCalls.some(path => path.endsWith('/build.yml')), 'Reject public target before looking for a build workflow');
-  assert.equal(state.workspace, null);
+  await verification.verifyWorkspace({ fresh: true });
+  assert.equal(state.workspace.private, false, 'Public target remains public and displays its actual visibility');
+  assert.equal(ui.dataset.visibility, 'public');
   repository.private = true; verificationCalls.length = 0;
   await verification.verifyWorkspace({ fresh: true, requireBuild: false });
   assert(!verificationCalls.some(path => path.endsWith('/build.yml')), 'Cleanup independently verifies ownership and privacy');
@@ -76,6 +82,6 @@ async function main() {
   await verification.verifyWorkspace();
   assert(verificationCalls.some(path => path.endsWith('/build.yml')), 'Cleanup verification cannot bypass a later build workflow check');
   assert.equal(state.workspace.buildReady, true);
-  console.log('PASS private destination: public/unknown/changed targets and lost sessions block writes; hosting stays separate; local preferences contain no Token');
+  console.log('PASS current repository: verified public and hidden modes, changed/unknown targets and lost sessions block writes; hosting stays separate; local preferences contain no Token');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

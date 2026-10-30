@@ -213,6 +213,10 @@ class GitHubApi:
         self.base = f"https://api.github.com/repos/{quote(owner, safe='')}/{quote(name, safe='')}"
         self.repository = repository
         self.token = token
+        visibility = os.environ.get("IOSFORGE_EXPECTED_VISIBILITY", "private")
+        if visibility not in {"private", "public"}:
+            raise RuntimeError("Invalid expected repository visibility.")
+        self.expected_private = visibility == "private"
 
     def request(
         self,
@@ -224,8 +228,8 @@ class GitHubApi:
     ) -> dict | list | None:
         if method != "GET":
             repository = self.request("GET", "")
-            if not isinstance(repository, dict) or repository.get("private") is not True or repository.get("full_name", "").casefold() != self.repository.casefold():
-                raise RuntimeError("Cleanup requires the same PRIVATE build repository; stopped before modifying files, records or notifications.")
+            if not isinstance(repository, dict) or repository.get("private") is not self.expected_private or repository.get("full_name", "").casefold() != self.repository.casefold():
+                raise RuntimeError("Cleanup repository identity or visibility changed; stopped before modifying files, records or notifications. Never falling back to another repository.")
         body = json.dumps(payload).encode("utf-8") if payload is not None else None
         request = Request(
             self.base + path,

@@ -13,6 +13,7 @@ from urllib.request import Request, urlopen
 
 UPSTREAM = "mango6i/iOSForge"
 MANIFEST = ".github/iosforge-release.json"
+DOCUMENTATION = "docs/private-build.md"
 BASE_FILES = {
     ".github/actions/setup-ios/action.yml", ".github/scripts/cleanup.py",
     ".github/scripts/publish_outputs.py", ".github/scripts/sync_upstream.py",
@@ -44,8 +45,16 @@ def validate(manifest: dict) -> dict[str, str]:
         raise RuntimeError("Release baseline includes an unsafe path or checksum.")
     return files
 
+def managed_files(manifest: dict) -> dict[str, str]:
+    files = dict(validate(manifest))
+    documentation = manifest.get("documentation", {})
+    if not isinstance(documentation, dict) or any(path != DOCUMENTATION or not isinstance(sha, str) or not re.fullmatch(r"[0-9a-f]{64}", sha) for path, sha in documentation.items()):
+        raise RuntimeError("Release documentation includes an unsafe path or checksum.")
+    files.update(documentation)
+    return files
+
 def plan(installed: dict, upstream: dict, current: dict[str, bytes], incoming: dict[str, bytes], workflows: bool):
-    baseline, latest = validate(installed), validate(upstream)
+    baseline, latest = managed_files(installed), managed_files(upstream)
     profile = installed.get("profile", "full")
     if profile not in {"full", "build-only"}:
         raise RuntimeError("Unknown installation profile.")
@@ -73,7 +82,11 @@ def plan(installed: dict, upstream: dict, current: dict[str, bytes], incoming: d
         raise RuntimeError("Local tool edits were preserved; no update was applied. Resolve these files first: " + ", ".join(conflicts))
     if not workflows and any(path.startswith(".github/workflows/") for path in changes):
         raise RuntimeError("This update changes workflow definitions. Add IOSFORGE_SYNC_TOKEN with Contents, Actions and Workflows read/write permissions to this repository; nothing was overwritten.")
-    updated = {"version":1, "upstream":UPSTREAM, "profile":profile, "files":latest}
+    updated = {"version":1, "upstream":UPSTREAM, "profile":profile, "files":{p:s for p,s in latest.items() if p != DOCUMENTATION}}
+    if DOCUMENTATION in latest:
+        # Older updaters validate only files. They can install the new updater
+        # first, then add this fixed documentation path on their following run.
+        updated["documentation"] = {DOCUMENTATION: latest[DOCUMENTATION]}
     return changes, updated
 
 class Api:
@@ -108,7 +121,7 @@ class Api:
                 raise RuntimeError("Root tool directory is incomplete; update stopped without changes.")
             entries = list(root["tree"])
             for item in root["tree"]:
-                if item["type"] == "tree" and item["path"] in {".github", "web", "iosforge", "scripts"}:
+                if item["type"] == "tree" and item["path"] in {".github", "web", "iosforge", "scripts", "docs"}:
                     subtree = self.call("GET", "/git/trees/" + item["sha"] + "?recursive=1")
                     if subtree.get("truncated"):
                         raise RuntimeError("Tool directory is incomplete; update stopped without changes.")
@@ -130,12 +143,12 @@ def synchronize(target: Api, upstream: Api, branch: str, workflows: bool) -> boo
     if MANIFEST not in local:
         raise RuntimeError("Install the latest iOSForge tool release once to establish a safe update baseline.")
     installed = json.loads(target.blob(local[MANIFEST]))
-    old = validate(installed)
+    old = managed_files(installed)
     upstream_info = upstream.call("GET", "")
     upstream_head = upstream.call("GET", "/git/ref/heads/"+quote(upstream_info["default_branch"],safe=""))["object"]["sha"]
     _, remote = upstream.tree(upstream_head)
     release = json.loads(upstream.blob(remote[MANIFEST]))
-    latest = validate(release)
+    latest = managed_files(release)
     wanted = set(old) | set(latest)
     if installed.get("profile") == "build-only":
         wanted = {p for p in wanted if not p.startswith("web/") and p != ".github/workflows/pages.yml"}
@@ -145,7 +158,7 @@ def synchronize(target: Api, upstream: Api, branch: str, workflows: bool) -> boo
     # Files already at the upstream version don't need to be downloaded twice.
     incoming.update({p:current[p] for p in wanted if p in latest and p in current and digest(current[p]) == latest[p]})
     changes, manifest = plan(installed, release, current, incoming, workflows)
-    if not changes and old == manifest["files"]:
+    if not changes and old == managed_files(manifest):
         print("Tool code is already current. User projects and settings were not touched.")
         return False
     manifest["upstream_commit"] = upstream_head
