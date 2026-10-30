@@ -72,6 +72,16 @@
           "issue_number": 5
         }
       ]
+    },
+    {
+      "timestamp": "2026-10-30T15:00:58+08:00",
+      "removed": [
+        {
+          "run_id": 41017279951,
+          "issue_number": 6,
+          "body_reset": true
+        }
+      ]
     }
   ]
 }
